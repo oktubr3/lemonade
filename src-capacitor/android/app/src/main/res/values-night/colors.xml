@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors -->
+    <color name="colorPrimary">#21262D</color>
+    <color name="colorPrimaryDark">#161B22</color>
+    <color name="colorAccent">#F8C471</color>
+    
+    <!-- Status bar and navigation bar colors for dark mode -->
+    <color name="statusBarColor">#161B22</color>
+    <color name="navigationBarColor">#21262D</color>
+    
+    <!-- Splash screen background for dark mode -->
+    <color name="splashScreenBackground">#21262D</color>
+</resources>

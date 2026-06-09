@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lemonade - The Password Manager Developers Actually Need</title>
+    <meta name="description" content="Your passwords, your .env, your API keys. All in one place, encrypted with AES-256. Browser extensions included.">
+    <meta name="keywords" content="password manager, env vault, developer tools, secrets management, API keys, .env files">
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Lemonade - Password Manager for Developers">
+    <meta property="og:description" content="The only password manager with Env Vault. Manage .env files, API keys, and secrets securely.">
+    <meta property="og:image" content="https://lemonadepass.app/assets/images/og-image.png">
+    <meta property="og:url" content="https://lemonadepass.app">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Lemonade - Password Manager for Developers">
+    <meta name="twitter:description" content="The only password manager with Env Vault. Manage .env files, API keys, and secrets securely.">
+    <meta name="twitter:image" content="https://lemonadepass.app/assets/images/og-image.png">
+
+    <!-- Umami Analytics -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="369b5e64-3934-4914-a9aa-9088272f3929"></script>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Language Selector Styles -->
+    <style>
+        .lang-selector {
+            position: relative;
+            margin-right: 8px;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-full);
+            padding: 8px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) var(--ease-out);
+        }
+
+        .lang-btn:hover {
+            border-color: var(--border);
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .lang-btn .lang-flag {
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .lang-btn .lang-code {
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .lang-btn .lang-arrow {
+            font-size: 0.625rem;
+            transition: transform var(--duration-fast) var(--ease-out);
+        }
+
+        .lang-selector.open .lang-arrow {
+            transform: rotate(180deg);
+        }
+
+        .lang-dropdown {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 160px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: all var(--duration-fast) var(--ease-out);
+            z-index: 1001;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .lang-selector.open .lang-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .lang-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            transition: all var(--duration-fast) var(--ease-out);
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .lang-option:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .lang-option.active {
+            background: var(--primary-glow);
+            color: var(--primary);
+        }
+
+        .lang-option .lang-flag {
+            font-size: 1.125rem;
+        }
+
+        .lang-option .lang-name {
+            flex: 1;
+        }
+
+        .lang-option .lang-check {
+            opacity: 0;
+            color: var(--success);
+        }
+
+        .lang-option.active .lang-check {
+            opacity: 1;
+        }
+
+        /* Light mode adjustments */
+        [data-theme="light"] .lang-dropdown {
+            box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Mobile: hide on small screens, show in menu */
+        @media (max-width: 768px) {
+            .lang-selector {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <a href="#" class="logo">
+                    <img src="assets/images/LemonadeLogo.png" alt="Lemonade" style="width:34px;height:34px;vertical-align:middle;">
+                    <span>Lemonade <span style="color:#FCD34D;">Password Manager</span></span>
+                </a>
+
+                <ul class="nav-links">
+                    <li><a href="#features" data-i18n="nav.features">Features</a></li>
+                    <li><a href="#env-vault" data-i18n="nav.envVault">Env Vault</a></li>
+                    <li><a href="#pricing" data-i18n="nav.pricing">Pricing</a></li>
+                    <li><a href="https://docs.lemonadepass.app" target="_blank" rel="noopener noreferrer" data-i18n="nav.docs">Docs</a></li>
+                </ul>
+
+                <div class="nav-cta">
+                    <!-- Language Selector -->
+                    <div class="lang-selector" id="langSelector">
+                        <button class="lang-btn" aria-label="Select language">
+                            <span class="lang-flag" id="currentFlag">🇺🇸</span>
+                            <span class="lang-code" id="currentLang">EN</span>
+                            <span class="lang-arrow">▼</span>
+                        </button>
+                        <div class="lang-dropdown">
+                            <button class="lang-option" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="es">
+                                <span class="lang-flag">🇪🇸</span>
+                                <span class="lang-name">Espanol</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="pt">
+                                <span class="lang-flag">🇧🇷</span>
+                                <span class="lang-name">Portugues</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="fr">
+                                <span class="lang-flag">🇫🇷</span>
+                                <span class="lang-name">Francais</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="de">
+                                <span class="lang-flag">🇩🇪</span>
+                                <span class="lang-name">Deutsch</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="zh">
+                                <span class="lang-flag">🇨🇳</span>
+                                <span class="lang-name">中文</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="ja">
+                                <span class="lang-flag">🇯🇵</span>
+                                <span class="lang-name">日本語</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                            <button class="lang-option" data-lang="ru">
+                                <span class="lang-flag">🇷🇺</span>
+                                <span class="lang-name">Русский</span>
+                                <span class="lang-check">✓</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="https://github.com/oktubr3/lemonade" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" data-i18n="nav.github">GitHub</a>
+                    <a href="https://app.lemonadepass.app/#/" class="btn btn-primary" data-i18n="nav.getHosted">Get Hosted</a>
+                    <button class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+                        <span class="theme-icon-light">☀️</span>
+                        <span class="theme-icon-dark">🌙</span>
+                    </button>
+                </div>
+
+                <button class="mobile-menu-btn" aria-label="Menu" id="mobileMenuBtn">☰</button>
+            </nav>
+
+            <!-- Mobile menu panel -->
+            <div class="mobile-menu" id="mobileMenu">
+                <a href="#features" data-i18n="nav.features">Features</a>
+                <a href="#env-vault" data-i18n="nav.envVault">Env Vault</a>
+                <a href="#pricing" data-i18n="nav.pricing">Pricing</a>
+                <a href="https://docs.lemonadepass.app" target="_blank" rel="noopener noreferrer" data-i18n="nav.docs">Docs</a>
+                <a href="https://app.lemonadepass.app/#/" data-i18n="nav.login">Login</a>
+                <a href="https://app.lemonadepass.app/#/" class="btn btn-primary" data-i18n="nav.getStarted">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <div class="hero-badge">
+                        <span>🍋</span>
+                        <span data-i18n="hero.badge">Now open source</span>
+                    </div>
+
+                    <h1 data-i18n="hero.title">Open-source password manager. Pay once, host anywhere.</h1>
+
+                    <p data-i18n="hero.subtitle">Your passwords, your .env, your API keys. Encrypted, on your infrastructure or ours.</p>
+
+                    <div class="hero-buttons">
+                        <a href="https://app.lemonadepass.app/#/" class="btn btn-primary btn-large" data-i18n="hero.cta.hosted">
+                            Get Hosted — $29 lifetime
+                        </a>
+                        <a href="https://github.com/oktubr3/lemonade" class="btn btn-secondary btn-large" data-i18n="hero.cta.selfHost" target="_blank" rel="noopener noreferrer">
+                            Self-host (free)
+                        </a>
+                    </div>
+
+                    <div class="hero-features">
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">✓</span>
+                            <span data-i18n="hero.features.oss">AGPLv3 open source</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">✓</span>
+                            <span data-i18n="hero.features.encryption">AES-256-GCM</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">✓</span>
+                            <span data-i18n="hero.features.extensions">Chrome & Firefox extensions</span>
+                        </div>
+                        <div class="hero-feature">
+                            <span class="hero-feature-icon">✓</span>
+                            <span data-i18n="hero.features.noSubscription">No subscription</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-image">
+                    <div class="hero-phones">
+                        <img src="assets/images/hero-envvault.jpeg" alt="Lemonade Env Vault - Manage your .env files securely" class="hero-phone hero-phone-back" loading="eager">
+                        <img src="assets/images/hero-grid.jpeg" alt="Lemonade Password Manager - Beautiful grid view" class="hero-phone hero-phone-front" loading="eager">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Env Vault Feature Highlight -->
+    <section class="feature-highlight" id="env-vault">
+        <div class="container">
+            <div class="feature-highlight-content">
+                <div class="feature-highlight-text">
+                    <span class="feature-label" data-i18n="envVault.label">🔐 Built-in</span>
+                    <h2 data-i18n="envVault.title">The Env Vault</h2>
+                    <p data-i18n="envVault.description">Import your entire project folder. We'll find every .env, .npmrc, credentials.json, and secret file automatically.</p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <span class="feature-list-icon">✓</span>
+                            <span data-i18n="envVault.features.dragDrop">Drag & drop entire project folders</span>
+                        </li>
+                        <li>
+                            <span class="feature-list-icon">✓</span>
+                            <span data-i18n="envVault.features.autoDetect">Auto-detect .env, AWS, GCP, Firebase credentials</span>
+                        </li>
+                        <li>
+                            <span class="feature-list-icon">✓</span>
+                            <span data-i18n="envVault.features.aiFiles">Save AI context files (CLAUDE.md, AGENTS.md)</span>
+                        </li>
+                        <li>
+                            <span class="feature-list-icon">✓</span>
+                            <span data-i18n="envVault.features.versioning">Version tracking for your secrets</span>
+                        </li>
+                        <li>
+                            <span class="feature-list-icon">✓</span>
+                            <span data-i18n="envVault.features.export">Export back to .env format anytime</span>
+                        </li>
+                    </ul>
+
+                    <a href="https://app.lemonadepass.app/#/" class="btn btn-primary" data-i18n="envVault.cta">Try Env Vault</a>
+                </div>
+
+                <div class="feature-highlight-image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="features.title">Everything You Need</h2>
+                <p data-i18n="features.subtitle">Built by developers, for developers. No bloat, no complexity, just the features that matter.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3 data-i18n="features.cards.encryption.title">AES-256-GCM Encryption</h3>
+                    <p data-i18n="features.cards.encryption.description">Server-side AES-256-GCM encryption for all your passwords and secrets. Military-grade authenticated encryption with integrity verification.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3 data-i18n="features.cards.extensions.title">Browser Extensions</h3>
+                    <p data-i18n="features.cards.extensions.description">One-click autofill for Chrome and Firefox. Never manually type a password again.</p>
+                    <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">
+                        <a href="https://chromewebstore.google.com/detail/lemonade-password-manager/lblkhcfbpmelkmhjdpdkfamicaganhik" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-full);font-size:0.75rem;color:var(--text-secondary);font-weight:500;text-decoration:none;transition:all 150ms ease;">
+                            Chrome Web Store
+                        </a>
+                        <a href="https://addons.mozilla.org/firefox/addon/lemonade-password-manager/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-hover);border:1px solid var(--border);border-radius:var(--radius-full);font-size:0.75rem;color:var(--text-secondary);font-weight:500;text-decoration:none;transition:all 150ms ease;">
+                            Firefox Add-ons
+                        </a>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3 data-i18n="features.cards.pwa.title">Installable PWA</h3>
+                    <p data-i18n="features.cards.pwa.description">Install Lemonade on any device from the browser. No app store needed. Lightweight, fast, and always up to date.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🎲</div>
+                    <h3 data-i18n="features.cards.generator.title">Password Generator</h3>
+                    <p data-i18n="features.cards.generator.description">Generate strong, unique passwords with a single click. Cryptographically secure randomness.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3 data-i18n="features.cards.search.title">Smart Search</h3>
+                    <p data-i18n="features.cards.search.description">Find any password instantly. Search by name, URL, or username.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3 data-i18n="features.cards.sharing.title">Secure Sharing</h3>
+                    <p data-i18n="features.cards.sharing.description">Share passwords with team members securely. Grant access without revealing the actual password.</p>
+                </div>
+
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔑</div>
+                    <h3 data-i18n="features.cards.passkeys.title">WebAuthn / Passkeys</h3>
+                    <p data-i18n="features.cards.passkeys.description">Biometric authentication with fingerprint or face recognition. Passwordless login using the FIDO2 standard.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3 data-i18n="features.cards.i18n.title">10 Languages</h3>
+                    <p data-i18n="features.cards.i18n.description">Available in English, Spanish, Portuguese, French, German, Chinese, Japanese, Russian, and more. Use Lemonade in your language.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">♿</div>
+                    <h3 data-i18n="features.cards.accessibility.title">Accessibility & Auto-Lock</h3>
+                    <p data-i18n="features.cards.accessibility.description">Focus mode, high contrast, and grayscale filters. Background timeout auto-lock keeps your vault secure when you step away.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🗑️</div>
+                    <h3 data-i18n="features.cards.trash.title">Trash & Password History</h3>
+                    <p data-i18n="features.cards.trash.description">Never lose a password. 30-day trash with restore, plus full password change history so you can always go back.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 data-i18n="features.cards.totp.title">TOTP Authenticator</h3>
+                    <p data-i18n="features.cards.totp.description">Built-in 2FA code generator with QR code scanning. Keep your credentials and authentication codes together.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3 data-i18n="features.cards.notes.title">Secure Notes</h3>
+                    <p data-i18n="features.cards.notes.description">Encrypted standalone notes for sensitive information. Store recovery codes, PINs, and private documents securely.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🆘</div>
+                    <h3 data-i18n="features.cards.emergency.title">Emergency Access</h3>
+                    <p data-i18n="features.cards.emergency.description">Designate trusted contacts who can request access to your passwords in emergencies, with configurable waiting periods.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧩</div>
+                    <h3 data-i18n="features.cards.customFields.title">Custom Fields</h3>
+                    <p data-i18n="features.cards.customFields.description">Add custom fields to any entry: text, hidden passwords, or PINs. Store security questions, backup codes, or any extra data you need.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📦</div>
+                    <h3 data-i18n="features.cards.importExport.title">Import & Export</h3>
+                    <p data-i18n="features.cards.importExport.description">Import from Bitwarden, 1Password, or CSV. Export your data anytime. Your passwords are never locked in.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3 data-i18n="features.cards.reusedDetection.title">Reused Password Detection</h3>
+                    <p data-i18n="features.cards.reusedDetection.description">Automatically detect when you use the same password across multiple accounts. Optional and privacy-respecting.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="pricing" id="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-i18n="pricing.title">Two paths, same product.</h2>
+                <p data-i18n="pricing.subtitle">No subscriptions. No feature gating. No surprises.</p>
+            </div>
+
+            <div class="pricing-grid">
+                <!-- Self-host -->
+                <div class="pricing-card">
+                    <div class="pricing-name" data-i18n="pricing.plans.selfHost.name">Self-host</div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount">$0</span>
+                        <span class="pricing-period" data-i18n="pricing.plans.selfHost.period">forever</span>
+                    </div>
+                    <p class="pricing-description" data-i18n="pricing.plans.selfHost.description">Run it on your own Firebase project</p>
+                    <ul class="pricing-features">
+                        <li data-i18n="pricing.plans.selfHost.features.oss">Full source code (AGPLv3)</li>
+                        <li data-i18n="pricing.plans.selfHost.features.unlimited">Unlimited passwords, secrets, notes</li>
+                        <li data-i18n="pricing.plans.selfHost.features.allFeatures">Every feature available — no premium tier</li>
+                        <li data-i18n="pricing.plans.selfHost.features.ownInfra">Your Firebase, your data, your control</li>
+                        <li data-i18n="pricing.plans.selfHost.features.extensions">Load the extensions in dev mode</li>
+                        <li data-i18n="pricing.plans.selfHost.features.cost">Typically &lt; $1/month in Firebase usage</li>
+                    </ul>
+                    <a href="https://github.com/oktubr3/lemonade" class="btn btn-secondary" data-i18n="pricing.cta.selfHost" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+                </div>
+
+                <!-- Hosted -->
+                <div class="pricing-card featured">
+                    <div class="pricing-name" data-i18n="pricing.plans.hosted.name">Hosted by us</div>
+                    <div class="pricing-price">
+                        <span class="pricing-amount">$29</span>
+                        <span class="pricing-period" data-i18n="pricing.plans.hosted.period">lifetime</span>
+                    </div>
+                    <p class="pricing-description" data-i18n="pricing.plans.hosted.description">We run it for you. One payment, no recurring fees.</p>
+                    <ul class="pricing-features">
+                        <li data-i18n="pricing.plans.hosted.features.everything">Everything in Self-host</li>
+                        <li data-i18n="pricing.plans.hosted.features.noSetup">No Firebase setup — just sign in and use it</li>
+                        <li data-i18n="pricing.plans.hosted.features.extensions">Official Chrome & Firefox extensions</li>
+                        <li data-i18n="pricing.plans.hosted.features.updates">Updates and security patches managed for you</li>
+                        <li data-i18n="pricing.plans.hosted.features.sharing">Sharing & emergency access with other users</li>
+                        <li data-i18n="pricing.plans.hosted.features.export">Export your data anytime — zero lock-in</li>
+                    </ul>
+                    <a href="https://app.lemonadepass.app/#/" class="btn btn-primary" data-i18n="pricing.cta.getHosted">Get Lemonade Hosted</a>
+                </div>
+
+            </div>
+
+            <p class="pricing-footnote" style="text-align: center; margin-top: 2rem; opacity: 0.7; font-size: 0.9rem;" data-i18n="pricing.lifetimeNote">
+                "Lifetime" means while the project exists. If we ever shut down the hosted version, your data exports cleanly and you can self-host the OSS code — zero lock-in by design.
+            </p>
+        </div>
+    </section>
+
+    <!-- Manifesto -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="testimonial-card">
+                <p class="testimonial-quote" data-i18n="testimonial.quote">Password managers should be serious tools, not marketing funnels. Lemonade is open source so the crypto and key handling are auditable, and you can run it on your own infrastructure if you want — same product, no feature gating.</p>
+                <p class="testimonial-author" data-i18n="testimonial.author">— Mauro, maintainer</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta">
+        <div class="container">
+            <h2 data-i18n="cta.title">Pick the path that fits you.</h2>
+            <p data-i18n="cta.subtitle">Self-host on your own Firebase for free, or pay once and let us run it.</p>
+            <a href="https://app.lemonadepass.app/#/" class="btn btn-primary btn-large" data-i18n="cta.button">Get Hosted — $29 lifetime</a>
+            <a href="https://github.com/oktubr3/lemonade" class="btn btn-secondary btn-large" data-i18n="cta.buttonSelfHost" target="_blank" rel="noopener noreferrer" style="margin-left: 1rem;">View source on GitHub</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <ul class="footer-links">
+                    <li><a href="https://docs.lemonadepass.app" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs">Docs</a></li>
+                    <li><a href="privacy.html" data-i18n="footer.privacy">Privacy Policy</a></li>
+                    <li><a href="terms.html" data-i18n="footer.terms">Terms of Service</a></li>
+                    <li><a href="https://github.com/oktubr3" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+                    <li><a href="mailto:maurohabbaby.dev@gmail.com" data-i18n="footer.contact">Contact</a></li>
+                </ul>
+
+                <p class="footer-copy">&copy; <span id="year"></span> Lemonade Password Manager. <span data-i18n="footer.rights">All rights reserved.</span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Set current year -->
+    <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+
+    <!-- Translations -->
+    <script>
+        const translations = {
+            en: {
+                'nav.features': 'Features',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Pricing',
+                'nav.login': 'Login',
+                'nav.github': 'GitHub',
+                'nav.getStarted': 'Get Started',
+                'nav.getHosted': 'Get Hosted',
+                'hero.badge': 'Now open source',
+                'hero.title': 'Open-source password manager. Pay once, host anywhere.',
+                'hero.subtitle': 'Your passwords, your .env, your API keys. Encrypted, on your infrastructure or ours.',
+                'hero.cta.hosted': 'Get Hosted — $29 lifetime',
+                'hero.cta.selfHost': 'Self-host (free)',
+                'hero.features.oss': 'AGPLv3 open source',
+                'hero.features.encryption': 'AES-256-GCM',
+                'hero.features.extensions': 'Chrome & Firefox extensions',
+                'hero.features.noSubscription': 'No subscription',
+                'envVault.label': '🔐 Built-in',
+                'envVault.title': 'The Env Vault',
+                'envVault.description': "Import your entire project folder. We'll find every .env, .npmrc, credentials.json, and secret file automatically.",
+                'envVault.features.dragDrop': 'Drag & drop entire project folders',
+                'envVault.features.autoDetect': 'Auto-detect .env, AWS, GCP, Firebase credentials',
+                'envVault.features.aiFiles': 'Save AI context files (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Version tracking for your secrets',
+                'envVault.features.export': 'Export back to .env format anytime',
+                'envVault.cta': 'Try Env Vault',
+                'features.title': 'Everything You Need',
+                'features.subtitle': 'Built by developers, for developers. No bloat, no complexity, just the features that matter.',
+                'features.cards.encryption.title': 'AES-256-GCM Encryption',
+                'features.cards.encryption.description': 'Server-side AES-256-GCM encryption for all your passwords and secrets. Military-grade authenticated encryption with integrity verification.',
+                'features.cards.extensions.title': 'Browser Extensions',
+                'features.cards.extensions.description': 'One-click autofill for Chrome and Firefox. Never manually type a password again.',
+                'features.cards.pwa.title': 'Installable PWA',
+                'features.cards.pwa.description': 'Install Lemonade on any device from the browser. No app store needed. Lightweight, fast, and always up to date.',
+                'features.cards.generator.title': 'Password Generator',
+                'features.cards.generator.description': 'Generate strong, unique passwords with a single click. Cryptographically secure randomness.',
+                'features.cards.search.title': 'Smart Search',
+                'features.cards.search.description': 'Find any password instantly. Search by name, URL, or username.',
+                'features.cards.sharing.title': 'Secure Sharing',
+                'features.cards.sharing.description': 'Share passwords with team members securely. Grant access without revealing the actual password.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Biometric authentication with fingerprint or face recognition. Passwordless login using the FIDO2 standard.',
+                'features.cards.i18n.title': '10 Languages',
+                'features.cards.i18n.description': 'Available in English, Spanish, Portuguese, French, German, Chinese, Japanese, Russian, and more. Use Lemonade in your language.',
+                'features.cards.accessibility.title': 'Accessibility & Auto-Lock',
+                'features.cards.accessibility.description': 'Focus mode, high contrast, and grayscale filters. Background timeout auto-lock keeps your vault secure when you step away.',
+                'features.cards.trash.title': 'Trash & Password History',
+                'features.cards.trash.description': 'Never lose a password. 30-day trash with restore, plus full password change history so you can always go back.',
+                'features.cards.totp.title': 'TOTP Authenticator',
+                'features.cards.totp.description': 'Built-in 2FA code generator with QR code scanning. Keep your credentials and authentication codes together.',
+                'features.cards.notes.title': 'Secure Notes',
+                'features.cards.notes.description': 'Encrypted standalone notes for sensitive information. Store recovery codes, PINs, and private documents securely.',
+                'features.cards.emergency.title': 'Emergency Access',
+                'features.cards.emergency.description': 'Designate trusted contacts who can request access to your passwords in emergencies, with configurable waiting periods.',
+                'features.cards.customFields.title': 'Custom Fields',
+                'features.cards.customFields.description': 'Add custom fields to any entry: text, hidden passwords, or PINs. Store security questions, backup codes, or any extra data you need.',
+                'features.cards.importExport.title': 'Import & Export',
+                'features.cards.importExport.description': 'Import from Bitwarden, 1Password, or CSV. Export your data anytime. Your passwords are never locked in.',
+                'features.cards.reusedDetection.title': 'Reused Password Detection',
+                'features.cards.reusedDetection.description': 'Automatically detect when you use the same password across multiple accounts. Optional and privacy-respecting.',
+                'pricing.title': 'Two paths, same product.',
+                'pricing.subtitle': 'No subscriptions. No feature gating. No surprises.',
+                'pricing.plans.selfHost.name': 'Self-host',
+                'pricing.plans.selfHost.period': 'forever',
+                'pricing.plans.selfHost.description': 'Run it on your own Firebase project',
+                'pricing.plans.selfHost.features.oss': 'Full source code (AGPLv3)',
+                'pricing.plans.selfHost.features.unlimited': 'Unlimited passwords, secrets, notes',
+                'pricing.plans.selfHost.features.allFeatures': 'Every feature available — no premium tier',
+                'pricing.plans.selfHost.features.ownInfra': 'Your Firebase, your data, your control',
+                'pricing.plans.selfHost.features.extensions': 'Load the extensions in dev mode',
+                'pricing.plans.selfHost.features.cost': 'Typically < $1/month in Firebase usage',
+                'pricing.plans.hosted.name': 'Hosted by us',
+                'pricing.plans.hosted.period': 'lifetime',
+                'pricing.plans.hosted.description': 'We run it for you. One payment, no recurring fees.',
+                'pricing.plans.hosted.features.everything': 'Everything in Self-host',
+                'pricing.plans.hosted.features.noSetup': 'No Firebase setup — just sign in and use it',
+                'pricing.plans.hosted.features.extensions': 'Official Chrome & Firefox extensions',
+                'pricing.plans.hosted.features.updates': 'Updates and security patches managed for you',
+                'pricing.plans.hosted.features.sharing': 'Sharing & emergency access with other users',
+                'pricing.plans.hosted.features.export': 'Export your data anytime — zero lock-in',
+                'pricing.cta.selfHost': 'View on GitHub',
+                'pricing.cta.getHosted': 'Get Lemonade Hosted',
+                'pricing.lifetimeNote': '"Lifetime" means while the project exists. If we ever shut down the hosted version, your data exports cleanly and you can self-host the OSS code — zero lock-in by design.',
+                'testimonial.quote': 'Password managers should be serious tools, not marketing funnels. Lemonade is open source so the crypto and key handling are auditable, and you can run it on your own infrastructure if you want — same product, no feature gating.',
+                'testimonial.author': '— Mauro, maintainer',
+                'cta.title': 'Pick the path that fits you.',
+                'cta.subtitle': 'Self-host on your own Firebase for free, or pay once and let us run it.',
+                'cta.button': 'Get Hosted — $29 lifetime',
+                'cta.buttonSelfHost': 'View source on GitHub',
+                'footer.privacy': 'Privacy Policy',
+                'footer.terms': 'Terms of Service',
+                'footer.contact': 'Contact',
+                'footer.rights': 'All rights reserved.'
+            },
+            es: {
+                'nav.features': 'Funciones',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Precios',
+                'nav.login': 'Iniciar sesion',
+                'nav.github': 'GitHub',
+                'nav.getStarted': 'Comenzar',
+                'nav.getHosted': 'Hosted',
+                'hero.badge': 'Ahora open source',
+                'hero.title': 'Password manager open source. Pagás una vez, lo corrés donde quieras.',
+                'hero.subtitle': 'Tus contraseñas, tus .env, tus API keys. Encriptado, en tu infraestructura o la nuestra.',
+                'hero.cta.hosted': 'Hosted — $29 lifetime',
+                'hero.cta.selfHost': 'Self-host (gratis)',
+                'hero.features.oss': 'Open source AGPLv3',
+                'hero.features.encryption': 'AES-256-GCM',
+                'hero.features.extensions': 'Extensiones Chrome y Firefox',
+                'hero.features.noSubscription': 'Sin suscripción',
+                'envVault.label': '🔐 Incluido',
+                'envVault.title': 'El Env Vault',
+                'envVault.description': 'Importa tu carpeta de proyecto completa. Encontraremos cada .env, .npmrc, credentials.json y archivo secreto automaticamente.',
+                'envVault.features.dragDrop': 'Arrastra y suelta carpetas de proyecto completas',
+                'envVault.features.autoDetect': 'Auto-detecta .env, AWS, GCP, credenciales de Firebase',
+                'envVault.features.aiFiles': 'Guarda archivos de contexto IA (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Control de versiones para tus secretos',
+                'envVault.features.export': 'Exporta a formato .env cuando quieras',
+                'envVault.cta': 'Probar Env Vault',
+                'features.title': 'Todo lo que Necesitas',
+                'features.subtitle': 'Hecho por desarrolladores, para desarrolladores. Sin bloat, sin complejidad, solo las funciones que importan.',
+                'features.cards.encryption.title': 'Encriptacion AES-256',
+                'features.cards.encryption.description': 'Encriptacion de grado militar para todas tus contrasenas y secretos. Tus datos se encriptan antes de salir de tu dispositivo.',
+                'features.cards.extensions.title': 'Extensiones de Navegador',
+                'features.cards.extensions.description': 'Autocompletado con un click para Chrome y Firefox. Nunca mas escribas una contrasena manualmente.',
+                'features.cards.pwa.title': 'PWA Instalable',
+                'features.cards.pwa.description': 'Instala Lemonade en cualquier dispositivo desde el navegador. Sin app store. Liviana, rapida y siempre actualizada.',
+                'features.cards.generator.title': 'Generador de Contrasenas',
+                'features.cards.generator.description': 'Genera contrasenas fuertes y unicas con un solo click. Aleatoriedad criptograficamente segura.',
+                'features.cards.search.title': 'Busqueda Inteligente',
+                'features.cards.search.description': 'Encuentra cualquier contraseña al instante. Busca por nombre, URL o usuario.',
+                'features.cards.sharing.title': 'Compartir Seguro',
+                'features.cards.sharing.description': 'Comparte contrasenas con tu equipo de forma segura. Otorga acceso sin revelar la contrasena real.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Autenticacion biometrica con huella digital o reconocimiento facial. Login sin contrasena usando el estandar FIDO2.',
+                'features.cards.i18n.title': '10 Idiomas',
+                'features.cards.i18n.description': 'Disponible en ingles, espanol, portugues, frances, aleman, chino, japones, ruso y mas. Usa Lemonade en tu idioma.',
+                'features.cards.accessibility.title': 'Accesibilidad y Bloqueo Automatico',
+                'features.cards.accessibility.description': 'Modo enfoque, alto contraste y filtros de escala de grises. Bloqueo automatico por inactividad mantiene tu boveda segura.',
+                'features.cards.trash.title': 'Papelera e Historial',
+                'features.cards.trash.description': 'Nunca pierdas una contraseña. Papelera de 30 dias con restauracion, mas historial completo de cambios de contraseña.',
+                'features.cards.totp.title': 'Autenticador TOTP',
+                'features.cards.totp.description': 'Generador de codigos 2FA integrado con escaneo de codigo QR. Tus credenciales y codigos de autenticacion en un solo lugar.',
+                'features.cards.notes.title': 'Notas Seguras',
+                'features.cards.notes.description': 'Notas encriptadas para informacion sensible. Guarda codigos de recuperacion, PINs y documentos privados de forma segura.',
+                'features.cards.emergency.title': 'Acceso de Emergencia',
+                'features.cards.emergency.description': 'Designa contactos de confianza que pueden solicitar acceso a tus contraseñas en emergencias, con periodos de espera configurables.',
+                'features.cards.customFields.title': 'Campos Personalizados',
+                'features.cards.customFields.description': 'Agrega campos personalizados a cualquier entrada: texto, contraseñas ocultas o PINs. Guarda preguntas de seguridad, codigos de respaldo o cualquier dato extra.',
+                'features.cards.importExport.title': 'Importar y Exportar',
+                'features.cards.importExport.description': 'Importa desde Bitwarden, 1Password o CSV. Exporta tus datos cuando quieras. Tus contraseñas nunca quedan atrapadas.',
+                'features.cards.reusedDetection.title': 'Deteccion de Contraseñas Reutilizadas',
+                'features.cards.reusedDetection.description': 'Detecta automaticamente cuando usas la misma contraseña en multiples cuentas. Opcional y respetuoso con tu privacidad.',
+                'pricing.title': 'Dos caminos, mismo producto.',
+                'pricing.subtitle': 'Sin suscripciones. Sin features gated. Sin sorpresas.',
+                'pricing.plans.selfHost.name': 'Self-host',
+                'pricing.plans.selfHost.period': 'siempre',
+                'pricing.plans.selfHost.description': 'Lo corrés en tu propio proyecto de Firebase',
+                'pricing.plans.selfHost.features.oss': 'Código fuente completo (AGPLv3)',
+                'pricing.plans.selfHost.features.unlimited': 'Contraseñas, secretos y notas ilimitadas',
+                'pricing.plans.selfHost.features.allFeatures': 'Todas las features — no hay tier premium',
+                'pricing.plans.selfHost.features.ownInfra': 'Tu Firebase, tus datos, tu control',
+                'pricing.plans.selfHost.features.extensions': 'Cargás las extensiones en modo dev',
+                'pricing.plans.selfHost.features.cost': 'Típicamente < $1/mes en uso de Firebase',
+                'pricing.plans.hosted.name': 'Hosted por nosotros',
+                'pricing.plans.hosted.period': 'lifetime',
+                'pricing.plans.hosted.description': 'Lo corremos por vos. Un pago, sin cuotas mensuales.',
+                'pricing.plans.hosted.features.everything': 'Todo lo de Self-host',
+                'pricing.plans.hosted.features.noSetup': 'Sin configurar Firebase — entrás y listo',
+                'pricing.plans.hosted.features.extensions': 'Extensiones oficiales Chrome y Firefox',
+                'pricing.plans.hosted.features.updates': 'Updates y parches de seguridad gestionados',
+                'pricing.plans.hosted.features.sharing': 'Compartir y emergency access con otros usuarios',
+                'pricing.plans.hosted.features.export': 'Exportás tus datos cuando quieras — cero lock-in',
+                'pricing.cta.selfHost': 'Ver en GitHub',
+                'pricing.cta.getHosted': 'Obtener Lemonade Hosted',
+                'pricing.lifetimeNote': '"Lifetime" significa mientras el proyecto exista. Si alguna vez cerramos el servicio hosted, tus datos se exportan limpio y podés self-hostear el código OSS — cero lock-in por diseño.',
+                'testimonial.quote': 'Un password manager debería ser una herramienta seria, no un embudo de marketing. Lemonade es open source para que la cripto y el manejo de claves sean auditables, y podés correrlo en tu propia infraestructura si querés — mismo producto, sin features gated.',
+                'testimonial.author': '— Mauro, maintainer',
+                'cta.title': 'Elegí el camino que te conviene.',
+                'cta.subtitle': 'Self-host en tu propio Firebase gratis, o pagás una vez y lo corremos nosotros.',
+                'cta.button': 'Hosted — $29 lifetime',
+                'cta.buttonSelfHost': 'Ver código en GitHub',
+                'pricing.period.month': '/mes',
+                'pricing.period.userMonth': '/usuario/mes',
+                'pricing.plans.free.name': 'Gratis',
+                'pricing.plans.free.description': 'Perfecto para comenzar',
+                'pricing.plans.free.features.passwords': '15 contraseñas',
+                'pricing.plans.free.features.extension': 'Extensiones de navegador (Chrome y Firefox)',
+                'pricing.plans.free.features.totp': 'Autenticador 2FA con escaneo QR',
+                'pricing.plans.free.features.sharing': 'Compartir seguro',
+                'pricing.plans.free.features.passkeys': 'Desbloqueo biometrico (Passkeys)',
+                'pricing.plans.free.features.importExport': 'Importar y Exportar',
+                'pricing.plans.premium.name': 'Premium',
+                'pricing.plans.premium.description': 'Para usuarios avanzados y desarrolladores',
+                'pricing.plans.premium.features.unlimited': 'Contraseñas ilimitadas',
+                'pricing.plans.premium.features.everything': 'Todo lo de Gratis',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'Notas Seguras',
+                'pricing.plans.premium.features.emergency': 'Acceso de Emergencia',
+                'pricing.plans.premium.features.security': 'Deteccion de leaks y analisis de seguridad',
+                'pricing.plans.premium.features.support': 'Soporte prioritario',
+                'pricing.plans.teams.name': 'Equipos',
+                'pricing.plans.teams.description': 'Para equipos y organizaciones',
+                'pricing.plans.teams.features.everything': 'Todo lo de Premium',
+                'pricing.plans.teams.features.sharing': 'Compartir en equipo',
+                'pricing.plans.teams.features.admin': 'Panel de administracion',
+                'pricing.plans.teams.features.audit': 'Registros de auditoria',
+                'pricing.plans.teams.features.sso': 'Integracion SSO',
+                'pricing.cta.getStarted': 'Comenzar',
+                'pricing.cta.startTrial': 'Prueba Gratis',
+                'pricing.cta.contact': 'Contactar Ventas',
+                'testimonial.quote': 'Lemonade no es solo otro password manager. Es la bóveda que guarda todo lo que no podés commitear: .env, credentials, API keys, tus archivos CLAUDE.md. Encriptado, sincronizado, tuyo.',
+                'testimonial.author': '— El Desarrollador',
+                'cta.title': '¿Listo para Simplificar tu Seguridad?',
+                'cta.subtitle': 'Unete a los desarrolladores que confian en Lemonade para gestionar sus contrasenas y secretos.',
+                'cta.button': 'Prueba Gratis',
+                'footer.privacy': 'Politica de Privacidad',
+                'footer.terms': 'Terminos de Servicio',
+                'footer.contact': 'Contacto',
+                'footer.rights': 'Todos los derechos reservados.'
+            },
+            pt: {
+                'nav.features': 'Recursos',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Precos',
+                'nav.login': 'Entrar',
+                'nav.getStarted': 'Comecar',
+                'hero.badge': 'Agora com Env Vault',
+                'hero.title': 'Seguro, Simples, Bonito. Feito para Devs.',
+                'hero.subtitle': 'Suas senhas, seus .env, suas API keys. Tudo em um só lugar, criptografado.',
+                'hero.cta.trial': 'Teste Gratis',
+                'hero.cta.pricing': 'Ver Precos',
+                'hero.features.encryption': 'Criptografia AES-256',
+                'hero.features.extensions': 'Extensoes de Navegador',
+                'hero.features.pwa': 'PWA Instalable',
+                'hero.features.privacy': 'Privacidade Primeiro',
+                'envVault.label': '🔐 Recurso Exclusivo',
+                'envVault.title': 'O Env Vault',
+                'envVault.description': 'Importe sua pasta de projeto inteira. Encontraremos cada .env, .npmrc, credentials.json e arquivo secreto automaticamente.',
+                'envVault.features.dragDrop': 'Arraste e solte pastas de projeto inteiras',
+                'envVault.features.autoDetect': 'Auto-detecta .env, AWS, GCP, credenciais Firebase',
+                'envVault.features.aiFiles': 'Salva arquivos de contexto IA (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Controle de versao para seus segredos',
+                'envVault.features.export': 'Exporte para formato .env quando quiser',
+                'envVault.cta': 'Probar Env Vault',
+                'features.title': 'Tudo que Voce Precisa',
+                'features.subtitle': 'Feito por desenvolvedores, para desenvolvedores. Sem bloat, sem complexidade, apenas os recursos que importam.',
+                'features.cards.encryption.title': 'Criptografia AES-256',
+                'features.cards.encryption.description': 'Criptografia de nivel militar para todas suas senhas e segredos. Seus dados sao criptografados antes de sair do seu dispositivo.',
+                'features.cards.extensions.title': 'Extensoes de Navegador',
+                'features.cards.extensions.description': 'Preenchimento automatico com um clique para Chrome e Firefox. Nunca mais digite uma senha manualmente.',
+                'features.cards.pwa.title': 'PWA Instalavel',
+                'features.cards.pwa.description': 'Instale o Lemonade em qualquer dispositivo pelo navegador. Sem app store. Leve, rapido e sempre atualizado.',
+                'features.cards.generator.title': 'Gerador de Senhas',
+                'features.cards.generator.description': 'Gere senhas fortes e unicas com um unico clique. Aleatoriedade criptograficamente segura.',
+                'features.cards.search.title': 'Busca Inteligente',
+                'features.cards.search.description': 'Encontre qualquer senha instantaneamente. Busque por nome, URL ou usuário.',
+                'features.cards.sharing.title': 'Compartilhamento Seguro',
+                'features.cards.sharing.description': 'Compartilhe senhas com membros da equipe de forma segura. Conceda acesso sem revelar a senha real.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Autenticacao biometrica com impressao digital ou reconhecimento facial. Login sem senha usando o padrao FIDO2.',
+                'features.cards.i18n.title': '10 Idiomas',
+                'features.cards.i18n.description': 'Disponivel em ingles, espanhol, portugues, frances, alemao, chines, japones, russo e mais. Use o Lemonade no seu idioma.',
+                'features.cards.accessibility.title': 'Acessibilidade e Bloqueio Automatico',
+                'features.cards.accessibility.description': 'Modo foco, alto contraste e filtros de escala de cinza. Bloqueio automatico por inatividade mantem seu cofre seguro.',
+                'features.cards.trash.title': 'Lixeira e Historico',
+                'features.cards.trash.description': 'Nunca perca uma senha. Lixeira de 30 dias com restauracao, mais historico completo de alteracoes de senha.',
+                'features.cards.totp.title': 'Autenticador TOTP',
+                'features.cards.totp.description': 'Gerador de codigos 2FA integrado com escaneamento de codigo QR. Suas credenciais e codigos de autenticacao juntos.',
+                'features.cards.notes.title': 'Notas Seguras',
+                'features.cards.notes.description': 'Notas criptografadas para informacoes sensiveis. Armazene codigos de recuperacao, PINs e documentos privados com seguranca.',
+                'features.cards.emergency.title': 'Acesso de Emergencia',
+                'features.cards.emergency.description': 'Designe contatos de confianca que podem solicitar acesso as suas senhas em emergencias, com periodos de espera configuraveis.',
+                'features.cards.customFields.title': 'Campos Personalizados',
+                'features.cards.customFields.description': 'Adicione campos personalizados a qualquer entrada: texto, senhas ocultas ou PINs. Armazene perguntas de seguranca, codigos de backup ou qualquer dado extra.',
+                'features.cards.importExport.title': 'Importar e Exportar',
+                'features.cards.importExport.description': 'Importe do Bitwarden, 1Password ou CSV. Exporte seus dados quando quiser. Suas senhas nunca ficam presas.',
+                'features.cards.reusedDetection.title': 'Deteccao de Senhas Reutilizadas',
+                'features.cards.reusedDetection.description': 'Detecta automaticamente quando voce usa a mesma senha em multiplas contas. Opcional e respeitoso com sua privacidade.',
+                'pricing.title': 'Precos Simples e Transparentes',
+                'pricing.subtitle': 'Comece gratis, atualize quando precisar de mais. Sem taxas ocultas, sem surpresas.',
+                'pricing.period.month': '/mes',
+                'pricing.period.userMonth': '/usuario/mes',
+                'pricing.plans.free.name': 'Gratis',
+                'pricing.plans.free.description': 'Perfeito para comecar',
+                'pricing.plans.free.features.passwords': '15 senhas',
+                'pricing.plans.free.features.extension': 'Extensoes de navegador (Chrome e Firefox)',
+                'pricing.plans.free.features.totp': 'Autenticador 2FA com escaneamento QR',
+                'pricing.plans.free.features.sharing': 'Compartilhamento seguro',
+                'pricing.plans.free.features.passkeys': 'Desbloqueio biometrico (Passkeys)',
+                'pricing.plans.free.features.importExport': 'Importar e Exportar',
+                'pricing.plans.premium.name': 'Premium',
+                'pricing.plans.premium.description': 'Para usuarios avancados e desenvolvedores',
+                'pricing.plans.premium.features.unlimited': 'Senhas ilimitadas',
+                'pricing.plans.premium.features.everything': 'Tudo do Gratis',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'Notas Seguras',
+                'pricing.plans.premium.features.emergency': 'Acesso de Emergencia',
+                'pricing.plans.premium.features.security': 'Deteccao de leaks e analise de seguranca',
+                'pricing.plans.premium.features.support': 'Suporte prioritario',
+                'pricing.plans.teams.name': 'Equipes',
+                'pricing.plans.teams.description': 'Para equipes e organizacoes',
+                'pricing.plans.teams.features.everything': 'Tudo do Premium',
+                'pricing.plans.teams.features.sharing': 'Compartilhamento em equipe',
+                'pricing.plans.teams.features.admin': 'Painel de administracao',
+                'pricing.plans.teams.features.audit': 'Logs de auditoria',
+                'pricing.plans.teams.features.sso': 'Integracao SSO',
+                'pricing.cta.getStarted': 'Comecar',
+                'pricing.cta.startTrial': 'Teste Gratis',
+                'pricing.cta.contact': 'Contatar Vendas',
+                'testimonial.quote': 'Lemonade não é só mais um gerenciador de senhas. É o cofre que guarda tudo que você não pode commitar: .env, credentials, API keys, seus arquivos CLAUDE.md. Criptografado, sincronizado, seu.',
+                'testimonial.author': '— O Desenvolvedor',
+                'cta.title': 'Pronto para Simplificar sua Seguranca?',
+                'cta.subtitle': 'Junte-se aos desenvolvedores que confiam no Lemonade para gerenciar suas senhas e segredos.',
+                'cta.button': 'Teste Gratis',
+                'footer.privacy': 'Politica de Privacidade',
+                'footer.terms': 'Termos de Servico',
+                'footer.contact': 'Contato',
+                'footer.rights': 'Todos os direitos reservados.'
+            },
+            fr: {
+                'nav.features': 'Fonctionnalites',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Tarifs',
+                'nav.login': 'Connexion',
+                'nav.getStarted': 'Commencer',
+                'hero.badge': 'Maintenant avec Env Vault',
+                'hero.title': 'Sécurisé, Simple, Élégant. Pensé pour les Devs.',
+                'hero.subtitle': 'Vos mots de passe, vos .env, vos clés API. Tout en un seul endroit, chiffré.',
+                'hero.cta.trial': 'Essai Gratuit',
+                'hero.cta.pricing': 'Voir les Tarifs',
+                'hero.features.encryption': 'Chiffrement AES-256',
+                'hero.features.extensions': 'Extensions Navigateur',
+                'hero.features.pwa': 'PWA Installable',
+                'hero.features.privacy': 'Confidentialite Avant Tout',
+                'envVault.label': '🔐 Fonctionnalite Exclusive',
+                'envVault.title': 'Le Env Vault',
+                'envVault.description': 'Importez votre dossier de projet complet. Nous trouverons chaque .env, .npmrc, credentials.json et fichier secret automatiquement.',
+                'envVault.features.dragDrop': 'Glissez-deposez des dossiers de projet entiers',
+                'envVault.features.autoDetect': 'Detection auto .env, AWS, GCP, identifiants Firebase',
+                'envVault.features.aiFiles': 'Sauvegarde les fichiers contexte IA (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Suivi des versions pour vos secrets',
+                'envVault.features.export': 'Exportez au format .env a tout moment',
+                'envVault.cta': 'Débloquer Env Vault',
+                'features.title': 'Tout ce dont Vous Avez Besoin',
+                'features.subtitle': 'Concu par des developpeurs, pour des developpeurs. Pas de superflu, pas de complexite, juste les fonctionnalites qui comptent.',
+                'features.cards.encryption.title': 'Chiffrement AES-256',
+                'features.cards.encryption.description': 'Chiffrement de niveau militaire pour tous vos mots de passe et secrets. Vos donnees sont chiffrees avant de quitter votre appareil.',
+                'features.cards.extensions.title': 'Extensions Navigateur',
+                'features.cards.extensions.description': 'Remplissage automatique en un clic pour Chrome et Firefox. Ne tapez plus jamais un mot de passe manuellement.',
+                'features.cards.pwa.title': 'PWA Installable',
+                'features.cards.pwa.description': 'Installez Lemonade sur n\'importe quel appareil depuis le navigateur. Pas besoin d\'app store. Leger, rapide et toujours a jour.',
+                'features.cards.generator.title': 'Generateur de Mots de Passe',
+                'features.cards.generator.description': 'Generez des mots de passe forts et uniques en un clic. Aleatoire cryptographiquement securise.',
+                'features.cards.search.title': 'Recherche Intelligente',
+                'features.cards.search.description': 'Trouvez n\'importe quel mot de passe instantanément. Recherchez par nom, URL ou utilisateur.',
+                'features.cards.sharing.title': 'Partage Securise',
+                'features.cards.sharing.description': 'Partagez des mots de passe avec les membres de l\'equipe en toute securite. Accordez l\'acces sans reveler le mot de passe reel.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Authentification biometrique par empreinte digitale ou reconnaissance faciale. Connexion sans mot de passe avec le standard FIDO2.',
+                'features.cards.i18n.title': '10 Langues',
+                'features.cards.i18n.description': 'Disponible en anglais, espagnol, portugais, francais, allemand, chinois, japonais, russe et plus. Utilisez Lemonade dans votre langue.',
+                'features.cards.accessibility.title': 'Accessibilite et Verrouillage Auto',
+                'features.cards.accessibility.description': 'Mode focus, contraste eleve et filtres de niveaux de gris. Le verrouillage automatique en arriere-plan securise votre coffre-fort.',
+                'features.cards.trash.title': 'Corbeille et Historique',
+                'features.cards.trash.description': 'Ne perdez jamais un mot de passe. Corbeille de 30 jours avec restauration, plus historique complet des changements.',
+                'features.cards.totp.title': 'Authentificateur TOTP',
+                'features.cards.totp.description': 'Generateur de codes 2FA integre avec scan de code QR. Vos identifiants et codes d\'authentification au meme endroit.',
+                'features.cards.notes.title': 'Notes Securisees',
+                'features.cards.notes.description': 'Notes chiffrees pour les informations sensibles. Stockez codes de recuperation, PINs et documents prives en toute securite.',
+                'features.cards.emergency.title': 'Acces d\'Urgence',
+                'features.cards.emergency.description': 'Designez des contacts de confiance qui peuvent demander l\'acces a vos mots de passe en cas d\'urgence, avec des delais d\'attente configurables.',
+                'features.cards.customFields.title': 'Champs Personnalises',
+                'features.cards.customFields.description': 'Ajoutez des champs personnalises a n\'importe quelle entree : texte, mots de passe masques ou PINs. Stockez questions de securite, codes de secours ou toute donnee supplementaire.',
+                'features.cards.importExport.title': 'Import et Export',
+                'features.cards.importExport.description': 'Importez depuis Bitwarden, 1Password ou CSV. Exportez vos donnees a tout moment. Vos mots de passe ne sont jamais enfermes.',
+                'features.cards.reusedDetection.title': 'Detection de Mots de Passe Reutilises',
+                'features.cards.reusedDetection.description': 'Detectez automatiquement quand vous utilisez le meme mot de passe sur plusieurs comptes. Optionnel et respectueux de la vie privee.',
+                'pricing.title': 'Tarification Simple et Transparente',
+                'pricing.subtitle': 'Commencez gratuitement, passez a la version superieure quand vous en avez besoin. Pas de frais caches, pas de surprises.',
+                'pricing.period.month': '/mois',
+                'pricing.period.userMonth': '/utilisateur/mois',
+                'pricing.plans.free.name': 'Gratuit',
+                'pricing.plans.free.description': 'Parfait pour commencer',
+                'pricing.plans.free.features.passwords': '15 mots de passe',
+                'pricing.plans.free.features.extension': 'Extensions navigateur (Chrome et Firefox)',
+                'pricing.plans.free.features.totp': 'Authentificateur 2FA avec scan QR',
+                'pricing.plans.free.features.sharing': 'Partage securise',
+                'pricing.plans.free.features.passkeys': 'Deverrouillage biometrique (Passkeys)',
+                'pricing.plans.free.features.importExport': 'Import et Export',
+                'pricing.plans.premium.name': 'Premium',
+                'pricing.plans.premium.description': 'Pour utilisateurs avances et developpeurs',
+                'pricing.plans.premium.features.unlimited': 'Mots de passe illimites',
+                'pricing.plans.premium.features.everything': 'Tout du Gratuit',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'Notes Securisees',
+                'pricing.plans.premium.features.emergency': 'Acces d\'Urgence',
+                'pricing.plans.premium.features.security': 'Detection de fuites et analyse de securite',
+                'pricing.plans.premium.features.support': 'Support prioritaire',
+                'pricing.plans.teams.name': 'Equipes',
+                'pricing.plans.teams.description': 'Pour equipes et organisations',
+                'pricing.plans.teams.features.everything': 'Tout de Premium',
+                'pricing.plans.teams.features.sharing': 'Partage en equipe',
+                'pricing.plans.teams.features.admin': 'Tableau de bord admin',
+                'pricing.plans.teams.features.audit': 'Journaux d\'audit',
+                'pricing.plans.teams.features.sso': 'Integration SSO',
+                'pricing.cta.getStarted': 'Commencer',
+                'pricing.cta.startTrial': 'Essai Gratuit',
+                'pricing.cta.contact': 'Contacter les Ventes',
+                'testimonial.quote': 'Lemonade n\'est pas qu\'un simple gestionnaire de mots de passe. C\'est le coffre-fort qui garde tout ce que vous ne pouvez pas commiter : .env, credentials, clés API, vos fichiers CLAUDE.md. Chiffré, synchronisé, à vous.',
+                'testimonial.author': '— Le Developpeur',
+                'cta.title': 'Pret a Simplifier votre Securite ?',
+                'cta.subtitle': 'Rejoignez les developpeurs qui font confiance a Lemonade pour gerer leurs mots de passe et secrets.',
+                'cta.button': 'Essai Gratuit',
+                'footer.privacy': 'Politique de Confidentialite',
+                'footer.terms': 'Conditions d\'Utilisation',
+                'footer.contact': 'Contact',
+                'footer.rights': 'Tous droits reserves.'
+            },
+            de: {
+                'nav.features': 'Funktionen',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Preise',
+                'nav.login': 'Anmelden',
+                'nav.getStarted': 'Loslegen',
+                'hero.badge': 'Jetzt mit Env Vault',
+                'hero.title': 'Sicher, Einfach, Schön. Für Devs Gemacht.',
+                'hero.subtitle': 'Deine Passwörter, deine .env, deine API-Schlüssel. Alles an einem Ort, verschlüsselt.',
+                'hero.cta.trial': 'Kostenlos Testen',
+                'hero.cta.pricing': 'Preise Ansehen',
+                'hero.features.encryption': 'AES-256 Verschlusselung',
+                'hero.features.extensions': 'Browser-Erweiterungen',
+                'hero.features.pwa': 'Installierbare PWA',
+                'hero.features.privacy': 'Datenschutz Zuerst',
+                'envVault.label': '🔐 Exklusives Feature',
+                'envVault.title': 'Der Env Vault',
+                'envVault.description': 'Importieren Sie Ihren gesamten Projektordner. Wir finden automatisch jede .env, .npmrc, credentials.json und geheime Datei.',
+                'envVault.features.dragDrop': 'Ziehen und Ablegen ganzer Projektordner',
+                'envVault.features.autoDetect': 'Auto-Erkennung von .env, AWS, GCP, Firebase-Anmeldedaten',
+                'envVault.features.aiFiles': 'Speichert KI-Kontextdateien (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Versionsverfolgung fur Ihre Geheimnisse',
+                'envVault.features.export': 'Jederzeit ins .env-Format exportieren',
+                'envVault.cta': 'Env Vault Freischalten',
+                'features.title': 'Alles was Sie Brauchen',
+                'features.subtitle': 'Von Entwicklern gemacht, fur Entwickler. Kein Bloat, keine Komplexitat, nur die Funktionen die zahlen.',
+                'features.cards.encryption.title': 'AES-256 Verschlusselung',
+                'features.cards.encryption.description': 'Militarische Verschlusselung fur alle Ihre Passworter und Geheimnisse. Ihre Daten werden verschlusselt, bevor sie Ihr Gerat verlassen.',
+                'features.cards.extensions.title': 'Browser-Erweiterungen',
+                'features.cards.extensions.description': 'Ein-Klick-Autofill fur Chrome und Firefox. Nie wieder manuell ein Passwort eingeben.',
+                'features.cards.pwa.title': 'Installierbare PWA',
+                'features.cards.pwa.description': 'Installieren Sie Lemonade auf jedem Gerat uber den Browser. Kein App Store noetig. Leicht, schnell und immer aktuell.',
+                'features.cards.generator.title': 'Passwort-Generator',
+                'features.cards.generator.description': 'Generieren Sie starke, einzigartige Passworter mit einem Klick. Kryptografisch sichere Zufalligkeit.',
+                'features.cards.search.title': 'Intelligente Suche',
+                'features.cards.search.description': 'Finden Sie jedes Passwort sofort. Suchen Sie nach Name, URL oder Benutzername.',
+                'features.cards.sharing.title': 'Sicheres Teilen',
+                'features.cards.sharing.description': 'Teilen Sie Passworter sicher mit Teammitgliedern. Gewahren Sie Zugriff, ohne das tatsachliche Passwort preiszugeben.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Biometrische Authentifizierung mit Fingerabdruck oder Gesichtserkennung. Passwortlose Anmeldung mit dem FIDO2-Standard.',
+                'features.cards.i18n.title': '10 Sprachen',
+                'features.cards.i18n.description': 'Verfugbar auf Englisch, Spanisch, Portugiesisch, Franzosisch, Deutsch, Chinesisch, Japanisch, Russisch und mehr. Nutzen Sie Lemonade in Ihrer Sprache.',
+                'features.cards.accessibility.title': 'Barrierefreiheit & Auto-Sperre',
+                'features.cards.accessibility.description': 'Fokusmodus, hoher Kontrast und Graustufenfilter. Automatische Hintergrundsperre halt Ihren Tresor sicher.',
+                'features.cards.trash.title': 'Papierkorb & Verlauf',
+                'features.cards.trash.description': 'Verlieren Sie nie ein Passwort. 30-Tage-Papierkorb mit Wiederherstellung, plus vollstandiger Passwortanderungsverlauf.',
+                'features.cards.totp.title': 'TOTP Authentifikator',
+                'features.cards.totp.description': 'Integrierter 2FA-Code-Generator mit QR-Code-Scan. Zugangsdaten und Authentifizierungscodes an einem Ort.',
+                'features.cards.notes.title': 'Sichere Notizen',
+                'features.cards.notes.description': 'Verschlusselte Notizen fur sensible Informationen. Speichern Sie Wiederherstellungscodes, PINs und private Dokumente sicher.',
+                'features.cards.emergency.title': 'Notfallzugang',
+                'features.cards.emergency.description': 'Bestimmen Sie vertrauenswurdige Kontakte, die im Notfall Zugang zu Ihren Passwortern anfordern konnen, mit konfigurierbaren Wartezeiten.',
+                'features.cards.customFields.title': 'Benutzerdefinierte Felder',
+                'features.cards.customFields.description': 'Fugen Sie benutzerdefinierte Felder zu jedem Eintrag hinzu: Text, versteckte Passworter oder PINs. Speichern Sie Sicherheitsfragen, Backup-Codes oder beliebige zusatzliche Daten.',
+                'features.cards.importExport.title': 'Import und Export',
+                'features.cards.importExport.description': 'Importieren Sie aus Bitwarden, 1Password oder CSV. Exportieren Sie Ihre Daten jederzeit. Ihre Passworter sind nie eingesperrt.',
+                'features.cards.reusedDetection.title': 'Erkennung wiederverwendeter Passworter',
+                'features.cards.reusedDetection.description': 'Erkennen Sie automatisch, wenn Sie dasselbe Passwort fur mehrere Konten verwenden. Optional und datenschutzfreundlich.',
+                'pricing.title': 'Einfache, Transparente Preise',
+                'pricing.subtitle': 'Starten Sie kostenlos, upgraden Sie wenn Sie mehr brauchen. Keine versteckten Gebuhren, keine Uberraschungen.',
+                'pricing.period.month': '/Monat',
+                'pricing.period.userMonth': '/Benutzer/Monat',
+                'pricing.plans.free.name': 'Kostenlos',
+                'pricing.plans.free.description': 'Perfekt zum Starten',
+                'pricing.plans.free.features.passwords': '15 Passworter',
+                'pricing.plans.free.features.extension': 'Browser-Erweiterungen (Chrome und Firefox)',
+                'pricing.plans.free.features.totp': '2FA-Authentifikator mit QR-Scan',
+                'pricing.plans.free.features.sharing': 'Sicheres Teilen',
+                'pricing.plans.free.features.passkeys': 'Biometrische Entsperrung (Passkeys)',
+                'pricing.plans.free.features.importExport': 'Import und Export',
+                'pricing.plans.premium.name': 'Premium',
+                'pricing.plans.premium.description': 'Fur Power-User und Entwickler',
+                'pricing.plans.premium.features.unlimited': 'Unbegrenzte Passworter',
+                'pricing.plans.premium.features.everything': 'Alles aus Kostenlos',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'Sichere Notizen',
+                'pricing.plans.premium.features.emergency': 'Notfallzugang',
+                'pricing.plans.premium.features.security': 'Leak-Erkennung und Sicherheitsanalyse',
+                'pricing.plans.premium.features.support': 'Prioritatssupport',
+                'pricing.plans.teams.name': 'Teams',
+                'pricing.plans.teams.description': 'Fur Teams und Organisationen',
+                'pricing.plans.teams.features.everything': 'Alles von Premium',
+                'pricing.plans.teams.features.sharing': 'Team-Sharing',
+                'pricing.plans.teams.features.admin': 'Admin-Dashboard',
+                'pricing.plans.teams.features.audit': 'Audit-Logs',
+                'pricing.plans.teams.features.sso': 'SSO-Integration',
+                'pricing.cta.getStarted': 'Loslegen',
+                'pricing.cta.startTrial': 'Kostenlos Testen',
+                'pricing.cta.contact': 'Vertrieb Kontaktieren',
+                'testimonial.quote': 'Lemonade ist nicht nur ein weiterer Passwort-Manager. Es ist der Tresor, der alles speichert, was du nicht committen kannst: .env, credentials, API-Schlüssel, deine CLAUDE.md-Dateien. Verschlüsselt, synchronisiert, deins.',
+                'testimonial.author': '— Der Entwickler',
+                'cta.title': 'Bereit, Ihre Sicherheit zu Vereinfachen?',
+                'cta.subtitle': 'Schliessen Sie sich Entwicklern an, die Lemonade vertrauen, um ihre Passworter und Geheimnisse zu verwalten.',
+                'cta.button': 'Kostenlos Testen',
+                'footer.privacy': 'Datenschutzrichtlinie',
+                'footer.terms': 'Nutzungsbedingungen',
+                'footer.contact': 'Kontakt',
+                'footer.rights': 'Alle Rechte vorbehalten.'
+            },
+            zh: {
+                'nav.features': '功能',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': '价格',
+                'nav.login': '登录',
+                'nav.getStarted': '开始使用',
+                'hero.badge': '现在支持 Env Vault',
+                'hero.title': '安全、简洁、优雅。为开发者打造。',
+                'hero.subtitle': '你的密码，你的 .env，你的 API 密钥。全部集中在一处，加密保护。',
+                'hero.cta.trial': '免费试用',
+                'hero.cta.pricing': '查看价格',
+                'hero.features.encryption': 'AES-256 加密',
+                'hero.features.extensions': '浏览器扩展',
+                'hero.features.pwa': '可安装PWA',
+                'hero.features.privacy': '隐私优先',
+                'envVault.label': '🔐 独家功能',
+                'envVault.title': 'Env Vault',
+                'envVault.description': '导入整个项目文件夹。我们会自动找到每个 .env、.npmrc、credentials.json 和机密文件。',
+                'envVault.features.dragDrop': '拖放整个项目文件夹',
+                'envVault.features.autoDetect': '自动检测 .env、AWS、GCP、Firebase 凭证',
+                'envVault.features.aiFiles': '保存 AI 上下文文件（CLAUDE.md、AGENTS.md）',
+                'envVault.features.versioning': '机密信息版本跟踪',
+                'envVault.features.export': '随时导出为 .env 格式',
+                'envVault.cta': '解锁 Env Vault',
+                'features.title': '您需要的一切',
+                'features.subtitle': '由开发者为开发者打造。没有臃肿，没有复杂性，只有重要的功能。',
+                'features.cards.encryption.title': 'AES-256 加密',
+                'features.cards.encryption.description': '为您所有的密码和机密信息提供军事级加密。您的数据在离开设备之前就已加密。',
+                'features.cards.extensions.title': '浏览器扩展',
+                'features.cards.extensions.description': 'Chrome 和 Firefox 一键自动填充。再也不用手动输入密码。',
+                'features.cards.pwa.title': '可安装PWA',
+                'features.cards.pwa.description': '从浏览器在任何设备上安装Lemonade。无需应用商店。轻量、快速、始终保持最新。',
+                'features.cards.generator.title': '密码生成器',
+                'features.cards.generator.description': '一键生成强大、独特的密码。加密安全的随机性。',
+                'features.cards.search.title': '智能搜索',
+                'features.cards.search.description': '即时找到任何密码。按名称、URL或用户名搜索。',
+                'features.cards.sharing.title': '安全共享',
+                'features.cards.sharing.description': '安全地与团队成员共享密码。在不透露实际密码的情况下授予访问权限。',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': '指纹或面部识别的生物认证。使用 FIDO2 标准实现无密码登录。',
+                'features.cards.i18n.title': '10 种语言',
+                'features.cards.i18n.description': '支持英语、西班牙语、葡萄牙语、法语、德语、中文、日语、俄语等。使用您的语言使用 Lemonade。',
+                'features.cards.accessibility.title': '无障碍与自动锁定',
+                'features.cards.accessibility.description': '专注模式、高对比度和灰度滤镜。后台超时自动锁定确保您的保险库安全。',
+                'features.cards.trash.title': '回收站和密码历史',
+                'features.cards.trash.description': '永远不会丢失密码。30天回收站可恢复，加上完整的密码更改历史记录。',
+                'features.cards.totp.title': 'TOTP 身份验证器',
+                'features.cards.totp.description': '内置2FA代码生成器，支持QR码扫描。凭据和认证码集于一处。',
+                'features.cards.notes.title': '安全笔记',
+                'features.cards.notes.description': '加密的独立笔记，用于存储敏感信息。安全存储恢复代码、PIN和私人文档。',
+                'features.cards.emergency.title': '紧急访问',
+                'features.cards.emergency.description': '指定受信任的联系人，他们可以在紧急情况下请求访问您的密码，具有可配置的等待期。',
+                'features.cards.customFields.title': '自定义字段',
+                'features.cards.customFields.description': '为任何条目添加自定义字段：文本、隐藏密码或PIN。存储安全问题、备份代码或任何额外数据。',
+                'features.cards.importExport.title': '导入和导出',
+                'features.cards.importExport.description': '从Bitwarden、1Password或CSV导入。随时导出您的数据。您的密码永远不会被锁定。',
+                'features.cards.reusedDetection.title': '重复密码检测',
+                'features.cards.reusedDetection.description': '自动检测您在多个账户中使用相同密码的情况。可选且尊重隐私。',
+                'pricing.title': '简单透明的定价',
+                'pricing.subtitle': '免费开始，需要更多时升级。没有隐藏费用，没有惊喜。',
+                'pricing.period.month': '/月',
+                'pricing.period.userMonth': '/用户/月',
+                'pricing.plans.free.name': '免费',
+                'pricing.plans.free.description': '完美的开始',
+                'pricing.plans.free.features.passwords': '15 个密码',
+                'pricing.plans.free.features.extension': '浏览器扩展（Chrome 和 Firefox）',
+                'pricing.plans.free.features.totp': '2FA身份验证器，支持QR扫描',
+                'pricing.plans.free.features.sharing': '安全共享',
+                'pricing.plans.free.features.passkeys': '生物识别解锁（Passkeys）',
+                'pricing.plans.free.features.importExport': '导入和导出',
+                'pricing.plans.premium.name': '高级版',
+                'pricing.plans.premium.description': '适合高级用户和开发者',
+                'pricing.plans.premium.features.unlimited': '无限密码',
+                'pricing.plans.premium.features.everything': '包含免费版所有功能',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': '安全笔记',
+                'pricing.plans.premium.features.emergency': '紧急访问',
+                'pricing.plans.premium.features.security': '泄漏检测和安全分析',
+                'pricing.plans.premium.features.support': '优先支持',
+                'pricing.plans.teams.name': '团队版',
+                'pricing.plans.teams.description': '适合团队和组织',
+                'pricing.plans.teams.features.everything': '包含高级版所有功能',
+                'pricing.plans.teams.features.sharing': '团队共享',
+                'pricing.plans.teams.features.admin': '管理仪表板',
+                'pricing.plans.teams.features.audit': '审计日志',
+                'pricing.plans.teams.features.sso': 'SSO 集成',
+                'pricing.cta.getStarted': '开始使用',
+                'pricing.cta.startTrial': '免费试用',
+                'pricing.cta.contact': '联系销售',
+                'testimonial.quote': 'Lemonade 不只是另一个密码管理器。它是存储所有你不能提交的东西的保险库：.env、credentials、API 密钥、你的 CLAUDE.md 文件。加密、同步、属于你。',
+                'testimonial.author': '— 开发者',
+                'cta.title': '准备好简化您的安全了吗？',
+                'cta.subtitle': '加入信任 Lemonade 管理密码和机密信息的开发者行列。',
+                'cta.button': '免费试用',
+                'footer.privacy': '隐私政策',
+                'footer.terms': '服务条款',
+                'footer.contact': '联系我们',
+                'footer.rights': '保留所有权利。'
+            },
+            ja: {
+                'nav.features': '機能',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': '料金',
+                'nav.login': 'ログイン',
+                'nav.getStarted': '始める',
+                'hero.badge': 'Env Vault搭載',
+                'hero.title': '安全、シンプル、美しい。開発者のために。',
+                'hero.subtitle': 'あなたのパスワード、あなたの.env、あなたのAPIキー。すべて一箇所に、暗号化して。',
+                'hero.cta.trial': '無料トライアル',
+                'hero.cta.pricing': '料金を見る',
+                'hero.features.encryption': 'AES-256暗号化',
+                'hero.features.extensions': 'ブラウザ拡張機能',
+                'hero.features.pwa': 'インストール可能なPWA',
+                'hero.features.privacy': 'プライバシー重視',
+                'envVault.label': '🔐 限定機能',
+                'envVault.title': 'Env Vault',
+                'envVault.description': 'プロジェクトフォルダ全体をインポート。すべての.env、.npmrc、credentials.json、シークレットファイルを自動的に検出します。',
+                'envVault.features.dragDrop': 'プロジェクトフォルダをドラッグ＆ドロップ',
+                'envVault.features.autoDetect': '.env、AWS、GCP、Firebase認証情報を自動検出',
+                'envVault.features.aiFiles': 'AIコンテキストファイルを保存（CLAUDE.md、AGENTS.md）',
+                'envVault.features.versioning': 'シークレットのバージョン追跡',
+                'envVault.features.export': 'いつでも.env形式でエクスポート',
+                'envVault.cta': 'Env Vaultを解除',
+                'features.title': '必要なものすべて',
+                'features.subtitle': '開発者による開発者のための設計。肥大化なし、複雑さなし、重要な機能だけ。',
+                'features.cards.encryption.title': 'AES-256暗号化',
+                'features.cards.encryption.description': 'すべてのパスワードとシークレットに軍事グレードの暗号化。データはデバイスを離れる前に暗号化されます。',
+                'features.cards.extensions.title': 'ブラウザ拡張機能',
+                'features.cards.extensions.description': 'ChromeとFirefoxでワンクリック自動入力。もう手動でパスワードを入力する必要はありません。',
+                'features.cards.pwa.title': 'インストール可能なPWA',
+                'features.cards.pwa.description': 'ブラウザからどのデバイスにもLemonadeをインストール。アプリストア不要。軽量、高速、常に最新。',
+                'features.cards.generator.title': 'パスワード生成器',
+                'features.cards.generator.description': 'ワンクリックで強力でユニークなパスワードを生成。暗号的に安全なランダム性。',
+                'features.cards.search.title': 'スマート検索',
+                'features.cards.search.description': '任意のパスワードを即座に検索。名前、URL、ユーザー名で検索。',
+                'features.cards.sharing.title': '安全な共有',
+                'features.cards.sharing.description': 'チームメンバーと安全にパスワードを共有。実際のパスワードを公開せずにアクセスを許可。',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': '指紋または顔認識による生体認証。FIDO2標準を使用したパスワードレスログイン。',
+                'features.cards.i18n.title': '10言語対応',
+                'features.cards.i18n.description': '英語、スペイン語、ポルトガル語、フランス語、ドイツ語、中国語、日本語、ロシア語などに対応。お使いの言語でLemonadeをご利用ください。',
+                'features.cards.accessibility.title': 'アクセシビリティと自動ロック',
+                'features.cards.accessibility.description': 'フォーカスモード、ハイコントラスト、グレースケールフィルター。バックグラウンドタイムアウト自動ロックで金庫を安全に保ちます。',
+                'features.cards.trash.title': 'ゴミ箱とパスワード履歴',
+                'features.cards.trash.description': 'パスワードを失うことはありません。30日間のゴミ箱と復元機能、さらに完全なパスワード変更履歴。',
+                'features.cards.totp.title': 'TOTP認証',
+                'features.cards.totp.description': 'QRコードスキャン機能付きの内蔵2FAコードジェネレーター。認証情報と認証コードを一か所で管理。',
+                'features.cards.notes.title': 'セキュアノート',
+                'features.cards.notes.description': '機密情報のための暗号化されたノート。リカバリーコード、PIN、プライベート文書を安全に保存。',
+                'features.cards.emergency.title': '緊急アクセス',
+                'features.cards.emergency.description': '信頼できる連絡先を指定して、緊急時にパスワードへのアクセスを要求できるようにします。待機期間は設定可能です。',
+                'features.cards.customFields.title': 'カスタムフィールド',
+                'features.cards.customFields.description': '任意のエントリにカスタムフィールドを追加：テキスト、非表示パスワード、またはPIN。セキュリティ質問、バックアップコード、その他のデータを保存。',
+                'features.cards.importExport.title': 'インポートとエクスポート',
+                'features.cards.importExport.description': 'Bitwarden、1Password、またはCSVからインポート。いつでもデータをエクスポート。パスワードがロックされることはありません。',
+                'features.cards.reusedDetection.title': 'パスワード再利用検出',
+                'features.cards.reusedDetection.description': '複数のアカウントで同じパスワードを使用している場合を自動検出。オプションでプライバシーを尊重。',
+                'pricing.title': 'シンプルで透明な料金',
+                'pricing.subtitle': '無料で始めて、必要な時にアップグレード。隠れた料金なし、サプライズなし。',
+                'pricing.period.month': '/月',
+                'pricing.period.userMonth': '/ユーザー/月',
+                'pricing.plans.free.name': '無料',
+                'pricing.plans.free.description': '始めるのに最適',
+                'pricing.plans.free.features.passwords': '15パスワード',
+                'pricing.plans.free.features.extension': 'ブラウザ拡張機能（Chrome & Firefox）',
+                'pricing.plans.free.features.totp': 'QRスキャン付き2FA認証',
+                'pricing.plans.free.features.sharing': '安全な共有',
+                'pricing.plans.free.features.passkeys': '生体認証ロック解除（Passkeys）',
+                'pricing.plans.free.features.importExport': 'インポートとエクスポート',
+                'pricing.plans.premium.name': 'プレミアム',
+                'pricing.plans.premium.description': 'パワーユーザーと開発者向け',
+                'pricing.plans.premium.features.unlimited': '無制限のパスワード',
+                'pricing.plans.premium.features.everything': '無料プランの全機能',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'セキュアノート',
+                'pricing.plans.premium.features.emergency': '緊急アクセス',
+                'pricing.plans.premium.features.security': 'リーク検出とセキュリティ分析',
+                'pricing.plans.premium.features.support': '優先サポート',
+                'pricing.plans.teams.name': 'チーム',
+                'pricing.plans.teams.description': 'チームと組織向け',
+                'pricing.plans.teams.features.everything': 'プレミアムのすべて',
+                'pricing.plans.teams.features.sharing': 'チーム共有',
+                'pricing.plans.teams.features.admin': '管理ダッシュボード',
+                'pricing.plans.teams.features.audit': '監査ログ',
+                'pricing.plans.teams.features.sso': 'SSO統合',
+                'pricing.cta.getStarted': '始める',
+                'pricing.cta.startTrial': '無料トライアル',
+                'pricing.cta.contact': '営業に連絡',
+                'testimonial.quote': 'Lemonadeは単なるパスワードマネージャーではありません。コミットできないすべてを保管する金庫です：.env、credentials、APIキー、あなたのCLAUDE.mdファイル。暗号化、同期、あなたのもの。',
+                'testimonial.author': '— 開発者',
+                'cta.title': 'セキュリティを簡素化する準備はできていますか？',
+                'cta.subtitle': 'パスワードとシークレットの管理をLemonadeに任せる開発者に参加しましょう。',
+                'cta.button': '無料トライアル',
+                'footer.privacy': 'プライバシーポリシー',
+                'footer.terms': '利用規約',
+                'footer.contact': 'お問い合わせ',
+                'footer.rights': 'All rights reserved.'
+            },
+            ru: {
+                'nav.features': 'Функции',
+                'nav.envVault': 'Env Vault',
+                'nav.pricing': 'Цены',
+                'nav.login': 'Войти',
+                'nav.getStarted': 'Начать',
+                'hero.badge': 'Теперь с Env Vault',
+                'hero.title': 'Безопасно, Просто, Красиво. Для Разработчиков.',
+                'hero.subtitle': 'Ваши пароли, ваши .env, ваши API-ключи. Всё в одном месте, зашифровано.',
+                'hero.cta.trial': 'Попробовать Бесплатно',
+                'hero.cta.pricing': 'Посмотреть Цены',
+                'hero.features.encryption': 'Шифрование AES-256',
+                'hero.features.extensions': 'Расширения Браузера',
+                'hero.features.pwa': 'Устанавливаемое PWA',
+                'hero.features.privacy': 'Приватность Прежде Всего',
+                'envVault.label': '🔐 Эксклюзивная Функция',
+                'envVault.title': 'Env Vault',
+                'envVault.description': 'Импортируйте всю папку проекта. Мы найдем каждый .env, .npmrc, credentials.json и секретный файл автоматически.',
+                'envVault.features.dragDrop': 'Перетащите папки проектов целиком',
+                'envVault.features.autoDetect': 'Автоопределение .env, AWS, GCP, Firebase учетных данных',
+                'envVault.features.aiFiles': 'Сохраняет файлы контекста ИИ (CLAUDE.md, AGENTS.md)',
+                'envVault.features.versioning': 'Отслеживание версий для ваших секретов',
+                'envVault.features.export': 'Экспорт в формат .env в любое время',
+                'envVault.cta': 'Разблокировать Env Vault',
+                'features.title': 'Все, что Вам Нужно',
+                'features.subtitle': 'Создано разработчиками для разработчиков. Без раздутости, без сложности, только важные функции.',
+                'features.cards.encryption.title': 'Шифрование AES-256',
+                'features.cards.encryption.description': 'Шифрование военного уровня для всех ваших паролей и секретов. Ваши данные шифруются до того, как покинут ваше устройство.',
+                'features.cards.extensions.title': 'Расширения Браузера',
+                'features.cards.extensions.description': 'Автозаполнение в один клик для Chrome и Firefox. Больше никогда не вводите пароль вручную.',
+                'features.cards.pwa.title': 'Устанавливаемое PWA',
+                'features.cards.pwa.description': 'Установите Lemonade на любое устройство из браузера. Без магазина приложений. Легкое, быстрое и всегда актуальное.',
+                'features.cards.generator.title': 'Генератор Паролей',
+                'features.cards.generator.description': 'Генерируйте надежные уникальные пароли одним кликом. Криптографически безопасная случайность.',
+                'features.cards.search.title': 'Умный Поиск',
+                'features.cards.search.description': 'Находите любой пароль мгновенно. Поиск по имени, URL или имени пользователя.',
+                'features.cards.sharing.title': 'Безопасный Обмен',
+                'features.cards.sharing.description': 'Безопасно делитесь паролями с членами команды. Предоставляйте доступ, не раскрывая фактический пароль.',
+                'features.cards.passkeys.title': 'WebAuthn / Passkeys',
+                'features.cards.passkeys.description': 'Биометрическая аутентификация по отпечатку пальца или распознаванию лица. Вход без пароля по стандарту FIDO2.',
+                'features.cards.i18n.title': '10 Языков',
+                'features.cards.i18n.description': 'Доступен на английском, испанском, португальском, французском, немецком, китайском, японском, русском и других языках.',
+                'features.cards.accessibility.title': 'Доступность и Автоблокировка',
+                'features.cards.accessibility.description': 'Режим фокуса, высокий контраст и фильтры оттенков серого. Автоматическая блокировка по таймауту защищает ваше хранилище.',
+                'features.cards.trash.title': 'Корзина и История паролей',
+                'features.cards.trash.description': 'Никогда не теряйте пароль. 30-дневная корзина с восстановлением, плюс полная история изменений паролей.',
+                'features.cards.totp.title': 'TOTP Аутентификатор',
+                'features.cards.totp.description': 'Встроенный генератор 2FA-кодов со сканированием QR-кодов. Учетные данные и коды аутентификации в одном месте.',
+                'features.cards.notes.title': 'Защищенные заметки',
+                'features.cards.notes.description': 'Зашифрованные заметки для конфиденциальной информации. Храните коды восстановления, ПИН-коды и личные документы безопасно.',
+                'features.cards.emergency.title': 'Экстренный доступ',
+                'features.cards.emergency.description': 'Назначьте доверенных контактов, которые могут запросить доступ к вашим паролям в экстренных случаях, с настраиваемым периодом ожидания.',
+                'features.cards.customFields.title': 'Пользовательские поля',
+                'features.cards.customFields.description': 'Добавляйте пользовательские поля к любой записи: текст, скрытые пароли или ПИН-коды. Храните контрольные вопросы, резервные коды или любые дополнительные данные.',
+                'features.cards.importExport.title': 'Импорт и Экспорт',
+                'features.cards.importExport.description': 'Импортируйте из Bitwarden, 1Password или CSV. Экспортируйте свои данные в любое время. Ваши пароли никогда не заблокированы.',
+                'features.cards.reusedDetection.title': 'Обнаружение повторных паролей',
+                'features.cards.reusedDetection.description': 'Автоматически обнаруживайте, когда вы используете один и тот же пароль в нескольких аккаунтах. Опционально и с уважением к конфиденциальности.',
+                'pricing.title': 'Простое, Прозрачное Ценообразование',
+                'pricing.subtitle': 'Начните бесплатно, обновитесь когда понадобится больше. Никаких скрытых платежей, никаких сюрпризов.',
+                'pricing.period.month': '/месяц',
+                'pricing.period.userMonth': '/пользователь/месяц',
+                'pricing.plans.free.name': 'Бесплатно',
+                'pricing.plans.free.description': 'Идеально для начала',
+                'pricing.plans.free.features.passwords': '15 паролей',
+                'pricing.plans.free.features.extension': 'Расширения браузера (Chrome и Firefox)',
+                'pricing.plans.free.features.totp': '2FA-аутентификатор с QR-сканированием',
+                'pricing.plans.free.features.sharing': 'Безопасный обмен',
+                'pricing.plans.free.features.passkeys': 'Биометрическая разблокировка (Passkeys)',
+                'pricing.plans.free.features.importExport': 'Импорт и Экспорт',
+                'pricing.plans.premium.name': 'Премиум',
+                'pricing.plans.premium.description': 'Для продвинутых пользователей и разработчиков',
+                'pricing.plans.premium.features.unlimited': 'Неограниченные пароли',
+                'pricing.plans.premium.features.everything': 'Все из Бесплатного',
+                'pricing.plans.premium.features.envVault': 'Env Vault',
+                'pricing.plans.premium.features.notes': 'Защищенные заметки',
+                'pricing.plans.premium.features.emergency': 'Экстренный доступ',
+                'pricing.plans.premium.features.security': 'Обнаружение утечек и анализ безопасности',
+                'pricing.plans.premium.features.support': 'Приоритетная поддержка',
+                'pricing.plans.teams.name': 'Команды',
+                'pricing.plans.teams.description': 'Для команд и организаций',
+                'pricing.plans.teams.features.everything': 'Все из Премиум',
+                'pricing.plans.teams.features.sharing': 'Командный обмен',
+                'pricing.plans.teams.features.admin': 'Панель администратора',
+                'pricing.plans.teams.features.audit': 'Журналы аудита',
+                'pricing.plans.teams.features.sso': 'Интеграция SSO',
+                'pricing.cta.getStarted': 'Начать',
+                'pricing.cta.startTrial': 'Попробовать Бесплатно',
+                'pricing.cta.contact': 'Связаться с Продажами',
+                'testimonial.quote': 'Lemonade — это не просто ещё один менеджер паролей. Это хранилище для всего, что нельзя закоммитить: .env, credentials, API-ключи, ваши файлы CLAUDE.md. Зашифровано, синхронизировано, ваше.',
+                'testimonial.author': '— Разработчик',
+                'cta.title': 'Готовы Упростить Вашу Безопасность?',
+                'cta.subtitle': 'Присоединяйтесь к разработчикам, которые доверяют Lemonade управление паролями и секретами.',
+                'cta.button': 'Попробовать Бесплатно',
+                'footer.privacy': 'Политика Конфиденциальности',
+                'footer.terms': 'Условия Использования',
+                'footer.contact': 'Контакт',
+                'footer.rights': 'Все права защищены.'
+            }
+        };
+
+        const langMeta = {
+            en: { flag: '🇺🇸', name: 'English' },
+            es: { flag: '🇪🇸', name: 'Espanol' },
+            pt: { flag: '🇧🇷', name: 'Portugues' },
+            fr: { flag: '🇫🇷', name: 'Francais' },
+            de: { flag: '🇩🇪', name: 'Deutsch' },
+            zh: { flag: '🇨🇳', name: '中文' },
+            ja: { flag: '🇯🇵', name: '日本語' },
+            ru: { flag: '🇷🇺', name: 'Русский' }
+        };
+
+        // Language system
+        (function() {
+            const selector = document.getElementById('langSelector');
+            const currentFlag = document.getElementById('currentFlag');
+            const currentLang = document.getElementById('currentLang');
+            const options = document.querySelectorAll('.lang-option');
+
+            // Get saved language or detect from browser
+            function getDefaultLang() {
+                const saved = localStorage.getItem('lemonade-lang');
+                if (saved && translations[saved]) return saved;
+
+                const browserLang = navigator.language.split('-')[0];
+                if (translations[browserLang]) return browserLang;
+
+                return 'en';
+            }
+
+            // Apply translations
+            function applyTranslations(lang) {
+                const t = translations[lang];
+                if (!t) return;
+
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key]) {
+                        el.textContent = t[key];
+                    }
+                });
+
+                // Update HTML lang attribute
+                document.documentElement.lang = lang;
+
+                // Update selector display
+                currentFlag.textContent = langMeta[lang].flag;
+                currentLang.textContent = lang.toUpperCase();
+
+                // Update active state
+                options.forEach(opt => {
+                    opt.classList.toggle('active', opt.dataset.lang === lang);
+                });
+            }
+
+            // Toggle dropdown
+            selector.querySelector('.lang-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                selector.classList.toggle('open');
+            });
+
+            // Select language
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const lang = opt.dataset.lang;
+                    localStorage.setItem('lemonade-lang', lang);
+                    applyTranslations(lang);
+                    selector.classList.remove('open');
+                });
+            });
+
+            // Close on outside click
+            document.addEventListener('click', () => {
+                selector.classList.remove('open');
+            });
+
+            // Initialize
+            applyTranslations(getDefaultLang());
+        })();
+    </script>
+
+    <!-- Theme toggle -->
+    <script>
+        (function() {
+            const toggle = document.querySelector('.theme-toggle');
+            const html = document.documentElement;
+
+            // Check saved preference or system preference
+            const saved = localStorage.getItem('lemonade-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+
+            html.setAttribute('data-theme', theme);
+
+            toggle.addEventListener('click', () => {
+                const current = html.getAttribute('data-theme');
+                const next = current === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', next);
+                localStorage.setItem('lemonade-theme', next);
+            });
+        })();
+    </script>
+
+    <!-- Simple scroll animation -->
+    <script>
+        // Intersection Observer for scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-on-scroll');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and pricing cards
+        document.querySelectorAll('.feature-card, .pricing-card').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+
+    <!-- Mobile menu -->
+    <script>
+        (function() {
+            const btn = document.getElementById('mobileMenuBtn');
+            const menu = document.getElementById('mobileMenu');
+            btn.addEventListener('click', () => {
+                menu.classList.toggle('open');
+                btn.textContent = menu.classList.contains('open') ? '✕' : '☰';
+            });
+            menu.querySelectorAll('a').forEach(a => {
+                a.addEventListener('click', () => {
+                    menu.classList.remove('open');
+                    btn.textContent = '☰';
+                });
+            });
+        })();
+    </script>
+    <script>
+        console.log('%c\ud83c\udf4b Lemonade Password Manager %cv2.2.4', 'color: #FFE135; font-size: 16px; font-weight: bold;', 'color: #888; font-size: 12px;');
+        console.log('%cYour secrets are safe with us.', 'color: #0f0; font-family: monospace;');
+    </script>
+</body>
+</html>

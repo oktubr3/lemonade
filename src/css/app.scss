@@ -1,0 +1,475 @@
+// app global css in SCSS form
+// Lemonade Password Manager - Minimalist Dark Mode
+
+// Global Typography - Inter Font
+* {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+// Override del @quasar/extras roboto-font.css para que el texto se pinte con
+// el system fallback mientras baja el woff, en vez de quedarse invisible (FOIT).
+// No cambia el aspecto final, solo acelera el primer render visible.
+@font-face {
+    font-family: 'Roboto';
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Material Icons';
+    font-display: block; // block para iconos evita "fallback text" parpadeando
+}
+
+// Accessibility filters via overlay (no rompe position: fixed)
+.a11y-high-contrast::after,
+.a11y-grayscale::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    pointer-events: none;
+}
+
+.a11y-high-contrast::after {
+    backdrop-filter: contrast(1.4);
+}
+
+.a11y-grayscale::after {
+    backdrop-filter: grayscale(1);
+}
+
+.a11y-high-contrast.a11y-grayscale::after {
+    backdrop-filter: contrast(1.4) grayscale(1);
+}
+
+// Accessibility - Focus indicators for keyboard navigation (togglable)
+.a11y-focus {
+    *:focus-visible {
+        outline: 2px solid #F7DC6F !important;
+        outline-offset: 2px !important;
+    }
+
+    .q-btn:focus-visible {
+        outline: 2px solid #F7DC6F !important;
+        outline-offset: 2px !important;
+        box-shadow: 0 0 0 4px rgba(247, 220, 111, 0.3) !important;
+    }
+
+    &.body--light {
+        *:focus-visible {
+            outline-color: #7D6608 !important;
+        }
+        .q-btn:focus-visible {
+            outline-color: #7D6608 !important;
+            box-shadow: 0 0 0 4px rgba(125, 102, 8, 0.2) !important;
+        }
+    }
+}
+
+// CSS Custom Properties for smooth theme transitions
+:root {
+    --transition-theme: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius: 12px;
+    --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --theme-transition-active: 0;
+}
+
+// Enhanced theme transitions with conditional application
+* {
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Disable transitions on page load to prevent flash
+.preload * {
+    transition: none !important;
+}
+
+// View Transitions API support detection
+@supports (view-transition-name: none) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.6s;
+        animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
+
+// Professional Animation Classes
+.animate-entrance {
+    animation: entrance 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-hover {
+    transition: var(--transition-fast);
+
+    &:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
+    }
+
+    &:active {
+        transform: translateY(0) scale(0.98);
+    }
+}
+
+.animate-bounce-subtle {
+    animation: bounce-subtle 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-fade-in {
+    animation: fade-in 0.4s ease-out;
+}
+
+.animate-scale-in {
+    animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes entrance {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes bounce-subtle {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+// Light Theme - Fresh Lemonade
+.lemonade-light {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --border-color: #dee2e6;
+    --accent-color: #F7DC6F;
+    --shadow: var(--shadow-light);
+
+    .q-page {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+    }
+}
+
+// Dark Theme - Sophisticated Lemon Noir
+.lemonade-dark {
+    --bg-primary: #0d1117;
+    --bg-secondary: #010409;
+    --bg-surface: #161b22;
+    --bg-elevated: #21262d;
+    --text-primary: #f0f6fc;
+    --text-secondary: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent-color: #ffd700;
+    --shadow: var(--shadow-dark);
+
+    // Quasar component overrides for dark theme
+    .q-page {
+        background-color: var(--bg-primary) !important;
+        color: var(--text-primary) !important;
+        transition: var(--transition-theme);
+    }
+
+    .q-card {
+        background-color: var(--bg-surface) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--border-radius) !important;
+        box-shadow: var(--shadow) !important;
+        color: var(--text-primary) !important;
+        transition: var(--transition-theme);
+
+        &:hover {
+            border-color: var(--accent-color) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 215, 0, 0.15) !important;
+        }
+    }
+
+    .q-toolbar {
+        background: linear-gradient(
+            135deg,
+            var(--bg-elevated) 0%,
+            var(--bg-surface) 100%
+        ) !important;
+        border-bottom: 1px solid var(--border-color) !important;
+        backdrop-filter: blur(20px) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .q-drawer {
+        background-color: var(--bg-surface) !important;
+        border-right: 1px solid var(--border-color) !important;
+    }
+
+    .q-btn {
+        transition: var(--transition-theme);
+
+        &:not(.q-btn--fab):not(.login-btn) {
+            color: var(--text-primary) !important;
+
+            &:hover {
+                background-color: var(--bg-elevated) !important;
+                transform: scale(1.02);
+            }
+        }
+
+        &.q-btn--fab {
+            background: linear-gradient(
+                135deg,
+                var(--accent-color) 0%,
+                #f1c40f 100%
+            ) !important;
+            color: #000 !important;
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3) !important;
+
+            &:hover {
+                transform: scale(1.05) translateY(-2px);
+                box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4) !important;
+            }
+        }
+    }
+
+    .q-field {
+        .q-field__control {
+            background-color: var(--bg-elevated) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: var(--border-radius) !important;
+            color: var(--text-primary) !important;
+
+            &:hover {
+                border-color: var(--accent-color) !important;
+            }
+
+            &:focus-within {
+                border-color: var(--accent-color) !important;
+                box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1) !important;
+            }
+        }
+
+        .q-field__label {
+            color: var(--text-secondary) !important;
+        }
+
+        .q-field__native {
+            color: #ffffff !important;
+        }
+        
+        input {
+            color: #ffffff !important;
+        }
+    }
+
+    .q-dialog .q-card {
+        border: 1px solid var(--border-color) !important;
+        backdrop-filter: blur(20px) !important;
+    }
+
+    .q-menu {
+        background-color: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--border-radius) !important;
+        backdrop-filter: blur(20px) !important;
+    }
+
+    .q-item {
+        color: var(--text-primary) !important;
+        transition: var(--transition-theme);
+
+        &:hover {
+            background-color: var(--bg-elevated) !important;
+        }
+    }
+
+    .q-chip {
+        background-color: var(--bg-elevated) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-primary) !important;
+        transition: var(--transition-theme);
+
+        &.transparent-chip {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        &.user-chip {
+            background: transparent !important;
+            border: none !important;
+
+            .q-avatar img {
+                border-radius: 50% !important;
+            }
+        }
+    }
+}
+
+// Enhanced highlighted cards
+.highlighted {
+    border: 2px solid var(--accent-color) !important;
+    background: linear-gradient(
+        135deg,
+        rgba(247, 220, 111, 0.08) 0%,
+        rgba(247, 220, 111, 0.03) 100%
+    ) !important;
+
+    &:hover {
+        transform: translateY(-2px) !important;
+    }
+}
+
+.lemonade-dark .highlighted {
+    border: 2px solid #ffd700 !important;
+    background: linear-gradient(
+        135deg,
+        rgba(22, 27, 34, 1) 0%,
+        rgba(33, 38, 45, 1) 100%
+    ) !important;
+    box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 215, 0, 0.1) !important;
+    position: relative;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 215, 0, 0.08) 0%,
+            transparent 50%,
+            rgba(255, 215, 0, 0.05) 100%
+        );
+        pointer-events: none;
+    }
+
+    &:hover {
+        box-shadow: 0 0 0 1px rgba(255, 215, 0, 0.5),
+            0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.2) !important;
+    }
+}
+
+// Smooth transitions for all elements
+* {
+    transition: var(--transition-theme);
+}
+
+// Loading animation with lemon logo
+.loader {
+    width: 50px;
+    height: 50px;
+    animation: loader-rotate 2.5s infinite ease-in-out;
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+}
+
+@keyframes loader-spin {
+    to {
+        transform: rotate(0.5turn);
+    }
+}
+
+// Smooth rotation with wobble
+@keyframes loader-rotate {
+    0% {
+        transform: rotate(0deg) scale(1);
+    }
+    25% {
+        transform: rotate(90deg) scale(1.05);
+    }
+    50% {
+        transform: rotate(180deg) scale(1);
+    }
+    75% {
+        transform: rotate(270deg) scale(1.05);
+    }
+    100% {
+        transform: rotate(360deg) scale(1);
+    }
+}
+
+// Contenedor para el loader
+.loader-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+// Loading text styles (global)
+.loading-text {
+    margin-top: 24px;
+    color: #6C757D;
+    font-size: 1rem;
+    animation: fade-pulse 2s ease-in-out infinite;
+}
+
+.lemonade-dark .loading-text {
+    color: #8B949E;
+}
+
+@keyframes fade-pulse {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+// Loading text enhanced - con mejor contraste y visibilidad
+.loading-text-enhanced {
+    margin-top: 24px;
+    color: #2C3E50;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    background: #ffffff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lemonade-dark .loading-text-enhanced {
+    color: #F0F6FC;
+    background: #21262d;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary colors matching the app theme -->
+    <color name="colorPrimary">#F7DC6F</color>
+    <color name="colorPrimaryDark">#F4D03F</color>
+    <color name="colorAccent">#F8C471</color>
+    
+    <!-- Status bar and navigation bar colors -->
+    <color name="statusBarColor">#F4D03F</color>
+    <color name="navigationBarColor">#F7DC6F</color>
+    
+    <!-- Splash screen background -->
+    <color name="splashScreenBackground">#F7DC6F</color>
+</resources>

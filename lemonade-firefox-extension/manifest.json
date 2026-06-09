@@ -1,0 +1,75 @@
+{
+  "manifest_version": 3,
+  "name": "Lemonade Password Manager",
+  "version": "1.1.4",
+  "description": "Autofill companion for Lemonade Password Manager. Requires a free Lemonade account at lemonadepass.app",
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "lemonade-pass@lemonade.app",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
+
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab",
+    "identity"
+  ],
+
+  "host_permissions": [
+    "https://identitytoolkit.googleapis.com/*",
+    "https://securetoken.googleapis.com/*",
+    "https://firestore.googleapis.com/*",
+    "https://us-central1-passmanager-d2b6d.cloudfunctions.net/*"
+  ],
+
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Lemonade Pass Manager",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "background": {
+    "scripts": ["background/background.js"],
+    "type": "module"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["https://*/*"],
+      "exclude_matches": [
+        "*://passmanager-d2b6d.web.app/*",
+        "*://passmanager-d2b6d.firebaseapp.com/*",
+        "*://app.lemonadepass.app/*",
+        "*://lemonadepass.app/*",
+        "*://localhost/*",
+        "*://127.0.0.1/*"
+      ],
+      "js": ["content/content-script.js"],
+      "css": ["content/styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,757 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "edit": "編集",
+    "create": "作成",
+    "close": "閉じる",
+    "search": "検索",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "warning": "警告",
+    "confirm": "確認",
+    "back": "戻る",
+    "next": "次へ",
+    "yes": "はい",
+    "no": "いいえ",
+    "ok": "OK",
+    "copied": "クリップボードにコピーしました",
+    "copyError": "クリップボードへのコピーに失敗しました",
+    "saved": "保存しました",
+    "noResults": "結果が見つかりません",
+    "retry": "再試行",
+    "clear": "クリア",
+    "logout": "ログアウト",
+    "login": "ログイン",
+    "signUp": "新規登録"
+  },
+  "nav": {
+    "home": "ホーム",
+    "passwords": "パスワード",
+    "envVault": "環境変数",
+    "settings": "設定",
+    "admin": "管理",
+    "tickets": "サポート",
+    "notes": "ノート"
+  },
+  "login": {
+    "title": "Lemonadeへようこそ",
+    "subtitle": "開発者向け安全なパスワードマネージャー",
+    "passwordManager": "パスワードマネージャー",
+    "tagline": "安全 • シンプル • 美しい",
+    "signInWithGoogle": "Googleでログイン",
+    "signingIn": "ログイン中...",
+    "continueAsGuest": "ゲストとして続行",
+    "termsNotice": "ログインすると、利用規約とプライバシーポリシーに同意したことになります",
+    "error": {
+      "generic": "ログインエラー",
+      "popupBlocked": "ポップアップがブロックされました。このサイトのポップアップを許可してください。",
+      "networkError": "ネットワークエラー。接続を確認してください。"
+    },
+    "locked": {
+      "title": "アカウント停止",
+      "message": "アカウントは非アクティブのため停止されました。再有効化するには管理者に連絡してください。",
+      "contact": "管理者に連絡",
+      "tryAgain": "別のアカウントで試す"
+    }
+  },
+  "passwords": {
+    "title": "マイパスワード",
+    "searchPlaceholder": "パスワードを検索...",
+    "noPasswords": "パスワードはまだありません",
+    "noPasswordsHint": "+ボタンをクリックして最初のパスワードを追加してください",
+    "addPassword": "パスワードを追加",
+    "editPassword": "パスワードを編集",
+    "deletePassword": "パスワードを削除",
+    "deleteConfirm": "このパスワードを削除してもよろしいですか？",
+    "copyPassword": "パスワードをコピー",
+    "copyUsername": "ユーザー名をコピー",
+    "copyUrl": "URLをコピー",
+    "openUrl": "URLを開く",
+    "viewDetails": "詳細を表示",
+    "limitReached": "{limit}件のパスワード上限に達しました",
+    "upgradeForMore": "プレミアムにアップグレードして無制限のパスワードを",
+    "loading": "パスワードを読み込み中...",
+    "decrypting": "パスワードを復号中...",
+    "count": "{count} 件のパスワード",
+    "sortAZ": "A-Z順",
+    "sortZA": "Z-A順",
+    "listView": "リスト表示",
+    "mosaicView": "モザイク表示",
+    "tableView": "テーブル表示",
+    "changeView": "表示切替",
+    "sortBy": {
+      "site": "サイト",
+      "name": "名前",
+      "date": "日付",
+      "user": "ユーザー"
+    },
+    "menu": {
+      "view": "表示",
+      "edit": "編集",
+      "copyAll": "すべてコピー",
+      "share": "共有",
+      "highlight": "ハイライト",
+      "unhighlight": "ハイライト解除",
+      "delete": "削除",
+      "moreOptions": "その他のオプション"
+    },
+    "dialog": {
+      "newTitle": "新しいパスワード",
+      "editTitle": "パスワードを編集",
+      "newSubtitle": "新しいパスワードを保存するために入力してください",
+      "editSubtitle": "パスワード情報を更新"
+    },
+    "form": {
+      "title": "タイトル",
+      "titleRequired": "タイトル *",
+      "titlePlaceholder": "例：Gmailアカウント",
+      "titleValidation": "タイトルは必須です",
+      "username": "ユーザー名 / メール",
+      "usernamePlaceholder": "例：john[at]email.com",
+      "password": "パスワード",
+      "passwordRequired": "パスワード *",
+      "passwordPlaceholder": "パスワードを入力",
+      "passwordValidation": "パスワードは必須です",
+      "url": "ウェブサイトURL",
+      "urlPlaceholder": "例：https://gmail.com",
+      "notes": "メモ",
+      "notesPlaceholder": "追加メモ（任意）",
+      "folder": "フォルダ",
+      "folderPlaceholder": "フォルダを選択または作成",
+      "advancedOptions": "詳細オプション",
+      "generatePassword": "パスワードを生成",
+      "showPassword": "パスワードを表示",
+      "hidePassword": "パスワードを非表示"
+    },
+    "messages": {
+      "created": "パスワードを作成しました",
+      "updated": "パスワードを更新しました",
+      "deleted": "パスワードを削除しました",
+      "errorSaving": "パスワードの保存に失敗しました",
+      "errorDeleting": "パスワードの削除に失敗しました",
+      "errorLoading": "パスワードの読み込みに失敗しました",
+      "passwordEmpty": "パスワードは空にできません",
+      "dataCopied": "データをクリップボードにコピーしました"
+    },
+    "security": {
+      "checking": "AIでパスワードのセキュリティを分析中...",
+      "bulkCheckTitle": "一括セキュリティチェック",
+      "bulkCheckStart": "一括チェックを開始しました",
+      "bulkCheckProgress": "進捗：{percentage}%",
+      "bulkCheckComplete": "チェック完了！",
+      "bulkCheckStopping": "一括チェックを停止中...",
+      "quotaLimit": "クォータ制限に達しました",
+      "errorChecking": "セキュリティチェックでエラーが発生しました",
+      "aiDisabled": "AIセキュリティ分析は無効です",
+      "compromised": "漏洩 - 直ちに変更してください",
+      "compromisedTitle": "漏洩したパスワード！",
+      "understood": "了解",
+      "changePassword": "パスワードを変更",
+      "improvableTitle": "改善可能なパスワード",
+      "improvable": "改善可能",
+      "securityLevel": "セキュリティレベル",
+      "issuesFound": "発見された問題",
+      "recommendations": "推奨事項",
+      "immediateActions": "今すぐ対応",
+      "improvementSuggestions": "改善の提案",
+      "criticalRisk": "重大なリスク：このパスワードは公開されたデータ漏洩で見つかりました。攻撃者はこれを知っており、あなたのアカウントにアクセスするために使用できます。",
+      "improvementOpportunity": "改善の機会：パスワードは機能していますが、簡単な調整でより安全にできます。",
+      "analyzedWith": "分析ツール",
+      "startCheck": "チェック開始",
+      "improvePassword": "パスワードを改善",
+      "dontRemind": "再通知しない",
+      "justClose": "閉じる",
+      "oldPassword": "古いパスワード",
+      "oldPasswordHint": "最終更新：{age}前",
+      "considerUpdating": "セキュリティのため更新を検討してください",
+      "ageYears": "{n} 年",
+      "ageMonths": "{n} ヶ月",
+      "ageDays": "{n} 日",
+      "ageToday": "今日",
+      "ageUnknown": "日付不明",
+      "levels": {
+        "very_weak": "非常に弱い",
+        "weak": "弱い",
+        "moderate": "普通",
+        "strong": "強い",
+        "very_strong": "非常に強い",
+        "unknown": "不明"
+      },
+      "vuln": {
+        "tooShort": "パスワードが短すぎます",
+        "sequential": "予測可能な数字の並びが含まれています",
+        "repeating": "繰り返し文字が含まれています",
+        "keyboard": "一般的なキーボードパターンが含まれています",
+        "breached": "{count}件の既知のデータ漏洩で発見されました"
+      },
+      "rec": {
+        "minChars": "8文字以上を使用してください",
+        "consider12": "12文字以上の使用を検討してください",
+        "uppercase": "大文字を含めてください",
+        "lowercase": "小文字を含めてください",
+        "numbers": "数字を含めてください",
+        "special": "特殊文字を含めてください",
+        "changeNow": "このパスワードを今すぐ変更してください",
+        "uniquePassword": "アカウントごとに固有のパスワードを使用してください"
+      }
+    },
+    "filters": {
+      "all": "すべて",
+      "favorites": "お気に入り",
+      "shared": "共有",
+      "weak": "弱い",
+      "compromised": "漏洩",
+      "reused": "再利用",
+      "old": "古い"
+    },
+    "history": {
+      "title": "パスワード履歴",
+      "empty": "以前のパスワードはありません",
+      "changedAt": "{date} に変更",
+      "copied": "以前のパスワードをコピーしました"
+    },
+    "reused": {
+      "badge": "再利用",
+      "warning": "このパスワードは{count}つのサイトで使用されています",
+      "description": "同じパスワードを複数のサイトで使うのはセキュリティリスクです",
+      "check": "再利用パスワードを確認",
+      "found": "{count}件の再利用パスワードが見つかりました",
+      "noneFound": "再利用パスワードは見つかりませんでした"
+    },
+    "trash": {
+      "title": "ゴミ箱",
+      "empty": "ゴミ箱は空です",
+      "emptyHint": "削除されたパスワードはここに表示されます",
+      "banner": "アイテムは30日後に完全に削除されます",
+      "restore": "復元",
+      "deleteForever": "完全に削除",
+      "confirmPermanent": "この操作は元に戻せません。このパスワードを完全に削除しますか？",
+      "restored": "パスワードを復元しました",
+      "permanentlyDeleted": "パスワードを完全に削除しました",
+      "movedToTrash": "パスワードをゴミ箱に移動しました"
+    },
+    "customFields": {
+      "title": "カスタムフィールド",
+      "add": "フィールドを追加",
+      "label": "フィールド名",
+      "value": "フィールド値",
+      "types": {
+        "text": "テキスト",
+        "password": "パスワード",
+        "pin": "PIN"
+      },
+      "max": "最大{max}個のカスタムフィールド"
+    },
+    "totp": {
+      "title": "二要素認証",
+      "code": "2FAコード",
+      "setup": "2FAを追加",
+      "remove": "2FAを削除",
+      "secret": "シークレットキー",
+      "secretHint": "サービスのシークレットキーを貼り付けてください",
+      "saved": "2FAが正常に設定されました",
+      "removed": "2FAが削除されました",
+      "copied": "2FAコードをコピーしました",
+      "invalid": "無効なシークレットキー",
+      "badge": "2FA有効",
+      "scanQr": "QRコードをスキャン",
+      "orManual": "またはシークレットキーを手動で入力",
+      "qrSuccess": "QRコードのスキャンに成功しました",
+      "qrInvalid": "無効なQRコード — 有効な2FAコードではありません",
+      "cameraError": "カメラにアクセスできませんでした"
+    }
+  },
+  "generator": {
+    "title": "パスワード生成",
+    "length": "長さ",
+    "uppercase": "大文字 (A-Z)",
+    "lowercase": "小文字 (a-z)",
+    "numbers": "数字 (0-9)",
+    "symbols": "記号 (!#$%)",
+    "generate": "生成",
+    "copy": "コピー",
+    "use": "このパスワードを使用"
+  },
+  "sharing": {
+    "title": "パスワードを共有",
+    "shareWith": "共有先",
+    "searchUsers": "ユーザーを検索...",
+    "shareConfirm": "「{title}」を{user}と共有しますか？",
+    "shared": "パスワードを{user}と共有しました",
+    "errorSharing": "パスワードの共有に失敗しました",
+    "pendingShares": "保留中の共有",
+    "accept": "承認",
+    "reject": "拒否",
+    "accepted": "「{title}」をパスワードに追加しました",
+    "rejected": "パスワードを拒否しました",
+    "errorAccepting": "承認に失敗しました",
+    "errorRejecting": "拒否に失敗しました",
+    "recentContacts": "最近の連絡先",
+    "minSearchChars": "3文字以上入力して検索",
+    "noRecentContacts": "メールアドレスまたは名前を入力して検索",
+    "blockUser": "ユーザーをブロック",
+    "blockConfirm": "{user} をブロックしますか？パスワードを共有できなくなります。",
+    "userBlocked": "ユーザーをブロックしました",
+    "errorBlocking": "ユーザーのブロック中にエラーが発生しました"
+  },
+  "settings": {
+    "title": "設定",
+    "profile": {
+      "title": "ユーザープロフィール",
+      "displayName": "表示名",
+      "email": "メール"
+    },
+    "subscription": {
+      "title": "サブスクリプション",
+      "free": "無料",
+      "premium": "プレミアム",
+      "founder": "創設者",
+      "admin": "管理者",
+      "trial": "トライアル",
+      "upgradeButton": "プレミアムにアップグレード",
+      "manageButton": "サブスクリプション管理",
+      "founderBadge": "ベータテスター",
+      "features": {
+        "title": "含まれる機能：",
+        "envVault": "Env Vault - 環境変数",
+        "unlimited": "無制限のパスワード",
+        "aiSecurity": "漏洩検出 (HaveIBeenPwned)",
+        "prioritySupport": "優先サポート"
+      },
+      "fullAccess": "すべての機能に完全アクセス",
+      "founderThanks": "永久無料プレミアム - Lemonadeを信じてくれてありがとう",
+      "upgradeHint": "アップグレードしてEnv Vaultなどを解除",
+      "nextRenewal": "次回更新",
+      "premiumUntil": "プレミアム有効期限",
+      "statusCanceled": "キャンセル済み（期間終了まで有効）",
+      "status": "ステータス",
+      "welcomePremium": "プレミアムへようこそ！サブスクリプションが有効になりました。",
+      "errorCheckout": "決済の開始に失敗しました",
+      "errorPortal": "ポータルへのアクセスに失敗しました"
+    },
+    "security": {
+      "title": "セキュリティ",
+      "biometric": "生体認証ロック解除",
+      "biometricHint": "指紋または顔認証でLemonadeのロックを解除",
+      "biometricRegister": "生体認証を登録",
+      "biometricRegistered": "生体認証登録済み",
+      "biometricRemove": "削除",
+      "biometricRemoveConfirm": "このパスキーを削除しますか？生体認証ロック解除を使用するには再登録が必要になります。",
+      "biometricNotSupported": "お使いのデバイスは生体認証に対応していません",
+      "biometricDeviceName": "デバイス",
+      "biometricRegisteredOn": "登録日",
+      "sessionDuration": "セッション期間",
+      "sessionDurationHint": "この期間後にセッションが期限切れとなり、再度ログインが必要になります。",
+      "neverExpireWarning": "警告：期限切れのないセッションはセキュリティリスクがあります。このデバイスにアクセスできる人は誰でもパスワードにアクセスできる可能性があります。",
+      "lockOnExit": "終了時にロック",
+      "lockOnExitHint": "アプリに戻る際に認証を要求する",
+      "encryptionModel": "暗号化モデル",
+      "encryptionModelVault": "パスワードVault：サーバーサイドAES-256-GCM。暗号化キーはLemonadeの安全なインフラストラクチャによって管理されます。",
+      "encryptionModelEnvVault": "Env Vault：デバイス上でエンドツーエンド暗号化。あなたの変数はLemonadeのサーバーに読まれることはありません。",
+      "sessionOptions": {
+        "oneDay": "1日",
+        "threeDays": "3日",
+        "oneWeek": "1週間",
+        "twoWeeks": "2週間",
+        "oneMonth": "1ヶ月",
+        "never": "無期限"
+      }
+    },
+    "privacy": {
+      "title": "プライバシー",
+      "aiAnalysis": "漏洩検出",
+      "aiAnalysisHint": "パスワードが既知のデータ漏洩に含まれているか確認します（HaveIBeenPwned経由）",
+      "passwordAge": "パスワード経過チェック",
+      "passwordAgeHint": "6ヶ月以上更新されていないパスワードのインジケーターを表示",
+      "reusedCheck": "再利用パスワード検出",
+      "reusedCheckHint": "複数のエントリで使用されているパスワードを検出してハイライト",
+      "allDisabled": "プライバシー保護のため、両方の機能が無効になっています"
+    },
+    "appearance": {
+      "title": "外観",
+      "theme": "テーマ",
+      "themeHint": "アプリのテーマを選択",
+      "themeAuto": "自動",
+      "themeLight": "ライト",
+      "themeDark": "ダーク",
+      "accessibilityFocus": "フォーカスインジケーター",
+      "accessibilityFocusHint": "キーボードナビゲーション用にフォーカスされた要素に黄色の枠線を表示"
+    },
+    "accessibility": {
+      "title": "アクセシビリティ",
+      "focusIndicators": "フォーカスインジケーター",
+      "focusIndicatorsHint": "キーボードナビゲーション用にフォーカスされた要素に黄色の枠線を表示",
+      "highContrast": "ハイコントラスト",
+      "highContrastHint": "読みやすさを向上させるためにコントラストを強化",
+      "grayscale": "白黒",
+      "grayscaleHint": "夜間の目の疲れを軽減するために色を除去"
+    },
+    "mosaicView": {
+      "title": "モザイク表示",
+      "mobileColumns": "モバイル列数",
+      "mobileColumnsHint": "モバイルデバイスでの列数",
+      "desktopColumns": "デスクトップ列数",
+      "desktopColumnsHint": "大画面での列数",
+      "preview": "プレビュー：{columns}列（{device}）",
+      "columns": "{n}列"
+    },
+    "notifications": {
+      "title": "通知",
+      "push": "プッシュ通知",
+      "pushHint": "アカウントのアクティビティに関する通知を受信"
+    },
+    "exportImport": {
+      "title": "エクスポート / インポート",
+      "export": "パスワードをエクスポート",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "メタデータをCSVにエクスポート（パスワードなし）",
+      "exportJsonHint": "Lemonade JSON形式にエクスポート",
+      "import": "パスワードをインポート",
+      "importButton": "ファイルをインポート",
+      "importHint": "CSVまたはJSONからインポート（Bitwarden、1Password）",
+      "supportedFormats": "サポート形式：Lemonade、Bitwarden、1Password",
+      "noPasswordsExport": "エクスポートするパスワードがありません",
+      "exportedCount": "{count}件のパスワードをエクスポートしました",
+      "exportedMetadata": "{count}件のパスワードをエクスポートしました（メタデータのみ）",
+      "importFound": "{count}件のエントリが見つかりました。インポートしますか？",
+      "importedCount": "{count}件のパスワードをインポートしました",
+      "importTitle": "パスワードをインポート",
+      "formatError": "サポートされていない形式です。CSVまたはJSONを使用してください。",
+      "noValidEntries": "有効なエントリが見つかりません",
+      "errorExport": "エクスポートに失敗しました",
+      "errorImport": "インポートに失敗しました"
+    },
+    "about": {
+      "title": "アプリについて",
+      "version": "バージョン"
+    },
+    "language": {
+      "title": "言語",
+      "appLanguage": "アプリの言語",
+      "selectLanguage": "言語を選択",
+      "languageHint": "希望する言語を選択してください",
+      "languagesSupported": "{count}言語対応"
+    },
+    "messages": {
+      "saved": "設定を保存しました",
+      "errorLoading": "設定の読み込みに失敗しました",
+      "errorSaving": "設定の保存に失敗しました"
+    }
+  },
+  "envVault": {
+    "title": "Env Vault",
+    "subtitle": "環境変数の安全な保管場所",
+    "premiumRequired": "プレミアムサブスクリプションが必要です",
+    "premiumHint": "Env Vaultにアクセスするにはプレミアムにアップグレードしてください",
+    "sortAZ": "A-Z順で並べ替え",
+    "sortRecent": "最近",
+    "projectsCount": "{count} プロジェクト",
+    "lockVault": "Vaultをロック",
+    "dropZone": {
+      "title": "プロジェクトフォルダをここにドロップ",
+      "hint": ".env、.npmrc、credentials.json、シークレットファイルをすべて検出します",
+      "browse": "またはファイルを参照",
+      "scanning": "スキャン中...",
+      "multipleProjectsTitle": "複数のフォルダが検出されました",
+      "multipleProjectsMessage": "{count}個のフォルダを同時にドロップしました。最良の結果を得るには、プロジェクトを1つずつ追加してください。",
+      "largeFolderTitle": "非常に大きなフォルダが検出されました",
+      "largeFolderMessage": "フォルダ「{folder}」は非常に大きいようです。個別のプロジェクトフォルダをドラッグしてください。",
+      "multipleProjectsInsideMessage": "フォルダ「{folder}」には複数のプロジェクトが含まれているようです。各プロジェクトフォルダを個別にドラッグしてください。",
+      "cancel": "キャンセル",
+      "continueAnyway": "そのまま続行"
+    },
+    "project": {
+      "noProjects": "プロジェクトはまだありません",
+      "noProjectsHint": "プロジェクトフォルダをドラッグ＆ドロップして開始",
+      "addProject": "プロジェクトを追加",
+      "deleteProject": "プロジェクトを削除",
+      "deleteConfirm": "このプロジェクトを削除してもよろしいですか？",
+      "exportProject": ".envをエクスポート",
+      "files": "{count}ファイル",
+      "lastUpdated": "最終更新"
+    },
+    "fileTypes": {
+      "env": "環境",
+      "npm": "NPM設定",
+      "credentials": "認証情報",
+      "secrets": "シークレット"
+    },
+    "masterPassword": {
+      "title": "マスターパスワード",
+      "create": "マスターパスワードを作成",
+      "enter": "マスターパスワードを入力",
+      "hint": "このパスワードは環境変数をローカルで暗号化します",
+      "confirm": "パスワードを確認",
+      "mismatch": "パスワードが一致しません",
+      "weak": "パスワードが弱すぎます",
+      "incorrect": "パスワードが正しくありません"
+    },
+    "master": {
+      "setupTitle": "Env Vaultを設定",
+      "lockedTitle": "Env Vaultがロックされています",
+      "setupSubtitle": "環境変数を保護するマスターパスワードを作成してください",
+      "lockedSubtitle": "アクセスするにはマスターパスワードを入力してください",
+      "masterPassword": "マスターパスワード",
+      "password": "パスワード",
+      "confirmPassword": "パスワードを確認",
+      "createVault": "Vaultを作成",
+      "unlock": "ロック解除",
+      "infoText": "このパスワードはログインとは別です。安全な場所に保管してください。",
+      "strength": {
+        "veryWeak": "非常に弱い",
+        "weak": "弱い",
+        "medium": "普通",
+        "strong": "強い",
+        "veryStrong": "非常に強い"
+      },
+      "errors": {
+        "noMatch": "パスワードが一致しません",
+        "minLength": "パスワードは8文字以上必要です",
+        "generic": "パスワードの処理中にエラーが発生しました"
+      }
+    },
+    "loading": "Env Vaultを読み込み中...",
+    "paywall": {
+      "title": "Env VaultはPremium機能です",
+      "description": ".envファイル、APIキー、シークレットを安全に保存・管理できます。この機能はPremiumユーザー向けです。",
+      "feature1": "プロジェクトフォルダ全体をインポート",
+      "feature2": ".env、credentials.jsonなどを自動検出",
+      "feature3": "追加のAES-256暗号化",
+      "feature4": ".env形式にエクスポート",
+      "upgradeBtn": "Premiumにアップグレード — US$ 2.99/月",
+      "alreadyPremium": "すでにPremiumですか？",
+      "refreshPage": "ページを更新"
+    },
+    "projectDetail": {
+      "changeIcon": "アイコンを変更",
+      "selectIcon": "アイコンを選択",
+      "add": "追加",
+      "addFile": "変数ファイルを追加",
+      "export": "エクスポート",
+      "deleteProject": "プロジェクトを削除",
+      "searchVariable": "変数を検索...",
+      "variables": "変数",
+      "files": "ファイル",
+      "secret": "シークレット",
+      "hide": "隠す",
+      "show": "表示",
+      "copy": "コピー",
+      "noVariablesFound": "変数が見つかりません",
+      "aiContextFiles": "AIコンテキストファイル",
+      "aiContextFilesDesc": "AIアシスタント用コンテキストファイル",
+      "fileCount": "{count}ファイル",
+      "viewAll": "すべて表示",
+      "download": "ダウンロード",
+      "delete": "削除",
+      "scanned": "スキャン日時",
+      "addFileTitle": "変数ファイルを追加",
+      "fileName": "ファイル名",
+      "pasteContent": "内容を貼り付け",
+      "uploadFile": "ファイルをアップロード",
+      "fileContent": "ファイルの内容",
+      "clickToSelect": "クリックしてファイルを選択",
+      "preview": "プレビュー",
+      "andMore": "... 他{count}件",
+      "cancel": "キャンセル"
+    },
+    "messages": {
+      "imported": "プロジェクトをインポートしました",
+      "exported": "環境をエクスポートしました",
+      "deleted": "プロジェクトを削除しました",
+      "errorImport": "プロジェクトのインポートに失敗しました",
+      "errorExport": "エクスポートに失敗しました",
+      "errorDelete": "プロジェクトの削除に失敗しました",
+      "noEnvFiles": "環境ファイルが見つかりません",
+      "filesFound": "{count}ファイルが見つかりました"
+    }
+  },
+  "admin": {
+    "title": "管理パネル",
+    "users": {
+      "title": "ユーザー",
+      "search": "ユーザーを検索...",
+      "role": "ロール",
+      "changeRole": "ロールを変更",
+      "noUsers": "ユーザーが見つかりません",
+      "errorLoading": "ユーザーの読み込みに失敗しました"
+    }
+  },
+  "tickets": {
+    "title": "サポート",
+    "myTickets": "マイチケット",
+    "newTicket": "新規チケット",
+    "noTickets": "チケットはまだありません",
+    "noTicketsHint": "サポートが必要な場合はチケットを作成してください",
+    "form": {
+      "subject": "件名",
+      "subjectPlaceholder": "問題の簡単な説明",
+      "description": "説明",
+      "descriptionPlaceholder": "問題を詳しく説明してください",
+      "category": "カテゴリ",
+      "priority": "優先度"
+    },
+    "categories": {
+      "bug": "バグ報告",
+      "feature": "機能リクエスト",
+      "billing": "請求",
+      "other": "その他"
+    },
+    "priorities": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "statuses": {
+      "open": "オープン",
+      "inProgress": "対応中",
+      "resolved": "解決済み",
+      "closed": "クローズ"
+    },
+    "messages": {
+      "created": "チケットを作成しました",
+      "updated": "チケットを更新しました",
+      "messageSent": "メッセージを送信しました",
+      "errorCreating": "チケットの作成に失敗しました",
+      "errorLoading": "チケットの読み込みに失敗しました",
+      "errorSending": "メッセージの送信に失敗しました"
+    },
+    "chat": {
+      "placeholder": "メッセージを入力...",
+      "send": "送信",
+      "close": "チケットを閉じる",
+      "closed": "このチケットは閉じられています",
+      "ticketClosed": "このチケットは閉じられました",
+      "you": "あなた",
+      "support": "サポート"
+    },
+    "time": {
+      "justNow": "今",
+      "minutesAgo": "{n}分前",
+      "hoursAgo": "{n}時間前",
+      "daysAgo": "{n}日前",
+      "weeksAgo": "{n}週間前"
+    },
+    "admin": {
+      "allTickets": "全てのチケット",
+      "openTickets": "オープン",
+      "closedTickets": "クローズ済み",
+      "open": "オープン",
+      "closed": "クローズ",
+      "noOpenTickets": "オープンチケットはありません",
+      "searchPlaceholder": "メールまたは件名で検索...",
+      "lastMessage": "最終メッセージ",
+      "responses": "{n}件の返信"
+    }
+  },
+  "session": {
+    "expired": "セッションが期限切れになりました。再度ログインしてください。"
+  },
+  "errors": {
+    "generic": "エラーが発生しました",
+    "network": "ネットワークエラー。接続を確認してください。",
+    "unauthorized": "認証されていません。再度ログインしてください。",
+    "notFound": "見つかりません",
+    "serverError": "サーバーエラー。後でもう一度お試しください。",
+    "invalidUrl": "無効なURLまたはサポートされていない環境",
+    "sessionExpired": "セッションが期限切れです。再度ログインしてください。"
+  },
+  "premium": {
+    "title": "プレミアムにする",
+    "limitReached": "無料の上限に達しました",
+    "unlockMore": "より多くの機能を解除",
+    "hints": {
+      "passwordLimit": "{limit}件のパスワード上限に近づいています。無制限ストレージにアップグレード。",
+      "weakPasswords": "{count}件の弱いパスワードが見つかりました。プレミアムにはAIセキュリティ分析が含まれています。",
+      "afterExport": "暗号化されたクラウドバックアップにアップグレード。",
+      "newUser": "無制限のパスワードとEnv Vaultで旅を始めましょう。"
+    },
+    "cta": "今すぐアップグレード",
+    "dismiss": "また後で"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonadeはロックされています",
+    "unlockButton": "生体認証でロック解除",
+    "unlockFallback": "Googleでログイン",
+    "unlockError": "認証に失敗しました。もう一度試すか、Googleでログインしてください。",
+    "verifying": "確認中...",
+    "tapToRetry": "タップして再試行",
+    "registerSuccess": "生体認証が正常に登録されました！",
+    "removeSuccess": "パスキーが削除されました"
+  },
+  "notFound": {
+    "title": "おっと。ここには何もありません...",
+    "message": "お探しのページは存在しません。",
+    "goHome": "ホームへ"
+  },
+  "secureNotes": {
+    "title": "セキュアノート",
+    "empty": "セキュアノートはまだありません",
+    "emptyHint": "+ボタンをクリックして最初のノートを追加",
+    "create": "新しいノート",
+    "edit": "ノートを編集",
+    "view": "ノートを表示",
+    "noteTitle": "タイトル",
+    "noteContent": "内容",
+    "placeholder": "セキュアノートを書く...",
+    "created": "ノートが作成されました",
+    "updated": "ノートが更新されました",
+    "deleted": "ノートがゴミ箱に移動されました",
+    "restored": "ノートが復元されました",
+    "permanentlyDeleted": "ノートが完全に削除されました",
+    "search": "ノートを検索...",
+    "deleteConfirm": "このノートをゴミ箱に移動しますか？",
+    "premium": "セキュアノートはプレミアム機能です",
+    "premiumDescription": "暗号化されたノートを安全に保存。ノートはAES-256で暗号化されています。",
+    "premiumFeature1": "AES-256暗号化ノート",
+    "premiumFeature2": "完全なCRUD、ゴミ箱と復元機能付き",
+    "premiumFeature3": "サーバーサイドAES-256暗号化"
+  },
+  "emergency": {
+    "title": "緊急アクセス",
+    "description": "パスワードへのアクセスを要求できる信頼できる連絡先を指定します",
+    "addContact": "信頼できる連絡先を追加",
+    "email": "連絡先のメールアドレス",
+    "waitPeriod": "待機期間",
+    "waitPeriodHelp": "応答がない場合にアクセスが自動承認されるまでの時間",
+    "days": "{n}日",
+    "status": {
+      "invited": "招待済み",
+      "active": "待機中",
+      "requesting": "アクセス要求中",
+      "approved": "アクセス許可済み",
+      "denied": "拒否",
+      "revoked": "取り消し済み"
+    },
+    "actions": {
+      "approve": "今すぐ承認",
+      "deny": "拒否",
+      "revoke": "アクセスを取り消す",
+      "request": "アクセスを要求"
+    },
+    "messages": {
+      "contactAdded": "緊急連絡先を追加しました",
+      "accessRequested": "アクセスを要求しました",
+      "accessApproved": "緊急アクセスが承認されました",
+      "accessDenied": "緊急アクセスが拒否されました",
+      "contactRevoked": "緊急連絡先を削除しました"
+    },
+    "trustee": {
+      "title": "信頼できる連絡先として登録済み",
+      "empty": "まだ誰もあなたを緊急連絡先に追加していません",
+      "viewPasswords": "パスワードを表示",
+      "accessExpires": "アクセス期限：{date}"
+    },
+    "grantor": {
+      "title": "信頼できる連絡先",
+      "empty": "緊急連絡先はまだ追加されていません",
+      "emptyHint": "緊急時にパスワードにアクセスできる人を追加してください",
+      "pendingRequest": "アクセス要求中"
+    },
+    "premium": "緊急アクセスはプレミアム機能です"
+  }
+}

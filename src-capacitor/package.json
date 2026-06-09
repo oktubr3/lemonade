@@ -1,0 +1,13 @@
+{
+  "name": "pass-manager",
+  "version": "0.0.1",
+  "description": "A very simple and secure password manager.",
+  "author": "oktubr3 <mauroh@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^5.5.1",
+    "@capacitor/app": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0"
+  }
+}

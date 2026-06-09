@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "default": "passmanager-d2b6d"
+  },
+  "targets": {
+    "passmanager-d2b6d": {
+      "hosting": {
+        "app": [
+          "passmanager-d2b6d"
+        ],
+        "landing": [
+          "lemonade-landing"
+        ],
+        "docs": [
+          "lemonade-docs"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <!-- Lemon body -->
+    <ellipse cx="50" cy="55" rx="38" ry="42" fill="#FFD93D"/>
+    <!-- Inner highlight -->
+    <ellipse cx="50" cy="55" rx="32" ry="36" fill="#FFEC8B"/>
+    <!-- Shine -->
+    <ellipse cx="38" cy="45" rx="10" ry="14" fill="#FFF9DB" opacity="0.7"/>
+    <!-- Stem -->
+    <path d="M50 13 Q56 3 50 -2 Q44 3 50 13" fill="#4CAF50"/>
+    <!-- Leaf -->
+    <ellipse cx="50" cy="10" rx="10" ry="6" fill="#66BB6A"/>
+    <ellipse cx="50" cy="10" rx="8" ry="4" fill="#81C784"/>
+</svg>
