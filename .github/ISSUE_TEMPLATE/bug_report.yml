@@ -1,0 +1,87 @@
+name: Bug report
+description: Something is not working as expected
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        **Do not report security vulnerabilities here.** Use the private channel described in [SECURITY.md](../blob/main/SECURITY.md) instead.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before opening
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: This is not a security vulnerability (those go to the private channel).
+          required: true
+
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Where are you running Lemonade?
+      options:
+        - Hosted (lemonadepass.com)
+        - Self-hosted (my own Firebase project)
+        - Browser extension only
+        - Other (please describe)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Lemonade version
+      description: Found in Settings → About, or in the bottom of the app.
+      placeholder: e.g. v2.2.4
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: e.g. Chrome 140 on macOS 15, Firefox 128 on Ubuntu 24.04
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Describe the behavior you observed.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output (optional)
+      description: Open DevTools (F12) → Console tab, paste anything red or yellow that appeared.
+      render: text
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)

@@ -1,0 +1,753 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "create": "बनाएं",
+    "close": "बंद करें",
+    "search": "खोजें",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफल",
+    "warning": "चेतावनी",
+    "confirm": "पुष्टि करें",
+    "back": "वापस",
+    "next": "अगला",
+    "yes": "हां",
+    "no": "नहीं",
+    "ok": "ठीक है",
+    "copied": "क्लिपबोर्ड पर कॉपी किया गया",
+    "copyError": "क्लिपबोर्ड पर कॉपी करने में त्रुटि",
+    "saved": "सहेजा गया",
+    "noResults": "कोई परिणाम नहीं मिला",
+    "retry": "पुनः प्रयास करें",
+    "clear": "साफ़ करें",
+    "logout": "लॉग आउट",
+    "login": "लॉग इन",
+    "signUp": "साइन अप"
+  },
+  "nav": {
+    "home": "होम",
+    "passwords": "पासवर्ड",
+    "envVault": "एनवी वॉल्ट",
+    "settings": "सेटिंग्स",
+    "admin": "एडमिन",
+    "tickets": "सहायता",
+    "notes": "नोट्स"
+  },
+  "login": {
+    "title": "Lemonade में आपका स्वागत है",
+    "subtitle": "डेवलपर्स के लिए सुरक्षित पासवर्ड प्रबंधक",
+    "passwordManager": "पासवर्ड मैनेजर",
+    "tagline": "सुरक्षित • सरल • सुंदर",
+    "signInWithGoogle": "Google से साइन इन करें",
+    "signingIn": "साइन इन हो रहा है...",
+    "continueAsGuest": "अतिथि के रूप में जारी रखें",
+    "termsNotice": "साइन इन करके, आप हमारी सेवा की शर्तों और गोपनीयता नीति से सहमत होते हैं",
+    "error": {
+      "generic": "साइन इन में त्रुटि",
+      "popupBlocked": "पॉपअप ब्लॉक हो गया। कृपया इस साइट के लिए पॉपअप की अनुमति दें।",
+      "networkError": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।"
+    },
+    "locked": {
+      "title": "खाता निलंबित",
+      "message": "निष्क्रियता के कारण आपका खाता निलंबित कर दिया गया है। पुनः सक्रिय करने के लिए व्यवस्थापक से संपर्क करें।",
+      "contact": "एडमिन से संपर्क करें",
+      "tryAgain": "दूसरे खाते से प्रयास करें"
+    }
+  },
+  "passwords": {
+    "title": "मेरे पासवर्ड",
+    "searchPlaceholder": "पासवर्ड खोजें...",
+    "noPasswords": "अभी तक कोई पासवर्ड नहीं",
+    "noPasswordsHint": "अपना पहला पासवर्ड जोड़ने के लिए + बटन पर क्लिक करें",
+    "addPassword": "पासवर्ड जोड़ें",
+    "editPassword": "पासवर्ड संपादित करें",
+    "deletePassword": "पासवर्ड हटाएं",
+    "deleteConfirm": "क्या आप वाकई इस पासवर्ड को हटाना चाहते हैं?",
+    "copyPassword": "पासवर्ड कॉपी करें",
+    "copyUsername": "उपयोगकर्ता नाम कॉपी करें",
+    "copyUrl": "URL कॉपी करें",
+    "openUrl": "URL खोलें",
+    "viewDetails": "विवरण देखें",
+    "limitReached": "आप {limit} पासवर्ड की सीमा तक पहुंच गए हैं",
+    "upgradeForMore": "असीमित पासवर्ड के लिए प्रीमियम में अपग्रेड करें",
+    "loading": "पासवर्ड लोड हो रहे हैं...",
+    "decrypting": "पासवर्ड डिक्रिप्ट हो रहा है...",
+    "count": "{count} पासवर्ड",
+    "sortAZ": "A-Z क्रम",
+    "sortZA": "Z-A क्रम",
+    "listView": "सूची दृश्य",
+    "mosaicView": "मोज़ेक दृश्य",
+    "tableView": "तालिका दृश्य",
+    "changeView": "दृश्य बदलें",
+    "sortBy": {
+      "site": "साइट",
+      "name": "नाम",
+      "date": "तारीख",
+      "user": "उपयोगकर्ता"
+    },
+    "menu": {
+      "view": "देखें",
+      "edit": "संपादित करें",
+      "copyAll": "सब कॉपी करें",
+      "share": "शेयर करें",
+      "highlight": "हाइलाइट करें",
+      "unhighlight": "हाइलाइट हटाएं",
+      "delete": "हटाएं",
+      "moreOptions": "और विकल्प"
+    },
+    "dialog": {
+      "newTitle": "नया पासवर्ड",
+      "editTitle": "पासवर्ड संपादित करें",
+      "newSubtitle": "नया पासवर्ड सहेजने के लिए फ़ील्ड भरें",
+      "editSubtitle": "पासवर्ड विवरण अपडेट करें"
+    },
+    "form": {
+      "title": "शीर्षक",
+      "titlePlaceholder": "जैसे, Gmail खाता",
+      "username": "उपयोगकर्ता नाम / ईमेल",
+      "usernamePlaceholder": "जैसे, john[at]email.com",
+      "password": "पासवर्ड",
+      "passwordPlaceholder": "पासवर्ड दर्ज करें",
+      "url": "वेबसाइट URL",
+      "urlPlaceholder": "जैसे, https://gmail.com",
+      "notes": "नोट्स",
+      "notesPlaceholder": "अतिरिक्त नोट्स (वैकल्पिक)",
+      "folder": "फ़ोल्डर",
+      "folderPlaceholder": "फ़ोल्डर चुनें या बनाएं",
+      "advancedOptions": "उन्नत विकल्प",
+      "generatePassword": "पासवर्ड जनरेट करें",
+      "showPassword": "पासवर्ड दिखाएं",
+      "hidePassword": "पासवर्ड छुपाएं"
+    },
+    "messages": {
+      "created": "पासवर्ड सफलतापूर्वक बनाया गया",
+      "updated": "पासवर्ड सफलतापूर्वक अपडेट किया गया",
+      "deleted": "पासवर्ड हटाया गया",
+      "errorSaving": "पासवर्ड सहेजने में त्रुटि",
+      "errorDeleting": "पासवर्ड हटाने में त्रुटि",
+      "errorLoading": "पासवर्ड लोड करने में त्रुटि",
+      "passwordEmpty": "पासवर्ड खाली नहीं हो सकता",
+      "dataCopied": "डेटा क्लिपबोर्ड पर कॉपी किया गया"
+    },
+    "security": {
+      "checking": "AI से पासवर्ड सुरक्षा का विश्लेषण हो रहा है...",
+      "bulkCheckTitle": "बल्क सुरक्षा जांच",
+      "bulkCheckStart": "बल्क जांच शुरू हुई",
+      "bulkCheckProgress": "प्रगति: {percentage}%",
+      "bulkCheckComplete": "जांच पूर्ण!",
+      "bulkCheckStopping": "बल्क जांच रोकी जा रही है...",
+      "quotaLimit": "कोटा सीमा पहुंच गई",
+      "errorChecking": "सुरक्षा जांच में त्रुटि",
+      "aiDisabled": "AI सुरक्षा विश्लेषण अक्षम है",
+      "compromised": "समझौता - तुरंत बदलें",
+      "compromisedTitle": "समझौता हुआ पासवर्ड!",
+      "understood": "समझ गया",
+      "changePassword": "पासवर्ड बदलें",
+      "improvableTitle": "सुधार योग्य पासवर्ड",
+      "improvable": "सुधार योग्य",
+      "securityLevel": "सुरक्षा स्तर",
+      "issuesFound": "समस्याएं मिलीं",
+      "recommendations": "सिफारिशें",
+      "immediateActions": "तत्काल कार्रवाई",
+      "improvementSuggestions": "सुधार के सुझाव",
+      "criticalRisk": "गंभीर जोखिम: यह पासवर्ड सार्वजनिक डेटा लीक में पाया गया था। हमलावर इसे जानते हैं और इसका उपयोग आपके खाते तक पहुंचने के लिए कर सकते हैं।",
+      "improvementOpportunity": "सुधार का अवसर: आपका पासवर्ड काम करता है, लेकिन कुछ सरल बदलावों से अधिक सुरक्षित हो सकता है।",
+      "analyzedWith": "विश्लेषण किया गया",
+      "startCheck": "जांच शुरू करें",
+      "improvePassword": "पासवर्ड सुधारें",
+      "dontRemind": "याद मत दिलाओ",
+      "justClose": "बंद करें",
+      "oldPassword": "पुराना पासवर्ड",
+      "oldPasswordHint": "अंतिम अपडेट: {age} पहले",
+      "considerUpdating": "सुरक्षा के लिए अपडेट करने पर विचार करें",
+      "ageYears": "{n} साल",
+      "ageMonths": "{n} महीना | {n} महीने",
+      "ageDays": "{n} दिन",
+      "ageToday": "आज",
+      "ageUnknown": "तारीख अज्ञात",
+      "levels": {
+        "very_weak": "बहुत कमज़ोर",
+        "weak": "कमज़ोर",
+        "moderate": "सामान्य",
+        "strong": "मज़बूत",
+        "very_strong": "बहुत मज़बूत",
+        "unknown": "अज्ञात"
+      },
+      "vuln": {
+        "tooShort": "पासवर्ड बहुत छोटा है",
+        "sequential": "अनुमान योग्य संख्या क्रम शामिल है",
+        "repeating": "दोहराए गए अक्षर शामिल हैं",
+        "keyboard": "सामान्य कीबोर्ड पैटर्न शामिल है",
+        "breached": "{count} ज्ञात डेटा लीक में पाया गया"
+      },
+      "rec": {
+        "minChars": "कम से कम 8 अक्षरों का उपयोग करें",
+        "consider12": "12+ अक्षरों का उपयोग करने पर विचार करें",
+        "uppercase": "बड़े अक्षर शामिल करें",
+        "lowercase": "छोटे अक्षर शामिल करें",
+        "numbers": "नंबर शामिल करें",
+        "special": "विशेष अक्षर शामिल करें",
+        "changeNow": "इस पासवर्ड को तुरंत बदलें",
+        "uniquePassword": "प्रत्येक खाते के लिए एक अद्वितीय पासवर्ड का उपयोग करें"
+      }
+    },
+    "filters": {
+      "all": "सभी",
+      "favorites": "पसंदीदा",
+      "shared": "साझा",
+      "weak": "कमजोर",
+      "compromised": "समझौता",
+      "reused": "पुन: उपयोग",
+      "old": "पुराने"
+    },
+    "history": {
+      "title": "पासवर्ड इतिहास",
+      "empty": "कोई पिछला पासवर्ड नहीं",
+      "changedAt": "{date} को बदला गया",
+      "copied": "पिछला पासवर्ड कॉपी किया गया"
+    },
+    "reused": {
+      "badge": "पुन: उपयोग",
+      "warning": "यह पासवर्ड {count} साइटों पर उपयोग किया गया है",
+      "description": "कई साइटों पर एक ही पासवर्ड का उपयोग करना सुरक्षा जोखिम है",
+      "check": "पुन: उपयोग किए गए पासवर्ड जांचें",
+      "found": "{count} पुन: उपयोग किए गए पासवर्ड मिले",
+      "noneFound": "कोई पुन: उपयोग किया गया पासवर्ड नहीं मिला"
+    },
+    "trash": {
+      "title": "कूड़ेदान",
+      "empty": "कूड़ेदान खाली है",
+      "emptyHint": "हटाए गए पासवर्ड यहां दिखाई देंगे",
+      "banner": "आइटम 30 दिनों के बाद स्थायी रूप से हटा दिए जाते हैं",
+      "restore": "पुनर्स्थापित करें",
+      "deleteForever": "हमेशा के लिए हटाएं",
+      "confirmPermanent": "यह पूर्ववत नहीं किया जा सकता। इस पासवर्ड को हमेशा के लिए हटाएं?",
+      "restored": "पासवर्ड पुनर्स्थापित किया गया",
+      "permanentlyDeleted": "पासवर्ड स्थायी रूप से हटा दिया गया",
+      "movedToTrash": "पासवर्ड कूड़ेदान में ले जाया गया"
+    },
+    "customFields": {
+      "title": "कस्टम फ़ील्ड",
+      "add": "फ़ील्ड जोड़ें",
+      "label": "फ़ील्ड का नाम",
+      "value": "फ़ील्ड का मान",
+      "types": {
+        "text": "टेक्स्ट",
+        "password": "पासवर्ड",
+        "pin": "पिन"
+      },
+      "max": "अधिकतम {max} कस्टम फ़ील्ड"
+    },
+    "totp": {
+      "title": "दो-कारक प्रमाणीकरण",
+      "code": "2FA कोड",
+      "setup": "2FA जोड़ें",
+      "remove": "2FA हटाएं",
+      "secret": "गुप्त कुंजी",
+      "secretHint": "सेवा से गुप्त कुंजी पेस्ट करें",
+      "saved": "2FA सफलतापूर्वक कॉन्फ़िगर किया गया",
+      "removed": "2FA हटा दिया गया",
+      "copied": "2FA कोड कॉपी किया गया",
+      "invalid": "अमान्य गुप्त कुंजी",
+      "badge": "2FA सक्रिय",
+      "scanQr": "QR कोड स्कैन करें",
+      "orManual": "या गुप्त कुंजी मैन्युअल रूप से दर्ज करें",
+      "qrSuccess": "QR कोड सफलतापूर्वक स्कैन किया गया",
+      "qrInvalid": "अमान्य QR कोड — यह एक वैध 2FA कोड नहीं है",
+      "cameraError": "कैमरा एक्सेस नहीं हो सका"
+    }
+  },
+  "generator": {
+    "title": "पासवर्ड जनरेटर",
+    "length": "लंबाई",
+    "uppercase": "बड़े अक्षर (A-Z)",
+    "lowercase": "छोटे अक्षर (a-z)",
+    "numbers": "संख्याएं (0-9)",
+    "symbols": "चिह्न (!#$%)",
+    "generate": "जनरेट करें",
+    "copy": "कॉपी करें",
+    "use": "यह पासवर्ड उपयोग करें"
+  },
+  "sharing": {
+    "title": "पासवर्ड साझा करें",
+    "shareWith": "के साथ साझा करें",
+    "searchUsers": "उपयोगकर्ता खोजें...",
+    "shareConfirm": "\"{title}\" को {user} के साथ साझा करें?",
+    "shared": "पासवर्ड {user} के साथ साझा किया गया",
+    "errorSharing": "पासवर्ड साझा करने में त्रुटि",
+    "pendingShares": "लंबित साझाकरण",
+    "accept": "स्वीकार करें",
+    "reject": "अस्वीकार करें",
+    "accepted": "\"{title}\" आपके पासवर्ड में जोड़ा गया",
+    "rejected": "पासवर्ड अस्वीकृत",
+    "errorAccepting": "स्वीकार करने में त्रुटि",
+    "errorRejecting": "अस्वीकार करने में त्रुटि",
+    "recentContacts": "हाल के संपर्क",
+    "minSearchChars": "खोजने के लिए कम से कम 3 अक्षर टाइप करें",
+    "noRecentContacts": "उपयोगकर्ता खोजने के लिए ईमेल या नाम टाइप करें",
+    "blockUser": "उपयोगकर्ता को ब्लॉक करें",
+    "blockConfirm": "{user} को ब्लॉक करें? वे अब आपके साथ पासवर्ड साझा नहीं कर पाएंगे।",
+    "userBlocked": "उपयोगकर्ता ब्लॉक किया गया",
+    "errorBlocking": "उपयोगकर्ता को ब्लॉक करने में त्रुटि"
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "profile": {
+      "title": "उपयोगकर्ता प्रोफ़ाइल",
+      "displayName": "प्रदर्शन नाम",
+      "email": "ईमेल"
+    },
+    "subscription": {
+      "title": "खाता",
+      "free": "मुफ्त",
+      "premium": "होस्टेड (आजीवन)",
+      "founder": "संस्थापक",
+      "admin": "एडमिन",
+      "trial": "परीक्षण",
+      "upgradeButton": "होस्टेड पाएँ — US$ 29 आजीवन",
+      "manageButton": "सदस्यता प्रबंधित करें",
+      "founderBadge": "बीटा टेस्टर",
+      "features": {
+        "title": "शामिल है:",
+        "envVault": "एनवी वॉल्ट - पर्यावरण चर",
+        "unlimited": "असीमित पासवर्ड",
+        "aiSecurity": "लीक पहचान (HaveIBeenPwned)",
+        "prioritySupport": "प्राथमिकता सहायता"
+      },
+      "fullAccess": "सभी सुविधाओं तक पूर्ण पहुंच",
+      "founderThanks": "जीवन भर मुफ्त प्रीमियम - Lemonade पर विश्वास करने के लिए धन्यवाद",
+      "upgradeHint": "एनवी वॉल्ट और अधिक अनलॉक करने के लिए अपग्रेड करें",
+      "nextRenewal": "अगला नवीनीकरण",
+      "premiumUntil": "प्रीमियम तक",
+      "statusCanceled": "रद्द (अवधि समाप्त होने तक सक्रिय)",
+      "status": "स्थिति",
+      "welcomePremium": "स्वागत है! आपका आजीवन होस्टेड खाता सक्रिय है।",
+      "errorCheckout": "भुगतान शुरू करने में त्रुटि",
+      "errorPortal": "पोर्टल एक्सेस करने में त्रुटि"
+    },
+    "security": {
+      "title": "सुरक्षा",
+      "biometric": "बायोमेट्रिक अनलॉक",
+      "biometricHint": "Lemonade को अनलॉक करने के लिए फिंगरप्रिंट या चेहरे की पहचान का उपयोग करें",
+      "biometricRegister": "बायोमेट्रिक रजिस्टर करें",
+      "biometricRegistered": "बायोमेट्रिक रजिस्टर्ड",
+      "biometricRemove": "हटाएं",
+      "biometricRemoveConfirm": "यह पासकी हटाएं? बायोमेट्रिक अनलॉक का उपयोग करने के लिए आपको फिर से रजिस्टर करना होगा।",
+      "biometricNotSupported": "आपका डिवाइस बायोमेट्रिक प्रमाणीकरण का समर्थन नहीं करता",
+      "biometricDeviceName": "डिवाइस",
+      "biometricRegisteredOn": "रजिस्टर किया गया",
+      "sessionDuration": "सत्र अवधि",
+      "sessionDurationHint": "इस समय के बाद आपका सत्र समाप्त हो जाएगा, नए लॉगिन की आवश्यकता होगी।",
+      "neverExpireWarning": "चेतावनी: जो सत्र कभी समाप्त नहीं होते वे सुरक्षा जोखिम हैं। इस डिवाइस तक पहुंच रखने वाला कोई भी व्यक्ति आपके पासवर्ड तक पहुंच सकता है।",
+      "lockOnExit": "बाहर जाने पर लॉक करें",
+      "lockOnExitHint": "ऐप पर वापस आने पर प्रमाणीकरण आवश्यक करें",
+      "encryptionModel": "एन्क्रिप्शन मॉडल",
+      "encryptionModelVault": "पासवर्ड Vault: सर्वर-साइड AES-256-GCM। एन्क्रिप्शन कुंजी Lemonade के सुरक्षित बुनियादी ढांचे द्वारा प्रबंधित है।",
+      "encryptionModelEnvVault": "Env Vault: आपके डिवाइस पर एंड-टू-एंड एन्क्रिप्टेड। आपके वेरिएबल Lemonade के सर्वर द्वारा नहीं पढ़े जा सकते।",
+      "sessionOptions": {
+        "oneDay": "1 दिन",
+        "threeDays": "3 दिन",
+        "oneWeek": "1 सप्ताह",
+        "twoWeeks": "2 सप्ताह",
+        "oneMonth": "1 महीना",
+        "never": "कभी नहीं"
+      }
+    },
+    "privacy": {
+      "title": "गोपनीयता",
+      "aiAnalysis": "लीक पहचान",
+      "aiAnalysisHint": "जांचें कि क्या आपके पासवर्ड ज्ञात डेटा लीक में दिखाई देते हैं (HaveIBeenPwned के माध्यम से)",
+      "passwordAge": "पासवर्ड आयु जांच",
+      "passwordAgeHint": "6 महीने से अधिक समय से अपडेट नहीं किए गए पासवर्ड के लिए संकेतक दिखाएं",
+      "reusedCheck": "पुन: उपयोग पासवर्ड पहचान",
+      "reusedCheckHint": "एकाधिक प्रविष्टियों में उपयोग किए गए पासवर्ड का पता लगाएं और हाइलाइट करें",
+      "allDisabled": "आपकी गोपनीयता की सुरक्षा के लिए दोनों सुविधाएं अक्षम हैं"
+    },
+    "appearance": {
+      "title": "दिखावट",
+      "theme": "थीम",
+      "themeHint": "ऐप थीम चुनें",
+      "themeAuto": "स्वचालित",
+      "themeLight": "हल्का",
+      "themeDark": "गहरा",
+      "accessibilityFocus": "फोकस संकेतक",
+      "accessibilityFocusHint": "कीबोर्ड नेविगेशन के लिए फोकस किए गए तत्वों पर पीले बॉर्डर दिखाएं"
+    },
+    "accessibility": {
+      "title": "सुलभता",
+      "focusIndicators": "फोकस संकेतक",
+      "focusIndicatorsHint": "कीबोर्ड नेविगेशन के लिए फोकस किए गए तत्वों पर पीले बॉर्डर दिखाएं",
+      "highContrast": "उच्च कंट्रास्ट",
+      "highContrastHint": "बेहतर पठनीयता के लिए कंट्रास्ट बढ़ाएं",
+      "grayscale": "श्वेत और श्याम",
+      "grayscaleHint": "रात में आंखों को आराम देने के लिए रंग हटाएं"
+    },
+    "mosaicView": {
+      "title": "मोज़ेक व्यू",
+      "mobileColumns": "मोबाइल कॉलम",
+      "mobileColumnsHint": "मोबाइल उपकरणों पर कॉलम की संख्या",
+      "desktopColumns": "डेस्कटॉप कॉलम",
+      "desktopColumnsHint": "बड़ी स्क्रीन पर कॉलम की संख्या",
+      "preview": "पूर्वावलोकन: {columns} कॉलम ({device})",
+      "columns": "{n} कॉलम"
+    },
+    "notifications": {
+      "title": "सूचनाएं",
+      "push": "पुश सूचनाएं",
+      "pushHint": "अपने खाते की गतिविधि के बारे में सूचनाएं प्राप्त करें"
+    },
+    "exportImport": {
+      "title": "निर्यात / आयात",
+      "export": "पासवर्ड निर्यात करें",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "मेटाडेटा को CSV में निर्यात करें (पासवर्ड के बिना)",
+      "exportJsonHint": "Lemonade JSON प्रारूप में निर्यात करें",
+      "import": "पासवर्ड आयात करें",
+      "importButton": "फ़ाइल आयात करें",
+      "importHint": "CSV या JSON से आयात करें (Bitwarden, 1Password)",
+      "supportedFormats": "समर्थित प्रारूप: Lemonade, Bitwarden, 1Password",
+      "noPasswordsExport": "निर्यात करने के लिए कोई पासवर्ड नहीं",
+      "exportedCount": "{count} पासवर्ड निर्यात किए गए",
+      "exportedMetadata": "{count} पासवर्ड निर्यात किए गए (केवल मेटाडेटा)",
+      "importFound": "{count} प्रविष्टियां मिलीं। क्या आप आयात करना चाहते हैं?",
+      "importedCount": "{count} पासवर्ड आयात किए गए",
+      "importTitle": "पासवर्ड आयात करें",
+      "formatError": "असमर्थित प्रारूप। CSV या JSON का उपयोग करें।",
+      "noValidEntries": "कोई वैध प्रविष्टियां नहीं मिलीं",
+      "errorExport": "निर्यात में त्रुटि",
+      "errorImport": "आयात में त्रुटि"
+    },
+    "about": {
+      "title": "के बारे में",
+      "version": "संस्करण"
+    },
+    "language": {
+      "title": "भाषा",
+      "appLanguage": "ऐप की भाषा",
+      "selectLanguage": "भाषा चुनें",
+      "languageHint": "अपनी पसंदीदा भाषा चुनें",
+      "languagesSupported": "{count} भाषाएं समर्थित"
+    },
+    "messages": {
+      "saved": "सेटिंग्स सफलतापूर्वक सहेजी गईं",
+      "errorLoading": "सेटिंग्स लोड करने में त्रुटि",
+      "errorSaving": "सेटिंग्स सहेजने में त्रुटि"
+    }
+  },
+  "envVault": {
+    "title": "एनवी वॉल्ट",
+    "subtitle": "आपके पर्यावरण चर के लिए सुरक्षित भंडारण",
+    "premiumRequired": "प्रीमियम सदस्यता आवश्यक",
+    "premiumHint": "एनवी वॉल्ट एक्सेस करने के लिए प्रीमियम में अपग्रेड करें",
+    "sortAZ": "A-Z क्रमबद्ध",
+    "sortRecent": "हाल के",
+    "projectsCount": "{count} प्रोजेक्ट",
+    "lockVault": "वॉल्ट लॉक करें",
+    "dropZone": {
+      "title": "अपना प्रोजेक्ट फ़ोल्डर यहां छोड़ें",
+      "hint": "हम सभी .env, .npmrc, credentials.json और गुप्त फ़ाइलें ढूंढेंगे",
+      "browse": "या फ़ाइलें ब्राउज़ करें",
+      "scanning": "स्कैन हो रहा है...",
+      "multipleProjectsTitle": "कई फ़ोल्डर पाए गए",
+      "multipleProjectsMessage": "आपने एक साथ {count} फ़ोल्डर ड्रॉप किए। बेहतर परिणामों के लिए, प्रोजेक्ट एक-एक करके जोड़ें।",
+      "largeFolderTitle": "बहुत बड़ा फ़ोल्डर पाया गया",
+      "largeFolderMessage": "फ़ोल्डर \"{folder}\" बहुत बड़ा लगता है। व्यक्तिगत प्रोजेक्ट फ़ोल्डर ड्रैग करें।",
+      "multipleProjectsInsideMessage": "फ़ोल्डर \"{folder}\" में कई प्रोजेक्ट हैं। प्रत्येक प्रोजेक्ट फ़ोल्डर अलग से ड्रैग करें।",
+      "cancel": "रद्द करें",
+      "continueAnyway": "फिर भी जारी रखें"
+    },
+    "project": {
+      "noProjects": "अभी तक कोई प्रोजेक्ट नहीं",
+      "noProjectsHint": "शुरू करने के लिए प्रोजेक्ट फ़ोल्डर खींचें और छोड़ें",
+      "addProject": "प्रोजेक्ट जोड़ें",
+      "deleteProject": "प्रोजेक्ट हटाएं",
+      "deleteConfirm": "क्या आप वाकई इस प्रोजेक्ट को हटाना चाहते हैं?",
+      "exportProject": ".env निर्यात करें",
+      "files": "{count} फ़ाइलें",
+      "lastUpdated": "अंतिम अपडेट"
+    },
+    "fileTypes": {
+      "env": "पर्यावरण",
+      "npm": "NPM कॉन्फ़िग",
+      "credentials": "क्रेडेंशियल्स",
+      "secrets": "सीक्रेट्स"
+    },
+    "masterPassword": {
+      "title": "मास्टर पासवर्ड",
+      "create": "मास्टर पासवर्ड बनाएं",
+      "enter": "मास्टर पासवर्ड दर्ज करें",
+      "hint": "यह पासवर्ड आपके पर्यावरण चर को स्थानीय रूप से एन्क्रिप्ट करता है",
+      "confirm": "पासवर्ड की पुष्टि करें",
+      "mismatch": "पासवर्ड मेल नहीं खाते",
+      "weak": "पासवर्ड बहुत कमजोर है",
+      "incorrect": "गलत पासवर्ड"
+    },
+    "master": {
+      "setupTitle": "अपना Env Vault सेट करें",
+      "lockedTitle": "Env Vault लॉक है",
+      "setupSubtitle": "अपने पर्यावरण चर की सुरक्षा के लिए मास्टर पासवर्ड बनाएं",
+      "lockedSubtitle": "एक्सेस के लिए अपना मास्टर पासवर्ड दर्ज करें",
+      "masterPassword": "मास्टर पासवर्ड",
+      "password": "पासवर्ड",
+      "confirmPassword": "पासवर्ड की पुष्टि करें",
+      "createVault": "Vault बनाएं",
+      "unlock": "अनलॉक",
+      "infoText": "यह पासवर्ड आपके लॉगिन से स्वतंत्र है। इसे सुरक्षित स्थान पर रखें।",
+      "strength": {
+        "veryWeak": "बहुत कमजोर",
+        "weak": "कमजोर",
+        "medium": "मध्यम",
+        "strong": "मजबूत",
+        "veryStrong": "बहुत मजबूत"
+      },
+      "errors": {
+        "noMatch": "पासवर्ड मेल नहीं खाते",
+        "minLength": "पासवर्ड कम से कम 8 अक्षर का होना चाहिए",
+        "generic": "पासवर्ड प्रोसेसिंग में त्रुटि"
+      }
+    },
+    "loading": "Env Vault लोड हो रहा है...",
+    "paywall": {
+      "title": "Env Vault Premium फीचर है",
+      "description": "अपनी .env फाइलें, API कीज़ और सीक्रेट्स को सुरक्षित रूप से स्टोर और मैनेज करें। यह फीचर Premium यूज़र्स के लिए उपलब्ध है।",
+      "feature1": "पूरे प्रोजेक्ट फोल्डर इम्पोर्ट करें",
+      "feature2": ".env, credentials.json आदि ऑटो-डिटेक्ट करें",
+      "feature3": "अतिरिक्त AES-256 एन्क्रिप्शन",
+      "feature4": ".env फॉर्मेट में वापस एक्सपोर्ट करें",
+      "upgradeBtn": "होस्टेड — US$ 29 आजीवन",
+      "alreadyPremium": "पहले से Premium हैं?",
+      "refreshPage": "पेज रिफ्रेश करें"
+    },
+    "projectDetail": {
+      "changeIcon": "आइकन बदलें",
+      "selectIcon": "आइकन चुनें",
+      "add": "जोड़ें",
+      "addFile": "वेरिएबल फाइल जोड़ें",
+      "export": "एक्सपोर्ट",
+      "deleteProject": "प्रोजेक्ट हटाएं",
+      "searchVariable": "वेरिएबल खोजें...",
+      "variables": "वेरिएबल्स",
+      "files": "फाइलें",
+      "secret": "गुप्त",
+      "hide": "छुपाएं",
+      "show": "दिखाएं",
+      "copy": "कॉपी",
+      "noVariablesFound": "कोई वेरिएबल नहीं मिला",
+      "aiContextFiles": "AI संदर्भ फाइलें",
+      "aiContextFilesDesc": "AI सहायकों के लिए संदर्भ फाइलें",
+      "fileCount": "{count} फाइल(ें)",
+      "viewAll": "सब देखें",
+      "download": "डाउनलोड",
+      "delete": "हटाएं",
+      "scanned": "स्कैन किया",
+      "addFileTitle": "वेरिएबल फाइल जोड़ें",
+      "fileName": "फाइल का नाम",
+      "pasteContent": "कंटेंट पेस्ट करें",
+      "uploadFile": "फाइल अपलोड करें",
+      "fileContent": "फाइल का कंटेंट",
+      "clickToSelect": "फाइल चुनने के लिए क्लिक करें",
+      "preview": "प्रीव्यू",
+      "andMore": "... और {count} और",
+      "cancel": "रद्द करें"
+    },
+    "messages": {
+      "imported": "प्रोजेक्ट सफलतापूर्वक आयात किया गया",
+      "exported": "पर्यावरण निर्यात किया गया",
+      "deleted": "प्रोजेक्ट हटाया गया",
+      "errorImport": "प्रोजेक्ट आयात करने में त्रुटि",
+      "errorExport": "निर्यात में त्रुटि",
+      "errorDelete": "प्रोजेक्ट हटाने में त्रुटि",
+      "noEnvFiles": "कोई पर्यावरण फ़ाइलें नहीं मिलीं",
+      "filesFound": "{count} फ़ाइलें मिलीं"
+    }
+  },
+  "admin": {
+    "title": "एडमिन पैनल",
+    "users": {
+      "title": "उपयोगकर्ता",
+      "search": "उपयोगकर्ता खोजें...",
+      "role": "भूमिका",
+      "changeRole": "भूमिका बदलें",
+      "noUsers": "कोई उपयोगकर्ता नहीं मिला",
+      "errorLoading": "उपयोगकर्ता लोड करने में त्रुटि"
+    }
+  },
+  "tickets": {
+    "title": "सहायता",
+    "myTickets": "मेरे टिकट",
+    "newTicket": "नया टिकट",
+    "noTickets": "अभी तक कोई टिकट नहीं",
+    "noTicketsHint": "यदि आपको मदद चाहिए तो टिकट बनाएं",
+    "form": {
+      "subject": "विषय",
+      "subjectPlaceholder": "आपकी समस्या का संक्षिप्त विवरण",
+      "description": "विवरण",
+      "descriptionPlaceholder": "अपनी समस्या का विस्तार से वर्णन करें",
+      "category": "श्रेणी",
+      "priority": "प्राथमिकता"
+    },
+    "categories": {
+      "bug": "बग रिपोर्ट",
+      "feature": "फीचर अनुरोध",
+      "billing": "बिलिंग",
+      "other": "अन्य"
+    },
+    "priorities": {
+      "low": "कम",
+      "medium": "मध्यम",
+      "high": "उच्च"
+    },
+    "statuses": {
+      "open": "खुला",
+      "inProgress": "प्रगति में",
+      "resolved": "हल किया गया",
+      "closed": "बंद"
+    },
+    "messages": {
+      "created": "टिकट सफलतापूर्वक बनाया गया",
+      "updated": "टिकट अपडेट किया गया",
+      "messageSent": "संदेश भेजा गया",
+      "errorCreating": "टिकट बनाने में त्रुटि",
+      "errorLoading": "टिकट लोड करने में त्रुटि",
+      "errorSending": "संदेश भेजने में त्रुटि"
+    },
+    "chat": {
+      "placeholder": "संदेश लिखें...",
+      "send": "भेजें",
+      "close": "टिकट बंद करें",
+      "closed": "यह टिकट बंद है",
+      "ticketClosed": "यह टिकट बंद कर दिया गया है",
+      "you": "आप",
+      "support": "सहायता"
+    },
+    "time": {
+      "justNow": "अभी",
+      "minutesAgo": "{n} मिनट पहले",
+      "hoursAgo": "{n} घंटे पहले",
+      "daysAgo": "{n} दिन पहले",
+      "weeksAgo": "{n} सप्ताह पहले"
+    },
+    "admin": {
+      "allTickets": "सभी टिकट",
+      "openTickets": "खुले",
+      "closedTickets": "बंद",
+      "open": "खुला",
+      "closed": "बंद",
+      "noOpenTickets": "कोई खुला टिकट नहीं",
+      "searchPlaceholder": "ईमेल या विषय से खोजें...",
+      "lastMessage": "अंतिम संदेश",
+      "responses": "{n} जवाब"
+    }
+  },
+  "session": {
+    "expired": "आपका सत्र समाप्त हो गया है। कृपया फिर से लॉग इन करें।"
+  },
+  "errors": {
+    "generic": "एक त्रुटि हुई",
+    "network": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "unauthorized": "अनधिकृत। कृपया फिर से लॉग इन करें।",
+    "notFound": "नहीं मिला",
+    "serverError": "सर्वर त्रुटि। कृपया बाद में पुनः प्रयास करें।",
+    "invalidUrl": "अमान्य URL या असमर्थित वातावरण",
+    "sessionExpired": "सत्र समाप्त। कृपया फिर से लॉग इन करें।"
+  },
+  "premium": {
+    "title": "प्रीमियम पाएं",
+    "limitReached": "मुफ्त सीमा पहुंच गई",
+    "unlockMore": "और सुविधाएं अनलॉक करें",
+    "hints": {
+      "passwordLimit": "आप {limit} पासवर्ड की सीमा के करीब हैं। असीमित भंडारण के लिए अपग्रेड करें।",
+      "weakPasswords": "{count} कमजोर पासवर्ड मिले। प्रीमियम में AI सुरक्षा विश्लेषण शामिल है।",
+      "afterExport": "एन्क्रिप्टेड क्लाउड बैकअप के लिए अपग्रेड करें।",
+      "newUser": "असीमित पासवर्ड और एनवी वॉल्ट के साथ अपनी यात्रा शुरू करें।"
+    },
+    "cta": "अभी अपग्रेड करें",
+    "dismiss": "शायद बाद में"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonade लॉक है",
+    "unlockButton": "बायोमेट्रिक से अनलॉक करें",
+    "unlockFallback": "Google से साइन इन करें",
+    "unlockError": "प्रमाणीकरण विफल। फिर से प्रयास करें या Google से साइन इन करें।",
+    "verifying": "सत्यापित हो रहा है...",
+    "tapToRetry": "पुनः प्रयास करने के लिए टैप करें",
+    "registerSuccess": "बायोमेट्रिक सफलतापूर्वक रजिस्टर हुआ!",
+    "removeSuccess": "पासकी हटाई गई"
+  },
+  "notFound": {
+    "title": "उफ़। यहाँ कुछ नहीं है...",
+    "message": "आप जो पेज खोज रहे हैं वह मौजूद नहीं है।",
+    "goHome": "होम पर जाएं"
+  },
+  "secureNotes": {
+    "title": "सुरक्षित नोट्स",
+    "empty": "अभी कोई सुरक्षित नोट नहीं है",
+    "emptyHint": "अपना पहला नोट जोड़ने के लिए + बटन पर क्लिक करें",
+    "create": "नया नोट",
+    "edit": "नोट संपादित करें",
+    "view": "नोट देखें",
+    "noteTitle": "शीर्षक",
+    "noteContent": "सामग्री",
+    "placeholder": "अपना सुरक्षित नोट लिखें...",
+    "created": "नोट बनाया गया",
+    "updated": "नोट अपडेट किया गया",
+    "deleted": "नोट ट्रैश में ले जाया गया",
+    "restored": "नोट पुनर्स्थापित किया गया",
+    "permanentlyDeleted": "नोट स्थायी रूप से हटाया गया",
+    "search": "नोट्स खोजें...",
+    "deleteConfirm": "इस नोट को ट्रैश में ले जाएं?",
+    "premium": "सुरक्षित नोट्स एक प्रीमियम सुविधा है",
+    "premiumDescription": "एन्क्रिप्टेड नोट्स सुरक्षित रूप से संग्रहीत करें। नोट्स AES-256 से एन्क्रिप्ट किए गए हैं।",
+    "premiumFeature1": "AES-256 एन्क्रिप्टेड नोट्स",
+    "premiumFeature2": "ट्रैश और पुनर्स्थापना के साथ पूर्ण CRUD",
+    "premiumFeature3": "सर्वर-साइड AES-256 एन्क्रिप्शन"
+  },
+  "emergency": {
+    "title": "आपातकालीन पहुंच",
+    "description": "विश्वसनीय संपर्कों को सेट करें जो आपातकाल में आपके पासवर्ड तक पहुंच का अनुरोध कर सकते हैं।",
+    "addContact": "आपातकालीन संपर्क जोड़ें",
+    "email": "संपर्क का ईमेल",
+    "waitPeriod": "प्रतीक्षा अवधि",
+    "waitPeriodHelp": "इस अवधि में आप अनुरोध को अस्वीकार कर सकते हैं",
+    "days": "{n} दिन",
+    "status": {
+      "pending": "लंबित",
+      "active": "सक्रिय",
+      "requesting": "अनुरोध किया गया",
+      "approved": "स्वीकृत",
+      "denied": "अस्वीकृत",
+      "revoked": "रद्द"
+    },
+    "actions": {
+      "revoke": "पहुंच रद्द करें",
+      "request": "पहुंच का अनुरोध करें",
+      "approve": "अनुरोध स्वीकार करें",
+      "deny": "अनुरोध अस्वीकार करें"
+    },
+    "messages": {
+      "contactAdded": "आपातकालीन संपर्क जोड़ा गया",
+      "contactRevoked": "पहुंच रद्द की गई",
+      "requestSent": "पहुंच अनुरोध भेजा गया",
+      "requestApproved": "अनुरोध स्वीकार किया गया",
+      "requestDenied": "अनुरोध अस्वीकार किया गया"
+    },
+    "trustee": {
+      "title": "मेरे अनुदानकर्ता",
+      "noGrantors": "किसी ने आपको संपर्क के रूप में नहीं जोड़ा है",
+      "waitingApproval": "अनुमोदन की प्रतीक्षा",
+      "accessGranted": "पहुंच प्रदान की गई"
+    },
+    "grantor": {
+      "title": "मेरे संपर्क",
+      "noContacts": "कोई आपातकालीन संपर्क नहीं",
+      "pendingRequest": "लंबित अनुरोध",
+      "requestFrom": "{name} से अनुरोध"
+    },
+    "premium": "आपातकालीन पहुंच एक प्रीमियम सुविधा है"
+  }
+}

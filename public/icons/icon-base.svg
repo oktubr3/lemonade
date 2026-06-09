@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 512 512" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;">
+    <rect x="0" y="0" width="512" height="512" style="fill:rgb(45,45,61);"/>
+    <g transform="matrix(1,0,0,1,256,270)">
+        <g transform="matrix(3.260147,-1.186597,0.88768,2.438882,165.100138,40.160406)">
+            <ellipse cx="-40" cy="-40" rx="60" ry="80" style="fill:rgb(255,229,102);fill-opacity:0.3;"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <circle cx="0" cy="0" r="185" style="fill:rgb(254,244,107);"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <circle cx="0" cy="0" r="168" style="fill:rgb(255,248,220);"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <circle cx="0" cy="0" r="155" style="fill:url(#_Radial1);"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <path d="M0,0L0,-155" style="fill:none;fill-rule:nonzero;stroke:rgb(255,248,220);stroke-width:14px;"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <path d="M0,0L0,155" style="fill:none;fill-rule:nonzero;stroke:rgb(255,248,220);stroke-width:14px;"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <path d="M-155,0L155,0" style="fill:none;fill-rule:nonzero;stroke:rgb(255,248,220);stroke-width:15px;"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <path d="M-109.6,-109.6L109.6,109.6" style="fill-rule:nonzero;stroke:rgb(255,248,220);stroke-width:14px;"/>
+        </g>
+        <g transform="matrix(1.127027,0,0,1.127027,-0.5,-10.5)">
+            <path d="M109.6,-109.6L-109.6,109.6" style="fill:none;fill-rule:nonzero;stroke:rgb(255,248,220);stroke-width:14px;"/>
+        </g>
+        <g transform="matrix(1.972297,0,0,1.932046,-1.063514,-9.372973)">
+            <circle cx="0" cy="0" r="14" style="fill:rgb(255,248,220);"/>
+        </g>
+    </g>
+    <defs>
+        <radialGradient id="_Radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(155,0,0,155,0,0)"><stop offset="0" style="stop-color:white;stop-opacity:1"/><stop offset="0.36" style="stop-color:rgb(254,240,130);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(254,237,107);stop-opacity:1"/></radialGradient>
+    </defs>
+</svg>

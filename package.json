@@ -1,0 +1,61 @@
+{
+    "name": "pass-manager",
+    "version": "2.2.15",
+    "description": "A very simple and secure password manager.",
+    "productName": "Lemonade Password Manager",
+    "author": "oktubr3 <mauroh@gmail.com>",
+    "private": true,
+    "scripts": {
+        "lint": "eslint --ext .js,.vue ./",
+        "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
+        "test": "echo \"No test specified\" && exit 0",
+        "dev": "quasar dev --mode pwa",
+        "build": "npm run version:auto && quasar build --mode pwa",
+        "build:manual": "quasar build --mode pwa",
+        "version:auto": "bash version.sh patch",
+        "version:minor": "bash version.sh minor",
+        "version:major": "bash version.sh major"
+    },
+    "dependencies": {
+        "@quasar/extras": "^1.16.4",
+        "@simplewebauthn/browser": "^13.2.2",
+        "axios": "^1.17.0",
+        "firebase": "^12.8.0",
+        "pinia": "^2.0.11",
+        "qr-scanner": "^1.4.2",
+        "quasar": "^2.6.0",
+        "register-service-worker": "^1.7.2",
+        "vue": "^3.0.0",
+        "vue-i18n": "^11.4.0",
+        "vue-router": "^4.0.0"
+    },
+    "devDependencies": {
+        "@babel/plugin-transform-modules-systemjs": "^7.29.7",
+        "@intlify/unplugin-vue-i18n": "^11.1.2",
+        "@quasar/app-vite": "^2.0.0",
+        "autoprefixer": "^10.4.2",
+        "eslint": "^8.10.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-vue": "^9.0.0",
+        "postcss": "^8.4.14",
+        "prettier": "^2.5.1",
+        "vite": "^7.3.1",
+        "workbox-build": "^7.0.0",
+        "workbox-cacheable-response": "^7.0.0",
+        "workbox-core": "^7.0.0",
+        "workbox-expiration": "^7.0.0",
+        "workbox-precaching": "^7.0.0",
+        "workbox-routing": "^7.0.0",
+        "workbox-strategies": "^7.0.0"
+    },
+    "engines": {
+        "node": "^22 || ^20 || ^18 || ^16 || ^14.19",
+        "npm": ">= 6.13.4",
+        "yarn": ">= 1.21.1"
+    },
+    "pnpm": {
+        "overrides": {
+            "serialize-javascript": ">=7.0.5"
+        }
+    }
+}

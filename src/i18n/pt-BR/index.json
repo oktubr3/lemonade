@@ -1,0 +1,753 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "close": "Fechar",
+    "search": "Buscar",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "warning": "Aviso",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "yes": "Sim",
+    "no": "Não",
+    "ok": "OK",
+    "copied": "Copiado para a área de transferência",
+    "copyError": "Erro ao copiar para a área de transferência",
+    "saved": "Salvo",
+    "noResults": "Nenhum resultado encontrado",
+    "retry": "Tentar novamente",
+    "clear": "Limpar",
+    "logout": "Sair",
+    "login": "Entrar",
+    "signUp": "Cadastrar"
+  },
+  "nav": {
+    "home": "Início",
+    "passwords": "Senhas",
+    "envVault": "Env Vault",
+    "settings": "Configurações",
+    "admin": "Admin",
+    "tickets": "Suporte",
+    "notes": "Notas"
+  },
+  "login": {
+    "title": "Bem-vindo ao Lemonade",
+    "subtitle": "Gerenciador de senhas seguro para desenvolvedores",
+    "passwordManager": "Gerenciador de Senhas",
+    "tagline": "Seguro • Simples • Bonito",
+    "signInWithGoogle": "Entrar com Google",
+    "signingIn": "Entrando...",
+    "continueAsGuest": "Continuar como convidado",
+    "termsNotice": "Ao entrar, você concorda com nossos Termos de Serviço e Política de Privacidade",
+    "error": {
+      "generic": "Erro ao entrar",
+      "popupBlocked": "O popup foi bloqueado. Por favor, permita popups para este site.",
+      "networkError": "Erro de rede. Por favor, verifique sua conexão."
+    },
+    "locked": {
+      "title": "Conta Suspensa",
+      "message": "Sua conta foi suspensa por inatividade. Entre em contato com o administrador para reativá-la.",
+      "contact": "Contatar Admin",
+      "tryAgain": "Tentar com outra conta"
+    }
+  },
+  "passwords": {
+    "title": "Minhas Senhas",
+    "searchPlaceholder": "Buscar senhas...",
+    "noPasswords": "Nenhuma senha ainda",
+    "noPasswordsHint": "Clique no botão + para adicionar sua primeira senha",
+    "addPassword": "Adicionar Senha",
+    "editPassword": "Editar Senha",
+    "deletePassword": "Excluir Senha",
+    "deleteConfirm": "Tem certeza que deseja excluir esta senha?",
+    "copyPassword": "Copiar senha",
+    "copyUsername": "Copiar usuário",
+    "copyUrl": "Copiar URL",
+    "openUrl": "Abrir URL",
+    "viewDetails": "Ver detalhes",
+    "limitReached": "Você atingiu o limite de {limit} senhas",
+    "upgradeForMore": "Atualize para Premium para senhas ilimitadas",
+    "loading": "Carregando senhas...",
+    "decrypting": "Descriptografando senha...",
+    "count": "{count} senhas",
+    "sortAZ": "Ordenar A-Z",
+    "sortZA": "Ordenar Z-A",
+    "listView": "Visualização em lista",
+    "mosaicView": "Visualização em mosaico",
+    "tableView": "Visualização em tabela",
+    "changeView": "Mudar visualização",
+    "sortBy": {
+      "site": "Site",
+      "name": "Nome",
+      "date": "Data",
+      "user": "Usuário"
+    },
+    "menu": {
+      "view": "Ver",
+      "edit": "Editar",
+      "copyAll": "Copiar tudo",
+      "share": "Compartilhar",
+      "highlight": "Destacar",
+      "unhighlight": "Remover destaque",
+      "delete": "Excluir",
+      "moreOptions": "Mais opções"
+    },
+    "dialog": {
+      "newTitle": "Nova Senha",
+      "editTitle": "Editar Senha",
+      "newSubtitle": "Preencha os campos para salvar a nova senha",
+      "editSubtitle": "Atualize os dados da senha"
+    },
+    "form": {
+      "title": "Título",
+      "titlePlaceholder": "ex., Conta Gmail",
+      "username": "Usuário / Email",
+      "usernamePlaceholder": "ex., joao[at]email.com",
+      "password": "Senha",
+      "passwordPlaceholder": "Digite a senha",
+      "url": "URL do site",
+      "urlPlaceholder": "ex., https://gmail.com",
+      "notes": "Notas",
+      "notesPlaceholder": "Notas adicionais (opcional)",
+      "folder": "Pasta",
+      "folderPlaceholder": "Selecione ou crie pasta",
+      "advancedOptions": "Opções avançadas",
+      "generatePassword": "Gerar senha",
+      "showPassword": "Mostrar senha",
+      "hidePassword": "Ocultar senha"
+    },
+    "messages": {
+      "created": "Senha criada com sucesso",
+      "updated": "Senha atualizada com sucesso",
+      "deleted": "Senha excluída",
+      "errorSaving": "Erro ao salvar senha",
+      "errorDeleting": "Erro ao excluir senha",
+      "errorLoading": "Erro ao carregar senha",
+      "passwordEmpty": "A senha não pode estar vazia",
+      "dataCopied": "Dados copiados para a área de transferência"
+    },
+    "security": {
+      "checking": "Analisando segurança da senha com IA...",
+      "bulkCheckTitle": "Verificação de Segurança em Massa",
+      "bulkCheckStart": "Verificação em massa iniciada",
+      "bulkCheckProgress": "Progresso: {percentage}%",
+      "bulkCheckComplete": "Verificação concluída!",
+      "bulkCheckStopping": "Parando verificação em massa...",
+      "quotaLimit": "Limite de cota atingido",
+      "errorChecking": "Erro ao verificar segurança",
+      "aiDisabled": "Análise de segurança com IA está desabilitada",
+      "compromised": "COMPROMETIDA - Altere imediatamente",
+      "compromisedTitle": "SENHA COMPROMETIDA!",
+      "understood": "Entendi",
+      "changePassword": "Alterar senha",
+      "improvableTitle": "Senha Melhorável",
+      "improvable": "Melhorável",
+      "securityLevel": "Nível de segurança",
+      "issuesFound": "Problemas encontrados",
+      "recommendations": "Recomendações",
+      "immediateActions": "Ações imediatas",
+      "improvementSuggestions": "Sugestões de melhoria",
+      "criticalRisk": "RISCO CRÍTICO: Esta senha foi encontrada em vazamentos de dados públicos. Os invasores a conhecem e podem usá-la para acessar sua conta.",
+      "improvementOpportunity": "Oportunidade de melhoria: Sua senha funciona, mas poderia ser mais segura com alguns ajustes simples.",
+      "analyzedWith": "Análise realizada com",
+      "startCheck": "Iniciar Verificação",
+      "improvePassword": "Melhorar senha",
+      "dontRemind": "Não me lembrar",
+      "justClose": "Fechar",
+      "oldPassword": "Senha antiga",
+      "oldPasswordHint": "Última atualização: {age} atrás",
+      "considerUpdating": "Considere atualizar por segurança",
+      "ageYears": "{n} ano | {n} anos",
+      "ageMonths": "{n} mês | {n} meses",
+      "ageDays": "{n} dia | {n} dias",
+      "ageToday": "Hoje",
+      "ageUnknown": "Data desconhecida",
+      "levels": {
+        "very_weak": "Muito fraca",
+        "weak": "Fraca",
+        "moderate": "Média",
+        "strong": "Forte",
+        "very_strong": "Muito forte",
+        "unknown": "Desconhecido"
+      },
+      "vuln": {
+        "tooShort": "Senha muito curta",
+        "sequential": "Contém sequências numéricas previsíveis",
+        "repeating": "Contém caracteres repetidos",
+        "keyboard": "Contém padrões de teclado comuns",
+        "breached": "Encontrada em {count} vazamentos de dados conhecidos"
+      },
+      "rec": {
+        "minChars": "Use pelo menos 8 caracteres",
+        "consider12": "Considere usar 12+ caracteres",
+        "uppercase": "Inclua letras maiúsculas",
+        "lowercase": "Inclua letras minúsculas",
+        "numbers": "Inclua números",
+        "special": "Inclua caracteres especiais",
+        "changeNow": "Mude esta senha imediatamente",
+        "uniquePassword": "Use uma senha única para cada conta"
+      }
+    },
+    "filters": {
+      "all": "Todas",
+      "favorites": "Favoritas",
+      "shared": "Compartilhadas",
+      "weak": "Fracas",
+      "compromised": "Comprometidas",
+      "reused": "Reutilizadas",
+      "old": "Antigas"
+    },
+    "history": {
+      "title": "Historico de Senhas",
+      "empty": "Nenhuma senha anterior",
+      "changedAt": "Alterada em {date}",
+      "copied": "Senha anterior copiada"
+    },
+    "reused": {
+      "badge": "Reutilizada",
+      "warning": "Esta senha é usada em {count} sites",
+      "description": "Usar a mesma senha em vários sites é um risco de segurança",
+      "check": "Verificar senhas reutilizadas",
+      "found": "{count} senhas reutilizadas encontradas",
+      "noneFound": "Nenhuma senha reutilizada encontrada"
+    },
+    "trash": {
+      "title": "Lixeira",
+      "empty": "A lixeira está vazia",
+      "emptyHint": "Senhas excluídas aparecerão aqui",
+      "banner": "Os itens são excluídos permanentemente após 30 dias",
+      "restore": "Restaurar",
+      "deleteForever": "Excluir permanentemente",
+      "confirmPermanent": "Isso não pode ser desfeito. Excluir esta senha permanentemente?",
+      "restored": "Senha restaurada",
+      "permanentlyDeleted": "Senha excluída permanentemente",
+      "movedToTrash": "Senha movida para a lixeira"
+    },
+    "customFields": {
+      "title": "Campos Personalizados",
+      "add": "Adicionar campo",
+      "label": "Nome do campo",
+      "value": "Valor do campo",
+      "types": {
+        "text": "Texto",
+        "password": "Senha",
+        "pin": "PIN"
+      },
+      "max": "Máximo de {max} campos personalizados"
+    },
+    "totp": {
+      "title": "Autenticação de Dois Fatores",
+      "code": "Código 2FA",
+      "setup": "Adicionar 2FA",
+      "remove": "Remover 2FA",
+      "secret": "Chave secreta",
+      "secretHint": "Cole a chave secreta do serviço",
+      "saved": "2FA configurado com sucesso",
+      "removed": "2FA removido",
+      "copied": "Código 2FA copiado",
+      "invalid": "Chave secreta inválida",
+      "badge": "2FA Ativo",
+      "scanQr": "Escanear codigo QR",
+      "orManual": "ou insira a chave secreta manualmente",
+      "qrSuccess": "Codigo QR escaneado com sucesso",
+      "qrInvalid": "Codigo QR invalido — nao e um codigo 2FA valido",
+      "cameraError": "Nao foi possivel acessar a camera"
+    }
+  },
+  "generator": {
+    "title": "Gerador de Senhas",
+    "length": "Comprimento",
+    "uppercase": "Maiúsculas (A-Z)",
+    "lowercase": "Minúsculas (a-z)",
+    "numbers": "Números (0-9)",
+    "symbols": "Símbolos (!#$%)",
+    "generate": "Gerar",
+    "copy": "Copiar",
+    "use": "Usar esta senha"
+  },
+  "sharing": {
+    "title": "Compartilhar Senha",
+    "shareWith": "Compartilhar com",
+    "searchUsers": "Buscar usuários...",
+    "shareConfirm": "Compartilhar \"{title}\" com {user}?",
+    "shared": "Senha compartilhada com {user}",
+    "errorSharing": "Erro ao compartilhar senha",
+    "pendingShares": "Compartilhamentos pendentes",
+    "accept": "Aceitar",
+    "reject": "Rejeitar",
+    "accepted": "\"{title}\" adicionada às suas senhas",
+    "rejected": "Senha rejeitada",
+    "errorAccepting": "Erro ao aceitar",
+    "errorRejecting": "Erro ao rejeitar",
+    "recentContacts": "Contatos recentes",
+    "minSearchChars": "Digite pelo menos 3 caracteres para buscar",
+    "noRecentContacts": "Digite um email ou nome para buscar usuários",
+    "blockUser": "Bloquear usuário",
+    "blockConfirm": "Bloquear {user}? Não poderá mais compartilhar senhas com você.",
+    "userBlocked": "Usuário bloqueado",
+    "errorBlocking": "Erro ao bloquear usuário"
+  },
+  "settings": {
+    "title": "Configurações",
+    "profile": {
+      "title": "Perfil do Usuário",
+      "displayName": "Nome de exibição",
+      "email": "Email"
+    },
+    "subscription": {
+      "title": "Conta",
+      "free": "Grátis",
+      "premium": "Hosted (vitalício)",
+      "founder": "Fundador",
+      "admin": "Admin",
+      "trial": "Teste",
+      "upgradeButton": "Obter Hosted — US$ 29 vitalício",
+      "manageButton": "Gerenciar Assinatura",
+      "founderBadge": "Beta Tester",
+      "features": {
+        "title": "Inclui:",
+        "envVault": "Env Vault - Variáveis de ambiente",
+        "unlimited": "Senhas ilimitadas",
+        "aiSecurity": "Detecção de vazamentos (HaveIBeenPwned)",
+        "prioritySupport": "Suporte prioritário"
+      },
+      "fullAccess": "Acesso completo a todos os recursos",
+      "founderThanks": "Premium grátis para sempre - Obrigado por acreditar no Lemonade",
+      "upgradeHint": "Atualize para desbloquear Env Vault e mais",
+      "nextRenewal": "Próxima renovação",
+      "premiumUntil": "Premium até",
+      "statusCanceled": "Cancelada (ativa até o fim do período)",
+      "status": "Status",
+      "welcomePremium": "Bem-vindo! Sua conta hosted vitalícia está ativa.",
+      "errorCheckout": "Erro ao iniciar pagamento",
+      "errorPortal": "Erro ao acessar portal"
+    },
+    "security": {
+      "title": "Segurança",
+      "biometric": "Desbloqueio biométrico",
+      "biometricHint": "Use impressão digital ou reconhecimento facial para desbloquear o Lemonade",
+      "biometricRegister": "Registrar biométrico",
+      "biometricRegistered": "Biométrico registrado",
+      "biometricRemove": "Remover",
+      "biometricRemoveConfirm": "Remover esta passkey? Você precisará se registrar novamente para usar o desbloqueio biométrico.",
+      "biometricNotSupported": "Seu dispositivo não suporta autenticação biométrica",
+      "biometricDeviceName": "Dispositivo",
+      "biometricRegisteredOn": "Registrado",
+      "sessionDuration": "Duração da sessão",
+      "sessionDurationHint": "Sua sessão expirará após este tempo, exigindo um novo login.",
+      "neverExpireWarning": "Atenção: Sessões que nunca expiram são um risco de segurança. Qualquer pessoa com acesso a este dispositivo poderia acessar suas senhas.",
+      "lockOnExit": "Bloquear ao sair",
+      "lockOnExitHint": "Exigir autenticação ao retornar ao app",
+      "encryptionModel": "Modelo de criptografia",
+      "encryptionModelVault": "Cofre de senhas: AES-256-GCM no lado do servidor. A chave de criptografia é gerenciada pela infraestrutura segura do Lemonade.",
+      "encryptionModelEnvVault": "Env Vault: criptografia de ponta a ponta no seu dispositivo. Suas variáveis não podem ser lidas pelos servidores do Lemonade.",
+      "sessionOptions": {
+        "oneDay": "1 dia",
+        "threeDays": "3 dias",
+        "oneWeek": "1 semana",
+        "twoWeeks": "2 semanas",
+        "oneMonth": "1 mês",
+        "never": "Nunca"
+      }
+    },
+    "privacy": {
+      "title": "Privacidade",
+      "aiAnalysis": "Detecção de vazamentos",
+      "aiAnalysisHint": "Verifique se suas senhas aparecem em vazamentos de dados conhecidos (via HaveIBeenPwned)",
+      "passwordAge": "Verificação de idade da senha",
+      "passwordAgeHint": "Mostrar indicadores para senhas não atualizadas em mais de 6 meses",
+      "reusedCheck": "Detecção de senhas reutilizadas",
+      "reusedCheckHint": "Detectar e destacar senhas usadas em várias entradas",
+      "allDisabled": "Ambos os recursos estão desabilitados para proteger sua privacidade"
+    },
+    "appearance": {
+      "title": "Aparência",
+      "theme": "Tema",
+      "themeHint": "Escolha o tema do aplicativo",
+      "themeAuto": "Automático",
+      "themeLight": "Claro",
+      "themeDark": "Escuro",
+      "accessibilityFocus": "Indicadores de foco",
+      "accessibilityFocusHint": "Mostrar contornos amarelos nos elementos com foco para navegação por teclado"
+    },
+    "accessibility": {
+      "title": "Acessibilidade",
+      "focusIndicators": "Indicadores de foco",
+      "focusIndicatorsHint": "Mostrar contornos amarelos nos elementos com foco para navegação por teclado",
+      "highContrast": "Alto contraste",
+      "highContrastHint": "Aumentar o contraste para melhorar a legibilidade",
+      "grayscale": "Preto e branco",
+      "grayscaleHint": "Remover cores para descansar a vista à noite"
+    },
+    "mosaicView": {
+      "title": "Visualização em Grade",
+      "mobileColumns": "Colunas no celular",
+      "mobileColumnsHint": "Número de colunas em dispositivos móveis",
+      "desktopColumns": "Colunas no desktop",
+      "desktopColumnsHint": "Número de colunas em telas grandes",
+      "preview": "Prévia: {columns} colunas ({device})",
+      "columns": "{n} colunas"
+    },
+    "notifications": {
+      "title": "Notificações",
+      "push": "Notificações push",
+      "pushHint": "Receber notificações sobre atividade na sua conta"
+    },
+    "exportImport": {
+      "title": "Exportar / Importar",
+      "export": "Exportar senhas",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "Exportar metadados para CSV (sem senhas)",
+      "exportJsonHint": "Exportar para formato JSON do Lemonade",
+      "import": "Importar senhas",
+      "importButton": "Importar arquivo",
+      "importHint": "Importar de CSV ou JSON (Bitwarden, 1Password)",
+      "supportedFormats": "Formatos suportados: Lemonade, Bitwarden, 1Password",
+      "noPasswordsExport": "Não há senhas para exportar",
+      "exportedCount": "{count} senhas exportadas",
+      "exportedMetadata": "{count} senhas exportadas (apenas metadados)",
+      "importFound": "Encontradas {count} entradas. Deseja importar?",
+      "importedCount": "{count} senhas importadas",
+      "importTitle": "Importar Senhas",
+      "formatError": "Formato não suportado. Use CSV ou JSON.",
+      "noValidEntries": "Nenhuma entrada válida encontrada",
+      "errorExport": "Erro ao exportar",
+      "errorImport": "Erro ao importar"
+    },
+    "about": {
+      "title": "Sobre",
+      "version": "Versão"
+    },
+    "language": {
+      "title": "Idioma",
+      "appLanguage": "Idioma do App",
+      "selectLanguage": "Selecionar idioma",
+      "languageHint": "Escolha seu idioma preferido",
+      "languagesSupported": "{count} idiomas suportados"
+    },
+    "messages": {
+      "saved": "Configurações salvas com sucesso",
+      "errorLoading": "Erro ao carregar configurações",
+      "errorSaving": "Erro ao salvar configurações"
+    }
+  },
+  "envVault": {
+    "title": "Env Vault",
+    "subtitle": "Armazenamento seguro para suas variáveis de ambiente",
+    "premiumRequired": "Assinatura Premium necessária",
+    "premiumHint": "Atualize para Premium para acessar o Env Vault",
+    "sortAZ": "Ordenar A-Z",
+    "sortRecent": "Recentes",
+    "projectsCount": "{count} projetos",
+    "lockVault": "Bloquear Vault",
+    "dropZone": {
+      "title": "Arraste sua pasta de projeto aqui",
+      "hint": "Encontraremos todos os arquivos .env, .npmrc, credentials.json e secretos",
+      "browse": "Ou procure arquivos",
+      "scanning": "Escaneando...",
+      "multipleProjectsTitle": "Múltiplas pastas detectadas",
+      "multipleProjectsMessage": "Você arrastou {count} pastas de uma vez. Para melhores resultados, adicione os projetos um de cada vez.",
+      "largeFolderTitle": "Pasta muito grande detectada",
+      "largeFolderMessage": "A pasta \"{folder}\" parece muito grande. Arraste as pastas de projetos individuais.\n\nExemplo: Em vez de arrastar \"Apps\", arraste \"Apps/meu-projeto-1\".",
+      "multipleProjectsInsideMessage": "A pasta \"{folder}\" parece conter múltiplos projetos. Arraste cada pasta de projeto individualmente.\n\nExemplo: Em vez de arrastar \"Apps\", arraste \"Apps/meu-projeto-1\".",
+      "cancel": "Cancelar",
+      "continueAnyway": "Continuar mesmo assim"
+    },
+    "project": {
+      "noProjects": "Nenhum projeto ainda",
+      "noProjectsHint": "Arraste e solte uma pasta de projeto para começar",
+      "addProject": "Adicionar Projeto",
+      "deleteProject": "Excluir Projeto",
+      "deleteConfirm": "Tem certeza que deseja excluir este projeto?",
+      "exportProject": "Exportar .env",
+      "files": "{count} arquivos",
+      "lastUpdated": "Última atualização"
+    },
+    "fileTypes": {
+      "env": "Ambiente",
+      "npm": "Config NPM",
+      "credentials": "Credenciais",
+      "secrets": "Secretos"
+    },
+    "masterPassword": {
+      "title": "Senha Mestra",
+      "create": "Criar senha mestra",
+      "enter": "Digite a senha mestra",
+      "hint": "Esta senha criptografa suas variáveis de ambiente localmente",
+      "confirm": "Confirmar senha",
+      "mismatch": "As senhas não coincidem",
+      "weak": "A senha é muito fraca",
+      "incorrect": "Senha incorreta"
+    },
+    "master": {
+      "setupTitle": "Configure seu Env Vault",
+      "lockedTitle": "Env Vault Bloqueado",
+      "setupSubtitle": "Crie uma senha mestra para proteger suas variáveis de ambiente",
+      "lockedSubtitle": "Digite sua senha mestra para acessar",
+      "masterPassword": "Senha Mestra",
+      "password": "Senha",
+      "confirmPassword": "Confirmar Senha",
+      "createVault": "Criar Vault",
+      "unlock": "Desbloquear",
+      "infoText": "Esta senha é independente do seu login. Guarde-a em um local seguro.",
+      "strength": {
+        "veryWeak": "Muito fraca",
+        "weak": "Fraca",
+        "medium": "Média",
+        "strong": "Forte",
+        "veryStrong": "Muito forte"
+      },
+      "errors": {
+        "noMatch": "As senhas não coincidem",
+        "minLength": "A senha deve ter pelo menos 8 caracteres",
+        "generic": "Erro ao processar a senha"
+      }
+    },
+    "loading": "Carregando Env Vault...",
+    "paywall": {
+      "title": "Env Vault é Premium",
+      "description": "Armazene e gerencie seus arquivos .env, chaves de API e segredos com segurança. Este recurso está disponível para usuários Premium.",
+      "feature1": "Importar pastas de projeto completas",
+      "feature2": "Detecção automática de .env, credentials.json, etc.",
+      "feature3": "Criptografia AES-256 adicional",
+      "feature4": "Exportar de volta para formato .env",
+      "upgradeBtn": "Hosted — US$ 29 vitalício",
+      "alreadyPremium": "Já é Premium?",
+      "refreshPage": "Atualizar página"
+    },
+    "projectDetail": {
+      "changeIcon": "Alterar ícone",
+      "selectIcon": "Selecionar ícone",
+      "add": "Adicionar",
+      "addFile": "Adicionar arquivo de variáveis",
+      "export": "Exportar",
+      "deleteProject": "Excluir projeto",
+      "searchVariable": "Buscar variável...",
+      "variables": "variáveis",
+      "files": "arquivos",
+      "secret": "secreto",
+      "hide": "Ocultar",
+      "show": "Mostrar",
+      "copy": "Copiar",
+      "noVariablesFound": "Nenhuma variável encontrada",
+      "aiContextFiles": "Arquivos de Contexto IA",
+      "aiContextFilesDesc": "Arquivos de contexto para assistentes IA",
+      "fileCount": "{count} arquivo(s)",
+      "viewAll": "Ver tudo",
+      "download": "Baixar",
+      "delete": "Excluir",
+      "scanned": "Escaneado",
+      "addFileTitle": "Adicionar arquivo de variáveis",
+      "fileName": "Nome do arquivo",
+      "pasteContent": "Colar conteúdo",
+      "uploadFile": "Fazer upload",
+      "fileContent": "Conteúdo do arquivo",
+      "clickToSelect": "Clique para selecionar um arquivo",
+      "preview": "Visualização",
+      "andMore": "... e mais {count}",
+      "cancel": "Cancelar"
+    },
+    "messages": {
+      "imported": "Projeto importado com sucesso",
+      "exported": "Ambiente exportado",
+      "deleted": "Projeto excluído",
+      "errorImport": "Erro ao importar projeto",
+      "errorExport": "Erro ao exportar",
+      "errorDelete": "Erro ao excluir projeto",
+      "noEnvFiles": "Nenhum arquivo de ambiente encontrado",
+      "filesFound": "{count} arquivos encontrados"
+    }
+  },
+  "admin": {
+    "title": "Painel Admin",
+    "users": {
+      "title": "Usuários",
+      "search": "Buscar usuários...",
+      "role": "Função",
+      "changeRole": "Alterar função",
+      "noUsers": "Nenhum usuário encontrado",
+      "errorLoading": "Erro ao carregar usuários"
+    }
+  },
+  "tickets": {
+    "title": "Suporte",
+    "myTickets": "Meus Tickets",
+    "newTicket": "Novo Ticket",
+    "noTickets": "Nenhum ticket ainda",
+    "noTicketsHint": "Crie um ticket se precisar de ajuda",
+    "form": {
+      "subject": "Assunto",
+      "subjectPlaceholder": "Breve descrição do seu problema",
+      "description": "Descrição",
+      "descriptionPlaceholder": "Descreva seu problema em detalhes",
+      "category": "Categoria",
+      "priority": "Prioridade"
+    },
+    "categories": {
+      "bug": "Relatório de Bug",
+      "feature": "Solicitação de Recurso",
+      "billing": "Cobrança",
+      "other": "Outro"
+    },
+    "priorities": {
+      "low": "Baixa",
+      "medium": "Média",
+      "high": "Alta"
+    },
+    "statuses": {
+      "open": "Aberto",
+      "inProgress": "Em Andamento",
+      "resolved": "Resolvido",
+      "closed": "Fechado"
+    },
+    "messages": {
+      "created": "Ticket criado com sucesso",
+      "updated": "Ticket atualizado",
+      "messageSent": "Mensagem enviada",
+      "errorCreating": "Erro ao criar ticket",
+      "errorLoading": "Erro ao carregar tickets",
+      "errorSending": "Erro ao enviar mensagem"
+    },
+    "chat": {
+      "placeholder": "Escreva uma mensagem...",
+      "send": "Enviar",
+      "close": "Fechar Ticket",
+      "closed": "Este ticket está fechado",
+      "ticketClosed": "Este ticket foi fechado",
+      "you": "Você",
+      "support": "Suporte"
+    },
+    "time": {
+      "justNow": "Agora",
+      "minutesAgo": "Há {n} min",
+      "hoursAgo": "Há {n}h",
+      "daysAgo": "Há {n}d",
+      "weeksAgo": "Há {n}sem"
+    },
+    "admin": {
+      "allTickets": "Todos os Tickets",
+      "openTickets": "Abertos",
+      "closedTickets": "Fechados",
+      "open": "Aberto",
+      "closed": "Fechado",
+      "noOpenTickets": "Nenhum ticket aberto",
+      "searchPlaceholder": "Buscar por email ou assunto...",
+      "lastMessage": "Última mensagem",
+      "responses": "{n} resposta | {n} respostas"
+    }
+  },
+  "session": {
+    "expired": "Sua sessão expirou. Por favor, faça login novamente."
+  },
+  "errors": {
+    "generic": "Ocorreu um erro",
+    "network": "Erro de rede. Por favor, verifique sua conexão.",
+    "unauthorized": "Não autorizado. Por favor, faça login novamente.",
+    "notFound": "Não encontrado",
+    "serverError": "Erro do servidor. Por favor, tente novamente mais tarde.",
+    "invalidUrl": "URL inválida ou ambiente não suportado",
+    "sessionExpired": "Sessão expirada. Por favor, faça login novamente."
+  },
+  "premium": {
+    "title": "Vá Premium",
+    "limitReached": "Limite gratuito atingido",
+    "unlockMore": "Desbloqueie mais recursos",
+    "hints": {
+      "passwordLimit": "Você está perto do limite de {limit} senhas. Atualize para armazenamento ilimitado.",
+      "weakPasswords": "Encontradas {count} senhas fracas. Premium inclui análise de segurança com IA.",
+      "afterExport": "Atualize para backups criptografados na nuvem.",
+      "newUser": "Comece sua jornada com senhas ilimitadas e Env Vault."
+    },
+    "cta": "Atualizar Agora",
+    "dismiss": "Talvez Depois"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonade está bloqueado",
+    "unlockButton": "Desbloquear com biométrico",
+    "unlockFallback": "Entrar com Google",
+    "unlockError": "A autenticação falhou. Tente novamente ou entre com Google.",
+    "verifying": "Verificando...",
+    "tapToRetry": "Toque para tentar novamente",
+    "registerSuccess": "Biométrico registrado com sucesso!",
+    "removeSuccess": "Passkey removida"
+  },
+  "notFound": {
+    "title": "Ops. Nada por aqui...",
+    "message": "A página que você procura não existe.",
+    "goHome": "Ir para o Início"
+  },
+  "secureNotes": {
+    "title": "Notas Seguras",
+    "empty": "Nenhuma nota segura ainda",
+    "emptyHint": "Clique no botão + para adicionar sua primeira nota",
+    "create": "Nova Nota",
+    "edit": "Editar Nota",
+    "view": "Ver Nota",
+    "noteTitle": "Título",
+    "noteContent": "Conteúdo",
+    "placeholder": "Escreva sua nota segura...",
+    "created": "Nota criada",
+    "updated": "Nota atualizada",
+    "deleted": "Nota movida para a lixeira",
+    "restored": "Nota restaurada",
+    "permanentlyDeleted": "Nota excluída permanentemente",
+    "search": "Buscar notas...",
+    "deleteConfirm": "Mover esta nota para a lixeira?",
+    "premium": "Notas Seguras é um recurso premium",
+    "premiumDescription": "Armazene notas criptografadas com segurança. As notas são criptografadas com AES-256.",
+    "premiumFeature1": "Notas criptografadas com AES-256",
+    "premiumFeature2": "CRUD completo com lixeira e restauração",
+    "premiumFeature3": "Criptografia AES-256 no servidor"
+  },
+  "emergency": {
+    "title": "Acesso de Emergencia",
+    "description": "Designe contatos de confianca que podem solicitar acesso as suas senhas",
+    "addContact": "Adicionar Contato de Confianca",
+    "email": "Email do contato",
+    "waitPeriod": "Periodo de espera",
+    "waitPeriodHelp": "Tempo antes do acesso ser aprovado automaticamente se voce nao responder",
+    "days": "{n} dia | {n} dias",
+    "status": {
+      "invited": "Convidado",
+      "active": "Em espera",
+      "requesting": "Solicitando acesso",
+      "approved": "Acesso concedido",
+      "denied": "Negado",
+      "revoked": "Revogado"
+    },
+    "actions": {
+      "approve": "Aprovar agora",
+      "deny": "Negar",
+      "revoke": "Revogar acesso",
+      "request": "Solicitar acesso"
+    },
+    "messages": {
+      "contactAdded": "Contato de emergencia adicionado",
+      "accessRequested": "Acesso solicitado",
+      "accessApproved": "Acesso de emergencia aprovado",
+      "accessDenied": "Acesso de emergencia negado",
+      "contactRevoked": "Contato de emergencia removido"
+    },
+    "trustee": {
+      "title": "Sou Contato de Confianca De",
+      "empty": "Ninguem adicionou voce como contato de emergencia",
+      "viewPasswords": "Ver Senhas",
+      "accessExpires": "Acesso expira em {date}"
+    },
+    "grantor": {
+      "title": "Meus Contatos de Confianca",
+      "empty": "Nenhum contato de emergencia adicionado",
+      "emptyHint": "Adicione alguem que possa acessar suas senhas em emergencias",
+      "pendingRequest": "Acesso solicitado"
+    },
+    "premium": "Acesso de Emergencia e um recurso premium"
+  }
+}

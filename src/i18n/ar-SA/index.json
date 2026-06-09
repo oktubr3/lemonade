@@ -1,0 +1,757 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "close": "إغلاق",
+    "search": "بحث",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "warning": "تحذير",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "yes": "نعم",
+    "no": "لا",
+    "ok": "حسناً",
+    "copied": "تم النسخ إلى الحافظة",
+    "copyError": "خطأ في النسخ إلى الحافظة",
+    "saved": "تم الحفظ",
+    "noResults": "لا توجد نتائج",
+    "retry": "إعادة المحاولة",
+    "clear": "مسح",
+    "logout": "تسجيل الخروج",
+    "login": "تسجيل الدخول",
+    "signUp": "إنشاء حساب"
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "passwords": "كلمات المرور",
+    "envVault": "خزنة البيئة",
+    "settings": "الإعدادات",
+    "admin": "الإدارة",
+    "tickets": "الدعم",
+    "notes": "ملاحظات"
+  },
+  "login": {
+    "title": "مرحباً بك في Lemonade",
+    "subtitle": "مدير كلمات مرور آمن للمطورين",
+    "passwordManager": "مدير كلمات المرور",
+    "tagline": "آمن • بسيط • جميل",
+    "signInWithGoogle": "تسجيل الدخول بواسطة Google",
+    "signingIn": "جاري تسجيل الدخول...",
+    "continueAsGuest": "المتابعة كضيف",
+    "termsNotice": "بتسجيل الدخول، فإنك توافق على شروط الخدمة وسياسة الخصوصية",
+    "error": {
+      "generic": "خطأ في تسجيل الدخول",
+      "popupBlocked": "تم حظر النافذة المنبثقة. يرجى السماح بالنوافذ المنبثقة لهذا الموقع.",
+      "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك."
+    },
+    "locked": {
+      "title": "الحساب معلق",
+      "message": "تم تعليق حسابك بسبب عدم النشاط. اتصل بالمسؤول لإعادة تفعيله.",
+      "contact": "اتصل بالمسؤول",
+      "tryAgain": "حاول بحساب آخر"
+    }
+  },
+  "passwords": {
+    "title": "كلمات المرور الخاصة بي",
+    "searchPlaceholder": "البحث في كلمات المرور...",
+    "noPasswords": "لا توجد كلمات مرور بعد",
+    "noPasswordsHint": "انقر على زر + لإضافة أول كلمة مرور",
+    "addPassword": "إضافة كلمة مرور",
+    "editPassword": "تعديل كلمة المرور",
+    "deletePassword": "حذف كلمة المرور",
+    "deleteConfirm": "هل أنت متأكد من حذف كلمة المرور هذه؟",
+    "copyPassword": "نسخ كلمة المرور",
+    "copyUsername": "نسخ اسم المستخدم",
+    "copyUrl": "نسخ الرابط",
+    "openUrl": "فتح الرابط",
+    "viewDetails": "عرض التفاصيل",
+    "limitReached": "لقد وصلت إلى الحد الأقصى وهو {limit} كلمة مرور",
+    "upgradeForMore": "قم بالترقية إلى Premium لكلمات مرور غير محدودة",
+    "loading": "جارٍ تحميل كلمات المرور...",
+    "decrypting": "جارٍ فك تشفير كلمة المرور...",
+    "count": "{count} كلمة مرور",
+    "sortAZ": "ترتيب أ-ي",
+    "sortZA": "ترتيب ي-أ",
+    "listView": "عرض القائمة",
+    "mosaicView": "عرض الفسيفساء",
+    "tableView": "عرض الجدول",
+    "changeView": "تغيير العرض",
+    "sortBy": {
+      "site": "الموقع",
+      "name": "الاسم",
+      "date": "التاريخ",
+      "user": "المستخدم"
+    },
+    "menu": {
+      "view": "عرض",
+      "edit": "تعديل",
+      "copyAll": "نسخ الكل",
+      "share": "مشاركة",
+      "highlight": "تمييز",
+      "unhighlight": "إلغاء التمييز",
+      "delete": "حذف",
+      "moreOptions": "المزيد من الخيارات"
+    },
+    "dialog": {
+      "newTitle": "كلمة مرور جديدة",
+      "editTitle": "تعديل كلمة المرور",
+      "newSubtitle": "املأ الحقول لحفظ كلمة المرور الجديدة",
+      "editSubtitle": "حدّث بيانات كلمة المرور"
+    },
+    "form": {
+      "title": "العنوان",
+      "titleRequired": "العنوان *",
+      "titlePlaceholder": "مثال: حساب Gmail",
+      "titleValidation": "العنوان مطلوب",
+      "username": "اسم المستخدم / البريد الإلكتروني",
+      "usernamePlaceholder": "مثال: john[at]email.com",
+      "password": "كلمة المرور",
+      "passwordRequired": "كلمة المرور *",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "passwordValidation": "كلمة المرور مطلوبة",
+      "url": "رابط الموقع",
+      "urlPlaceholder": "مثال: https://gmail.com",
+      "notes": "ملاحظات",
+      "notesPlaceholder": "ملاحظات إضافية (اختياري)",
+      "folder": "مجلد",
+      "folderPlaceholder": "اختر أو أنشئ مجلداً",
+      "advancedOptions": "خيارات متقدمة",
+      "generatePassword": "توليد كلمة مرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور"
+    },
+    "messages": {
+      "created": "تم إنشاء كلمة المرور بنجاح",
+      "updated": "تم تحديث كلمة المرور بنجاح",
+      "deleted": "تم حذف كلمة المرور",
+      "errorSaving": "خطأ في حفظ كلمة المرور",
+      "errorDeleting": "خطأ في حذف كلمة المرور",
+      "errorLoading": "خطأ في تحميل كلمة المرور",
+      "passwordEmpty": "لا يمكن أن تكون كلمة المرور فارغة",
+      "dataCopied": "تم نسخ البيانات إلى الحافظة"
+    },
+    "security": {
+      "checking": "جاري تحليل أمان كلمة المرور بالذكاء الاصطناعي...",
+      "bulkCheckTitle": "فحص الأمان الشامل",
+      "bulkCheckStart": "بدأ الفحص الشامل",
+      "bulkCheckProgress": "التقدم: {percentage}%",
+      "bulkCheckComplete": "اكتمل الفحص!",
+      "bulkCheckStopping": "جاري إيقاف الفحص الشامل...",
+      "quotaLimit": "تم الوصول إلى حد الحصة",
+      "errorChecking": "خطأ في فحص الأمان",
+      "aiDisabled": "تحليل الأمان بالذكاء الاصطناعي معطل",
+      "compromised": "مخترقة - قم بالتغيير فوراً",
+      "compromisedTitle": "!كلمة مرور مخترقة",
+      "understood": "مفهوم",
+      "changePassword": "تغيير كلمة المرور",
+      "improvableTitle": "كلمة مرور قابلة للتحسين",
+      "improvable": "قابلة للتحسين",
+      "securityLevel": "مستوى الأمان",
+      "issuesFound": "المشاكل المكتشفة",
+      "recommendations": "التوصيات",
+      "immediateActions": "إجراءات فورية",
+      "improvementSuggestions": "اقتراحات للتحسين",
+      "criticalRisk": "خطر حرج: تم العثور على كلمة المرور هذه في تسريبات بيانات عامة. يعرفها المهاجمون ويمكنهم استخدامها للوصول إلى حسابك.",
+      "improvementOpportunity": "فرصة للتحسين: كلمة مرورك تعمل، لكن يمكن أن تكون أكثر أماناً مع بعض التعديلات البسيطة.",
+      "analyzedWith": "تم التحليل بواسطة",
+      "startCheck": "بدء الفحص",
+      "improvePassword": "تحسين كلمة المرور",
+      "dontRemind": "لا تذكرني",
+      "justClose": "إغلاق فقط",
+      "oldPassword": "كلمة مرور قديمة",
+      "oldPasswordHint": "آخر تحديث: منذ {age}",
+      "considerUpdating": "يُنصح بتحديثها لأمان أفضل",
+      "ageYears": "{n} سنة | {n} سنوات",
+      "ageMonths": "{n} شهر | {n} أشهر",
+      "ageDays": "{n} يوم | {n} أيام",
+      "ageToday": "اليوم",
+      "ageUnknown": "تاريخ غير معروف",
+      "levels": {
+        "very_weak": "ضعيفة جداً",
+        "weak": "ضعيفة",
+        "moderate": "متوسطة",
+        "strong": "قوية",
+        "very_strong": "قوية جداً",
+        "unknown": "غير معروف"
+      },
+      "vuln": {
+        "tooShort": "كلمة المرور قصيرة جداً",
+        "sequential": "تحتوي على تسلسلات رقمية يمكن التنبؤ بها",
+        "repeating": "تحتوي على أحرف مكررة",
+        "keyboard": "تحتوي على أنماط لوحة مفاتيح شائعة",
+        "breached": "وجدت في {count} تسريب بيانات معروف"
+      },
+      "rec": {
+        "minChars": "استخدم 8 أحرف على الأقل",
+        "consider12": "فكر في استخدام 12+ حرفاً",
+        "uppercase": "أضف أحرفاً كبيرة",
+        "lowercase": "أضف أحرفاً صغيرة",
+        "numbers": "أضف أرقاماً",
+        "special": "أضف رموزاً خاصة",
+        "changeNow": "غيّر كلمة المرور هذه فوراً",
+        "uniquePassword": "استخدم كلمة مرور فريدة لكل حساب"
+      }
+    },
+    "filters": {
+      "all": "الكل",
+      "favorites": "المفضلة",
+      "shared": "المشتركة",
+      "weak": "ضعيفة",
+      "compromised": "مخترقة",
+      "reused": "مكررة",
+      "old": "قديمة"
+    },
+    "history": {
+      "title": "سجل كلمات المرور",
+      "empty": "لا توجد كلمات مرور سابقة",
+      "changedAt": "تم التغيير في {date}",
+      "copied": "تم نسخ كلمة المرور السابقة"
+    },
+    "reused": {
+      "badge": "مكررة",
+      "warning": "كلمة المرور هذه مستخدمة في {count} مواقع",
+      "description": "استخدام نفس كلمة المرور في عدة مواقع يمثل خطراً أمنياً",
+      "check": "التحقق من كلمات المرور المكررة",
+      "found": "تم العثور على {count} كلمات مرور مكررة",
+      "noneFound": "لم يتم العثور على كلمات مرور مكررة"
+    },
+    "trash": {
+      "title": "سلة المهملات",
+      "empty": "سلة المهملات فارغة",
+      "emptyHint": "ستظهر كلمات المرور المحذوفة هنا",
+      "banner": "يتم حذف العناصر نهائياً بعد 30 يوماً",
+      "restore": "استعادة",
+      "deleteForever": "حذف نهائي",
+      "confirmPermanent": "لا يمكن التراجع عن هذا الإجراء. هل تريد حذف كلمة المرور هذه نهائياً؟",
+      "restored": "تم استعادة كلمة المرور",
+      "permanentlyDeleted": "تم حذف كلمة المرور نهائياً",
+      "movedToTrash": "تم نقل كلمة المرور إلى سلة المهملات"
+    },
+    "customFields": {
+      "title": "حقول مخصصة",
+      "add": "إضافة حقل",
+      "label": "اسم الحقل",
+      "value": "قيمة الحقل",
+      "types": {
+        "text": "نص",
+        "password": "كلمة مرور",
+        "pin": "رمز PIN"
+      },
+      "max": "الحد الأقصى {max} حقول مخصصة"
+    },
+    "totp": {
+      "title": "المصادقة الثنائية",
+      "code": "رمز 2FA",
+      "setup": "إضافة 2FA",
+      "remove": "إزالة 2FA",
+      "secret": "المفتاح السري",
+      "secretHint": "الصق المفتاح السري من الخدمة",
+      "saved": "تم تكوين 2FA بنجاح",
+      "removed": "تمت إزالة 2FA",
+      "copied": "تم نسخ رمز 2FA",
+      "invalid": "مفتاح سري غير صالح",
+      "badge": "2FA مفعّل",
+      "scanQr": "مسح رمز QR",
+      "orManual": "أو أدخل المفتاح السري يدوياً",
+      "qrSuccess": "تم مسح رمز QR بنجاح",
+      "qrInvalid": "رمز QR غير صالح — ليس رمز 2FA صالحاً",
+      "cameraError": "تعذر الوصول إلى الكاميرا"
+    }
+  },
+  "generator": {
+    "title": "مولد كلمات المرور",
+    "length": "الطول",
+    "uppercase": "أحرف كبيرة (A-Z)",
+    "lowercase": "أحرف صغيرة (a-z)",
+    "numbers": "أرقام (0-9)",
+    "symbols": "رموز (!#$%)",
+    "generate": "توليد",
+    "copy": "نسخ",
+    "use": "استخدام هذه كلمة المرور"
+  },
+  "sharing": {
+    "title": "مشاركة كلمة المرور",
+    "shareWith": "مشاركة مع",
+    "searchUsers": "البحث عن مستخدمين...",
+    "shareConfirm": "مشاركة \"{title}\" مع {user}؟",
+    "shared": "تمت مشاركة كلمة المرور مع {user}",
+    "errorSharing": "خطأ في مشاركة كلمة المرور",
+    "pendingShares": "المشاركات المعلقة",
+    "accept": "قبول",
+    "reject": "رفض",
+    "accepted": "تمت إضافة \"{title}\" إلى كلمات المرور الخاصة بك",
+    "rejected": "تم رفض كلمة المرور",
+    "errorAccepting": "خطأ في القبول",
+    "errorRejecting": "خطأ في الرفض",
+    "recentContacts": "جهات الاتصال الأخيرة",
+    "minSearchChars": "اكتب 3 أحرف على الأقل للبحث",
+    "noRecentContacts": "اكتب بريدًا إلكترونيًا أو اسمًا للبحث عن المستخدمين",
+    "blockUser": "حظر المستخدم",
+    "blockConfirm": "حظر {user}؟ لن يتمكن من مشاركة كلمات المرور معك بعد الآن.",
+    "userBlocked": "تم حظر المستخدم",
+    "errorBlocking": "خطأ في حظر المستخدم"
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "profile": {
+      "title": "الملف الشخصي",
+      "displayName": "الاسم المعروض",
+      "email": "البريد الإلكتروني"
+    },
+    "subscription": {
+      "title": "الحساب",
+      "free": "مجاني",
+      "premium": "استضافة (مدى الحياة)",
+      "founder": "مؤسس",
+      "admin": "مشرف",
+      "trial": "تجريبي",
+      "upgradeButton": "احصل على الاستضافة — 29 دولار مدى الحياة",
+      "manageButton": "إدارة الاشتراك",
+      "founderBadge": "مختبر بيتا",
+      "features": {
+        "title": "يشمل:",
+        "envVault": "خزنة البيئة - متغيرات البيئة",
+        "unlimited": "كلمات مرور غير محدودة",
+        "aiSecurity": "كشف التسريبات (HaveIBeenPwned)",
+        "prioritySupport": "دعم ذو أولوية"
+      },
+      "fullAccess": "وصول كامل لجميع الميزات",
+      "founderThanks": "Premium مجاني مدى الحياة - شكراً لإيمانك بـ Lemonade",
+      "upgradeHint": "قم بالترقية لفتح خزنة البيئة والمزيد",
+      "nextRenewal": "التجديد التالي",
+      "premiumUntil": "بريميوم حتى",
+      "statusCanceled": "ملغى (نشط حتى نهاية الفترة)",
+      "status": "الحالة",
+      "welcomePremium": "أهلا بك! حسابك المستضاف مدى الحياة نشط.",
+      "errorCheckout": "خطأ في بدء الدفع",
+      "errorPortal": "خطأ في الوصول إلى البوابة"
+    },
+    "security": {
+      "title": "الأمان",
+      "biometric": "فتح القفل البيومتري",
+      "biometricHint": "استخدم بصمة الإصبع أو التعرف على الوجه لفتح Lemonade",
+      "biometricRegister": "تسجيل البيومتري",
+      "biometricRegistered": "تم تسجيل البيومتري",
+      "biometricRemove": "إزالة",
+      "biometricRemoveConfirm": "إزالة مفتاح المرور هذا؟ ستحتاج إلى التسجيل مرة أخرى لاستخدام فتح القفل البيومتري.",
+      "biometricNotSupported": "جهازك لا يدعم المصادقة البيومترية",
+      "biometricDeviceName": "الجهاز",
+      "biometricRegisteredOn": "تاريخ التسجيل",
+      "sessionDuration": "مدة الجلسة",
+      "sessionDurationHint": "ستنتهي جلستك بعد هذا الوقت، مما يتطلب تسجيل دخول جديد.",
+      "neverExpireWarning": "تحذير: الجلسات التي لا تنتهي صلاحيتها أبداً تشكل خطراً أمنياً. يمكن لأي شخص لديه وصول إلى هذا الجهاز الوصول إلى كلمات المرور الخاصة بك.",
+      "lockOnExit": "القفل عند الخروج",
+      "lockOnExitHint": "طلب المصادقة عند العودة إلى التطبيق",
+      "encryptionModel": "نموذج التشفير",
+      "encryptionModelVault": "خزنة كلمات المرور: AES-256-GCM من جانب الخادم. مفتاح التشفير تديره البنية التحتية الآمنة لـ Lemonade.",
+      "encryptionModelEnvVault": "Env Vault: تشفير من طرف إلى طرف على جهازك. لا يمكن لخوادم Lemonade قراءة متغيراتك.",
+      "sessionOptions": {
+        "oneDay": "يوم واحد",
+        "threeDays": "3 أيام",
+        "oneWeek": "أسبوع واحد",
+        "twoWeeks": "أسبوعان",
+        "oneMonth": "شهر واحد",
+        "never": "أبداً"
+      }
+    },
+    "privacy": {
+      "title": "الخصوصية",
+      "aiAnalysis": "كشف التسريبات",
+      "aiAnalysisHint": "تحقق مما إذا كانت كلمات المرور الخاصة بك تظهر في تسريبات البيانات المعروفة (عبر HaveIBeenPwned)",
+      "passwordAge": "فحص عمر كلمة المرور",
+      "passwordAgeHint": "إظهار مؤشرات لكلمات المرور التي لم يتم تحديثها منذ أكثر من 6 أشهر",
+      "reusedCheck": "كشف كلمات المرور المكررة",
+      "reusedCheckHint": "كشف وتمييز كلمات المرور المستخدمة في إدخالات متعددة",
+      "allDisabled": "تم تعطيل كلتا الميزتين لحماية خصوصيتك"
+    },
+    "appearance": {
+      "title": "المظهر",
+      "theme": "السمة",
+      "themeHint": "اختر سمة التطبيق",
+      "themeAuto": "تلقائي",
+      "themeLight": "فاتح",
+      "themeDark": "داكن",
+      "accessibilityFocus": "مؤشرات التركيز",
+      "accessibilityFocusHint": "إظهار حدود صفراء على العناصر المركزة للتنقل بلوحة المفاتيح"
+    },
+    "accessibility": {
+      "title": "إمكانية الوصول",
+      "focusIndicators": "مؤشرات التركيز",
+      "focusIndicatorsHint": "عرض إطارات صفراء على العناصر المركزة للتنقل بلوحة المفاتيح",
+      "highContrast": "تباين عالي",
+      "highContrastHint": "زيادة التباين لتحسين القراءة",
+      "grayscale": "أبيض وأسود",
+      "grayscaleHint": "إزالة الألوان لإراحة العينين في الليل"
+    },
+    "mosaicView": {
+      "title": "عرض الفسيفساء",
+      "mobileColumns": "أعمدة الجوال",
+      "mobileColumnsHint": "عدد الأعمدة على الأجهزة المحمولة",
+      "desktopColumns": "أعمدة سطح المكتب",
+      "desktopColumnsHint": "عدد الأعمدة على الشاشات الكبيرة",
+      "preview": "معاينة: {columns} أعمدة ({device})",
+      "columns": "{n} أعمدة"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "push": "إشعارات الدفع",
+      "pushHint": "تلقي إشعارات حول النشاط في حسابك"
+    },
+    "exportImport": {
+      "title": "تصدير / استيراد",
+      "export": "تصدير كلمات المرور",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "تصدير البيانات الوصفية إلى CSV (بدون كلمات المرور)",
+      "exportJsonHint": "تصدير بتنسيق Lemonade JSON",
+      "import": "استيراد كلمات المرور",
+      "importButton": "استيراد ملف",
+      "importHint": "استيراد من CSV أو JSON (Bitwarden, 1Password)",
+      "supportedFormats": "التنسيقات المدعومة: Lemonade, Bitwarden, 1Password",
+      "noPasswordsExport": "لا توجد كلمات مرور للتصدير",
+      "exportedCount": "تم تصدير {count} كلمة مرور",
+      "exportedMetadata": "تم تصدير {count} كلمة مرور (البيانات الوصفية فقط)",
+      "importFound": "تم العثور على {count} إدخال. هل تريد الاستيراد؟",
+      "importedCount": "تم استيراد {count} كلمة مرور",
+      "importTitle": "استيراد كلمات المرور",
+      "formatError": "تنسيق غير مدعوم. استخدم CSV أو JSON.",
+      "noValidEntries": "لم يتم العثور على إدخالات صالحة",
+      "errorExport": "خطأ في التصدير",
+      "errorImport": "خطأ في الاستيراد"
+    },
+    "about": {
+      "title": "حول",
+      "version": "الإصدار"
+    },
+    "language": {
+      "title": "اللغة",
+      "appLanguage": "لغة التطبيق",
+      "selectLanguage": "اختر اللغة",
+      "languageHint": "اختر لغتك المفضلة",
+      "languagesSupported": "{count} لغات مدعومة"
+    },
+    "messages": {
+      "saved": "تم حفظ الإعدادات بنجاح",
+      "errorLoading": "خطأ في تحميل الإعدادات",
+      "errorSaving": "خطأ في حفظ الإعدادات"
+    }
+  },
+  "envVault": {
+    "title": "خزنة البيئة",
+    "subtitle": "تخزين آمن لمتغيرات البيئة الخاصة بك",
+    "premiumRequired": "مطلوب اشتراك Premium",
+    "premiumHint": "قم بالترقية إلى Premium للوصول إلى خزنة البيئة",
+    "sortAZ": "ترتيب أ-ي",
+    "sortRecent": "الأحدث",
+    "projectsCount": "{count} مشاريع",
+    "lockVault": "قفل الخزنة",
+    "dropZone": {
+      "title": "أفلت مجلد مشروعك هنا",
+      "hint": "سنجد جميع ملفات .env و .npmrc و credentials.json والملفات السرية",
+      "browse": "أو تصفح الملفات",
+      "scanning": "جاري المسح...",
+      "multipleProjectsTitle": "تم اكتشاف مجلدات متعددة",
+      "multipleProjectsMessage": "أسقطت {count} مجلدات دفعة واحدة. للحصول على أفضل النتائج، أضف المشاريع واحداً تلو الآخر.",
+      "largeFolderTitle": "تم اكتشاف مجلد كبير جداً",
+      "largeFolderMessage": "يبدو أن المجلد \"{folder}\" كبير جداً. اسحب مجلدات المشاريع الفردية.",
+      "multipleProjectsInsideMessage": "يبدو أن المجلد \"{folder}\" يحتوي على مشاريع متعددة. اسحب كل مجلد مشروع على حدة.",
+      "cancel": "إلغاء",
+      "continueAnyway": "استمر على أي حال"
+    },
+    "project": {
+      "noProjects": "لا توجد مشاريع بعد",
+      "noProjectsHint": "اسحب وأفلت مجلد مشروع للبدء",
+      "addProject": "إضافة مشروع",
+      "deleteProject": "حذف المشروع",
+      "deleteConfirm": "هل أنت متأكد من حذف هذا المشروع؟",
+      "exportProject": "تصدير .env",
+      "files": "{count} ملف",
+      "lastUpdated": "آخر تحديث"
+    },
+    "fileTypes": {
+      "env": "البيئة",
+      "npm": "إعدادات NPM",
+      "credentials": "بيانات الاعتماد",
+      "secrets": "الأسرار"
+    },
+    "masterPassword": {
+      "title": "كلمة المرور الرئيسية",
+      "create": "إنشاء كلمة مرور رئيسية",
+      "enter": "أدخل كلمة المرور الرئيسية",
+      "hint": "تقوم هذه كلمة المرور بتشفير متغيرات البيئة محلياً",
+      "confirm": "تأكيد كلمة المرور",
+      "mismatch": "كلمات المرور غير متطابقة",
+      "weak": "كلمة المرور ضعيفة جداً",
+      "incorrect": "كلمة المرور غير صحيحة"
+    },
+    "master": {
+      "setupTitle": "إعداد خزنة البيئة",
+      "lockedTitle": "خزنة البيئة مقفلة",
+      "setupSubtitle": "أنشئ كلمة مرور رئيسية لحماية متغيرات البيئة الخاصة بك",
+      "lockedSubtitle": "أدخل كلمة المرور الرئيسية للوصول",
+      "masterPassword": "كلمة المرور الرئيسية",
+      "password": "كلمة المرور",
+      "confirmPassword": "تأكيد كلمة المرور",
+      "createVault": "إنشاء الخزنة",
+      "unlock": "فتح",
+      "infoText": "كلمة المرور هذه مستقلة عن تسجيل الدخول. احفظها في مكان آمن.",
+      "strength": {
+        "veryWeak": "ضعيفة جداً",
+        "weak": "ضعيفة",
+        "medium": "متوسطة",
+        "strong": "قوية",
+        "veryStrong": "قوية جداً"
+      },
+      "errors": {
+        "noMatch": "كلمات المرور غير متطابقة",
+        "minLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+        "generic": "خطأ في معالجة كلمة المرور"
+      }
+    },
+    "loading": "جارٍ تحميل خزنة البيئة...",
+    "paywall": {
+      "title": "خزنة البيئة ميزة Premium",
+      "description": "قم بتخزين وإدارة ملفات .env ومفاتيح API والأسرار بشكل آمن. هذه الميزة متاحة لمستخدمي Premium.",
+      "feature1": "استيراد مجلدات المشروع الكاملة",
+      "feature2": "اكتشاف تلقائي لـ .env، credentials.json، إلخ.",
+      "feature3": "تشفير AES-256 إضافي",
+      "feature4": "تصدير مرة أخرى بتنسيق .env",
+      "upgradeBtn": "استضافة — 29 دولار مدى الحياة",
+      "alreadyPremium": "هل أنت Premium بالفعل؟",
+      "refreshPage": "تحديث الصفحة"
+    },
+    "projectDetail": {
+      "changeIcon": "تغيير الأيقونة",
+      "selectIcon": "اختر أيقونة",
+      "add": "إضافة",
+      "addFile": "إضافة ملف متغيرات",
+      "export": "تصدير",
+      "deleteProject": "حذف المشروع",
+      "searchVariable": "بحث عن متغير...",
+      "variables": "متغيرات",
+      "files": "ملفات",
+      "secret": "سري",
+      "hide": "إخفاء",
+      "show": "إظهار",
+      "copy": "نسخ",
+      "noVariablesFound": "لم يتم العثور على متغيرات",
+      "aiContextFiles": "ملفات سياق AI",
+      "aiContextFilesDesc": "ملفات سياق لمساعدي AI",
+      "fileCount": "{count} ملف(ات)",
+      "viewAll": "عرض الكل",
+      "download": "تنزيل",
+      "delete": "حذف",
+      "scanned": "تم المسح",
+      "addFileTitle": "إضافة ملف متغيرات",
+      "fileName": "اسم الملف",
+      "pasteContent": "لصق المحتوى",
+      "uploadFile": "رفع ملف",
+      "fileContent": "محتوى الملف",
+      "clickToSelect": "انقر لاختيار ملف",
+      "preview": "معاينة",
+      "andMore": "... و {count} أكثر",
+      "cancel": "إلغاء"
+    },
+    "messages": {
+      "imported": "تم استيراد المشروع بنجاح",
+      "exported": "تم تصدير البيئة",
+      "deleted": "تم حذف المشروع",
+      "errorImport": "خطأ في استيراد المشروع",
+      "errorExport": "خطأ في التصدير",
+      "errorDelete": "خطأ في حذف المشروع",
+      "noEnvFiles": "لم يتم العثور على ملفات بيئة",
+      "filesFound": "تم العثور على {count} ملف"
+    }
+  },
+  "admin": {
+    "title": "لوحة الإدارة",
+    "users": {
+      "title": "المستخدمون",
+      "search": "البحث عن مستخدمين...",
+      "role": "الدور",
+      "changeRole": "تغيير الدور",
+      "noUsers": "لم يتم العثور على مستخدمين",
+      "errorLoading": "خطأ في تحميل المستخدمين"
+    }
+  },
+  "tickets": {
+    "title": "الدعم",
+    "myTickets": "تذاكري",
+    "newTicket": "تذكرة جديدة",
+    "noTickets": "لا توجد تذاكر بعد",
+    "noTicketsHint": "أنشئ تذكرة إذا كنت بحاجة إلى مساعدة",
+    "form": {
+      "subject": "الموضوع",
+      "subjectPlaceholder": "وصف موجز لمشكلتك",
+      "description": "الوصف",
+      "descriptionPlaceholder": "صف مشكلتك بالتفصيل",
+      "category": "الفئة",
+      "priority": "الأولوية"
+    },
+    "categories": {
+      "bug": "تقرير خطأ",
+      "feature": "طلب ميزة",
+      "billing": "الفواتير",
+      "other": "أخرى"
+    },
+    "priorities": {
+      "low": "منخفضة",
+      "medium": "متوسطة",
+      "high": "عالية"
+    },
+    "statuses": {
+      "open": "مفتوحة",
+      "inProgress": "قيد التنفيذ",
+      "resolved": "تم الحل",
+      "closed": "مغلقة"
+    },
+    "messages": {
+      "created": "تم إنشاء التذكرة بنجاح",
+      "updated": "تم تحديث التذكرة",
+      "messageSent": "تم إرسال الرسالة",
+      "errorCreating": "خطأ في إنشاء التذكرة",
+      "errorLoading": "خطأ في تحميل التذاكر",
+      "errorSending": "خطأ في إرسال الرسالة"
+    },
+    "chat": {
+      "placeholder": "اكتب رسالة...",
+      "send": "إرسال",
+      "close": "إغلاق التذكرة",
+      "closed": "هذه التذكرة مغلقة",
+      "ticketClosed": "تم إغلاق هذه التذكرة",
+      "you": "أنت",
+      "support": "الدعم"
+    },
+    "time": {
+      "justNow": "الآن",
+      "minutesAgo": "منذ {n} دقيقة",
+      "hoursAgo": "منذ {n} ساعة",
+      "daysAgo": "منذ {n} يوم",
+      "weeksAgo": "منذ {n} أسبوع"
+    },
+    "admin": {
+      "allTickets": "جميع التذاكر",
+      "openTickets": "المفتوحة",
+      "closedTickets": "المغلقة",
+      "open": "مفتوحة",
+      "closed": "مغلقة",
+      "noOpenTickets": "لا توجد تذاكر مفتوحة",
+      "searchPlaceholder": "البحث بالبريد الإلكتروني أو الموضوع...",
+      "lastMessage": "آخر رسالة",
+      "responses": "{n} رد"
+    }
+  },
+  "session": {
+    "expired": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى."
+  },
+  "errors": {
+    "generic": "حدث خطأ",
+    "network": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "unauthorized": "غير مصرح. يرجى تسجيل الدخول مرة أخرى.",
+    "notFound": "غير موجود",
+    "serverError": "خطأ في الخادم. يرجى المحاولة لاحقاً.",
+    "invalidUrl": "رابط غير صالح أو بيئة غير مدعومة",
+    "sessionExpired": "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى."
+  },
+  "premium": {
+    "title": "الترقية إلى Premium",
+    "limitReached": "تم الوصول إلى الحد المجاني",
+    "unlockMore": "افتح المزيد من الميزات",
+    "hints": {
+      "passwordLimit": "أنت قريب من حد {limit} كلمة مرور. قم بالترقية للحصول على تخزين غير محدود.",
+      "weakPasswords": "تم العثور على {count} كلمة مرور ضعيفة. Premium يتضمن تحليل الأمان بالذكاء الاصطناعي.",
+      "afterExport": "قم بالترقية للحصول على نسخ احتياطية سحابية مشفرة.",
+      "newUser": "ابدأ رحلتك مع كلمات مرور غير محدودة وخزنة البيئة."
+    },
+    "cta": "الترقية الآن",
+    "dismiss": "ربما لاحقاً"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonade مقفل",
+    "unlockButton": "فتح القفل بالبيومتري",
+    "unlockFallback": "تسجيل الدخول بواسطة Google",
+    "unlockError": "فشلت المصادقة. حاول مرة أخرى أو سجل الدخول بواسطة Google.",
+    "verifying": "جارٍ التحقق...",
+    "tapToRetry": "انقر للمحاولة مرة أخرى",
+    "registerSuccess": "تم تسجيل البيومتري بنجاح!",
+    "removeSuccess": "تم إزالة مفتاح المرور"
+  },
+  "notFound": {
+    "title": "عذراً. لا يوجد شيء هنا...",
+    "message": "الصفحة التي تبحث عنها غير موجودة.",
+    "goHome": "العودة للرئيسية"
+  },
+  "secureNotes": {
+    "title": "ملاحظات آمنة",
+    "empty": "لا توجد ملاحظات آمنة بعد",
+    "emptyHint": "انقر على زر + لإضافة أول ملاحظة",
+    "create": "ملاحظة جديدة",
+    "edit": "تعديل الملاحظة",
+    "view": "عرض الملاحظة",
+    "noteTitle": "العنوان",
+    "noteContent": "المحتوى",
+    "placeholder": "اكتب ملاحظتك الآمنة...",
+    "created": "تم إنشاء الملاحظة",
+    "updated": "تم تحديث الملاحظة",
+    "deleted": "تم نقل الملاحظة إلى سلة المهملات",
+    "restored": "تم استعادة الملاحظة",
+    "permanentlyDeleted": "تم حذف الملاحظة نهائياً",
+    "search": "البحث في الملاحظات...",
+    "deleteConfirm": "نقل هذه الملاحظة إلى سلة المهملات؟",
+    "premium": "الملاحظات الآمنة ميزة مميزة",
+    "premiumDescription": "خزّن ملاحظات مشفرة بأمان. الملاحظات مشفرة بمعيار AES-256.",
+    "premiumFeature1": "ملاحظات مشفرة بـ AES-256",
+    "premiumFeature2": "إدارة كاملة مع سلة المهملات والاستعادة",
+    "premiumFeature3": "تشفير AES-256 على الخادم"
+  },
+  "emergency": {
+    "title": "الوصول الطارئ",
+    "description": "قم بإعداد جهات اتصال موثوقة يمكنها طلب الوصول إلى كلمات المرور الخاصة بك في حالة الطوارئ.",
+    "addContact": "إضافة جهة اتصال طوارئ",
+    "email": "البريد الإلكتروني لجهة الاتصال",
+    "waitPeriod": "فترة الانتظار",
+    "waitPeriodHelp": "يمكنك رفض الطلب خلال هذه الفترة",
+    "days": "{n} يوم | {n} أيام",
+    "status": {
+      "pending": "معلق",
+      "active": "نشط",
+      "requesting": "تم الطلب",
+      "approved": "موافق عليه",
+      "denied": "مرفوض",
+      "revoked": "ملغى"
+    },
+    "actions": {
+      "revoke": "إلغاء الوصول",
+      "request": "طلب الوصول",
+      "approve": "الموافقة على الطلب",
+      "deny": "رفض الطلب"
+    },
+    "messages": {
+      "contactAdded": "تمت إضافة جهة اتصال الطوارئ",
+      "contactRevoked": "تم إلغاء الوصول",
+      "requestSent": "تم إرسال طلب الوصول",
+      "requestApproved": "تمت الموافقة على الطلب",
+      "requestDenied": "تم رفض الطلب"
+    },
+    "trustee": {
+      "title": "المانحون",
+      "noGrantors": "لم يقم أحد بإضافتك كجهة اتصال بعد",
+      "waitingApproval": "في انتظار الموافقة",
+      "accessGranted": "تم منح الوصول"
+    },
+    "grantor": {
+      "title": "جهات الاتصال الخاصة بي",
+      "noContacts": "لا توجد جهات اتصال طوارئ",
+      "pendingRequest": "طلب معلق",
+      "requestFrom": "طلب من {name}"
+    },
+    "premium": "الوصول الطارئ ميزة مميزة"
+  }
+}

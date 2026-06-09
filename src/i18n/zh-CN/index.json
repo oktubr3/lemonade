@@ -1,0 +1,757 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "create": "创建",
+    "close": "关闭",
+    "search": "搜索",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "warning": "警告",
+    "confirm": "确认",
+    "back": "返回",
+    "next": "下一步",
+    "yes": "是",
+    "no": "否",
+    "ok": "确定",
+    "copied": "已复制到剪贴板",
+    "copyError": "复制到剪贴板时出错",
+    "saved": "已保存",
+    "noResults": "未找到结果",
+    "retry": "重试",
+    "clear": "清除",
+    "logout": "退出登录",
+    "login": "登录",
+    "signUp": "注册"
+  },
+  "nav": {
+    "home": "首页",
+    "passwords": "密码",
+    "envVault": "环境变量库",
+    "settings": "设置",
+    "admin": "管理",
+    "tickets": "支持",
+    "notes": "笔记"
+  },
+  "login": {
+    "title": "欢迎使用 Lemonade",
+    "subtitle": "为开发者设计的安全密码管理器",
+    "passwordManager": "密码管理器",
+    "tagline": "安全 • 简单 • 美观",
+    "signInWithGoogle": "使用 Google 登录",
+    "signingIn": "正在登录...",
+    "continueAsGuest": "以访客身份继续",
+    "termsNotice": "登录即表示您同意我们的服务条款和隐私政策",
+    "error": {
+      "generic": "登录错误",
+      "popupBlocked": "弹出窗口被阻止。请允许此站点的弹出窗口。",
+      "networkError": "网络错误。请检查您的连接。"
+    },
+    "locked": {
+      "title": "账户已暂停",
+      "message": "您的账户因不活跃已被暂停。请联系管理员重新激活。",
+      "contact": "联系管理员",
+      "tryAgain": "尝试其他账户"
+    }
+  },
+  "passwords": {
+    "title": "我的密码",
+    "searchPlaceholder": "搜索密码...",
+    "noPasswords": "暂无密码",
+    "noPasswordsHint": "点击 + 按钮添加您的第一个密码",
+    "addPassword": "添加密码",
+    "editPassword": "编辑密码",
+    "deletePassword": "删除密码",
+    "deleteConfirm": "您确定要删除此密码吗？",
+    "copyPassword": "复制密码",
+    "copyUsername": "复制用户名",
+    "copyUrl": "复制链接",
+    "openUrl": "打开链接",
+    "viewDetails": "查看详情",
+    "limitReached": "您已达到 {limit} 个密码的限制",
+    "upgradeForMore": "升级到高级版获取无限密码",
+    "loading": "正在加载密码...",
+    "decrypting": "正在解密密码...",
+    "count": "{count} 个密码",
+    "sortAZ": "A-Z 排序",
+    "sortZA": "Z-A 排序",
+    "listView": "列表视图",
+    "mosaicView": "马赛克视图",
+    "tableView": "表格视图",
+    "changeView": "切换视图",
+    "sortBy": {
+      "site": "站点",
+      "name": "名称",
+      "date": "日期",
+      "user": "用户"
+    },
+    "menu": {
+      "view": "查看",
+      "edit": "编辑",
+      "copyAll": "复制全部",
+      "share": "分享",
+      "highlight": "高亮",
+      "unhighlight": "取消高亮",
+      "delete": "删除",
+      "moreOptions": "更多选项"
+    },
+    "dialog": {
+      "newTitle": "新建密码",
+      "editTitle": "编辑密码",
+      "newSubtitle": "填写以下字段保存新密码",
+      "editSubtitle": "更新密码信息"
+    },
+    "form": {
+      "title": "标题",
+      "titleRequired": "标题 *",
+      "titlePlaceholder": "例如：Gmail 账户",
+      "titleValidation": "标题为必填项",
+      "username": "用户名 / 邮箱",
+      "usernamePlaceholder": "例如：john[at]email.com",
+      "password": "密码",
+      "passwordRequired": "密码 *",
+      "passwordPlaceholder": "输入密码",
+      "passwordValidation": "密码为必填项",
+      "url": "网站链接",
+      "urlPlaceholder": "例如：https://gmail.com",
+      "notes": "备注",
+      "notesPlaceholder": "附加说明（可选）",
+      "folder": "文件夹",
+      "folderPlaceholder": "选择或创建文件夹",
+      "advancedOptions": "高级选项",
+      "generatePassword": "生成密码",
+      "showPassword": "显示密码",
+      "hidePassword": "隐藏密码"
+    },
+    "messages": {
+      "created": "密码创建成功",
+      "updated": "密码更新成功",
+      "deleted": "密码已删除",
+      "errorSaving": "保存密码时出错",
+      "errorDeleting": "删除密码时出错",
+      "errorLoading": "加载密码时出错",
+      "passwordEmpty": "密码不能为空",
+      "dataCopied": "数据已复制到剪贴板"
+    },
+    "security": {
+      "checking": "正在使用 AI 分析密码安全性...",
+      "bulkCheckTitle": "批量安全检查",
+      "bulkCheckStart": "批量检查已开始",
+      "bulkCheckProgress": "进度：{percentage}%",
+      "bulkCheckComplete": "检查完成！",
+      "bulkCheckStopping": "正在停止批量检查...",
+      "quotaLimit": "已达到配额限制",
+      "errorChecking": "检查安全性时出错",
+      "aiDisabled": "AI 安全分析已禁用",
+      "compromised": "已泄露 - 请立即更改",
+      "compromisedTitle": "密码已泄露！",
+      "understood": "我知道了",
+      "changePassword": "更改密码",
+      "improvableTitle": "可改进的密码",
+      "improvable": "可改进",
+      "securityLevel": "安全级别",
+      "issuesFound": "发现的问题",
+      "recommendations": "建议",
+      "immediateActions": "立即行动",
+      "improvementSuggestions": "改进建议",
+      "criticalRisk": "严重风险：此密码已在公开的数据泄露中被发现。攻击者知道它并可以用它来访问您的账户。",
+      "improvementOpportunity": "改进机会：您的密码可以使用，但通过一些简单的调整可以更安全。",
+      "analyzedWith": "分析工具",
+      "startCheck": "开始检查",
+      "improvePassword": "改进密码",
+      "dontRemind": "不再提醒",
+      "justClose": "关闭",
+      "oldPassword": "旧密码",
+      "oldPasswordHint": "上次更新：{age}前",
+      "considerUpdating": "建议更新以确保安全",
+      "ageYears": "{n} 年",
+      "ageMonths": "{n} 个月",
+      "ageDays": "{n} 天",
+      "ageToday": "今天",
+      "ageUnknown": "日期未知",
+      "levels": {
+        "very_weak": "非常弱",
+        "weak": "弱",
+        "moderate": "中等",
+        "strong": "强",
+        "very_strong": "非常强",
+        "unknown": "未知"
+      },
+      "vuln": {
+        "tooShort": "密码太短",
+        "sequential": "包含可预测的数字序列",
+        "repeating": "包含重复字符",
+        "keyboard": "包含常见键盘模式",
+        "breached": "在{count}个已知数据泄露中发现"
+      },
+      "rec": {
+        "minChars": "至少使用8个字符",
+        "consider12": "考虑使用12个以上字符",
+        "uppercase": "包含大写字母",
+        "lowercase": "包含小写字母",
+        "numbers": "包含数字",
+        "special": "包含特殊字符",
+        "changeNow": "立即更改此密码",
+        "uniquePassword": "为每个账户使用唯一密码"
+      }
+    },
+    "filters": {
+      "all": "全部",
+      "favorites": "收藏",
+      "shared": "共享",
+      "weak": "弱密码",
+      "compromised": "已泄露",
+      "reused": "重复使用",
+      "old": "旧密码"
+    },
+    "history": {
+      "title": "密码历史",
+      "empty": "没有以前的密码",
+      "changedAt": "更改于 {date}",
+      "copied": "已复制以前的密码"
+    },
+    "reused": {
+      "badge": "重复使用",
+      "warning": "此密码在{count}个网站上使用",
+      "description": "在多个网站使用相同密码存在安全风险",
+      "check": "检查重复使用的密码",
+      "found": "发现{count}个重复使用的密码",
+      "noneFound": "未发现重复使用的密码"
+    },
+    "trash": {
+      "title": "回收站",
+      "empty": "回收站为空",
+      "emptyHint": "已删除的密码将显示在这里",
+      "banner": "项目将在30天后永久删除",
+      "restore": "恢复",
+      "deleteForever": "永久删除",
+      "confirmPermanent": "此操作无法撤销。确定要永久删除此密码吗？",
+      "restored": "密码已恢复",
+      "permanentlyDeleted": "密码已永久删除",
+      "movedToTrash": "密码已移至回收站"
+    },
+    "customFields": {
+      "title": "自定义字段",
+      "add": "添加字段",
+      "label": "字段名称",
+      "value": "字段值",
+      "types": {
+        "text": "文本",
+        "password": "密码",
+        "pin": "PIN"
+      },
+      "max": "最多{max}个自定义字段"
+    },
+    "totp": {
+      "title": "双因素认证",
+      "code": "2FA验证码",
+      "setup": "添加2FA",
+      "remove": "移除2FA",
+      "secret": "密钥",
+      "secretHint": "粘贴服务提供的密钥",
+      "saved": "2FA配置成功",
+      "removed": "2FA已移除",
+      "copied": "2FA验证码已复制",
+      "invalid": "无效的密钥",
+      "badge": "2FA已启用",
+      "scanQr": "扫描二维码",
+      "orManual": "或手动输入密钥",
+      "qrSuccess": "二维码扫描成功",
+      "qrInvalid": "无效的二维码 — 不是有效的2FA代码",
+      "cameraError": "无法访问摄像头"
+    }
+  },
+  "generator": {
+    "title": "密码生成器",
+    "length": "长度",
+    "uppercase": "大写字母 (A-Z)",
+    "lowercase": "小写字母 (a-z)",
+    "numbers": "数字 (0-9)",
+    "symbols": "符号 (!#$%)",
+    "generate": "生成",
+    "copy": "复制",
+    "use": "使用此密码"
+  },
+  "sharing": {
+    "title": "分享密码",
+    "shareWith": "分享给",
+    "searchUsers": "搜索用户...",
+    "shareConfirm": "将 \"{title}\" 分享给 {user}？",
+    "shared": "密码已分享给 {user}",
+    "errorSharing": "分享密码时出错",
+    "pendingShares": "待处理的分享",
+    "accept": "接受",
+    "reject": "拒绝",
+    "accepted": "\"{title}\" 已添加到您的密码",
+    "rejected": "密码已拒绝",
+    "errorAccepting": "接受时出错",
+    "errorRejecting": "拒绝时出错",
+    "recentContacts": "最近联系人",
+    "minSearchChars": "请输入至少3个字符进行搜索",
+    "noRecentContacts": "输入邮箱或姓名搜索用户",
+    "blockUser": "屏蔽用户",
+    "blockConfirm": "屏蔽 {user}？对方将无法再与您共享密码。",
+    "userBlocked": "用户已屏蔽",
+    "errorBlocking": "屏蔽用户时出错"
+  },
+  "settings": {
+    "title": "设置",
+    "profile": {
+      "title": "用户资料",
+      "displayName": "显示名称",
+      "email": "邮箱"
+    },
+    "subscription": {
+      "title": "账户",
+      "free": "免费",
+      "premium": "终身托管",
+      "founder": "创始人",
+      "admin": "管理员",
+      "trial": "试用",
+      "upgradeButton": "获取托管 — 29 美元终身",
+      "manageButton": "管理订阅",
+      "founderBadge": "测试版用户",
+      "features": {
+        "title": "包含：",
+        "envVault": "环境变量库 - 环境变量",
+        "unlimited": "无限密码",
+        "aiSecurity": "泄露检测 (HaveIBeenPwned)",
+        "prioritySupport": "优先支持"
+      },
+      "fullAccess": "完全访问所有功能",
+      "founderThanks": "终身免费高级版 - 感谢您相信 Lemonade",
+      "upgradeHint": "升级解锁环境变量库等功能",
+      "nextRenewal": "下次续费",
+      "premiumUntil": "Premium 有效期至",
+      "statusCanceled": "已取消（有效至期限结束）",
+      "status": "状态",
+      "welcomePremium": "欢迎！您的终身托管账户已激活。",
+      "errorCheckout": "启动支付时出错",
+      "errorPortal": "访问门户时出错"
+    },
+    "security": {
+      "title": "安全",
+      "biometric": "生物识别解锁",
+      "biometricHint": "使用指纹或面部识别解锁 Lemonade",
+      "biometricRegister": "注册生物识别",
+      "biometricRegistered": "生物识别已注册",
+      "biometricRemove": "移除",
+      "biometricRemoveConfirm": "移除此通行密钥？您需要重新注册才能使用生物识别解锁。",
+      "biometricNotSupported": "您的设备不支持生物识别认证",
+      "biometricDeviceName": "设备",
+      "biometricRegisteredOn": "注册时间",
+      "sessionDuration": "会话时长",
+      "sessionDurationHint": "您的会话将在此时间后过期，需要重新登录。",
+      "neverExpireWarning": "警告：永不过期的会话存在安全风险。任何可以访问此设备的人都可能访问您的密码。",
+      "lockOnExit": "退出时锁定",
+      "lockOnExitHint": "返回应用时需要身份验证",
+      "encryptionModel": "加密模型",
+      "encryptionModelVault": "密码库：服务器端 AES-256-GCM 加密。加密密钥由 Lemonade 的安全基础设施管理。",
+      "encryptionModelEnvVault": "Env Vault：在您的设备上进行端到端加密。您的变量无法被 Lemonade 的服务器读取。",
+      "sessionOptions": {
+        "oneDay": "1 天",
+        "threeDays": "3 天",
+        "oneWeek": "1 周",
+        "twoWeeks": "2 周",
+        "oneMonth": "1 个月",
+        "never": "从不"
+      }
+    },
+    "privacy": {
+      "title": "隐私",
+      "aiAnalysis": "泄露检测",
+      "aiAnalysisHint": "检查您的密码是否出现在已知的数据泄露中（通过 HaveIBeenPwned）",
+      "passwordAge": "密码时效检查",
+      "passwordAgeHint": "显示超过 6 个月未更新的密码指示器",
+      "reusedCheck": "重复密码检测",
+      "reusedCheckHint": "检测并突出显示在多个条目中使用的密码",
+      "allDisabled": "两项功能均已禁用以保护您的隐私"
+    },
+    "appearance": {
+      "title": "外观",
+      "theme": "主题",
+      "themeHint": "选择应用主题",
+      "themeAuto": "自动",
+      "themeLight": "浅色",
+      "themeDark": "深色",
+      "accessibilityFocus": "焦点指示器",
+      "accessibilityFocusHint": "在获得焦点的元素上显示黄色轮廓以便键盘导航"
+    },
+    "accessibility": {
+      "title": "无障碍",
+      "focusIndicators": "焦点指示器",
+      "focusIndicatorsHint": "为键盘导航在聚焦元素上显示黄色轮廓",
+      "highContrast": "高对比度",
+      "highContrastHint": "增加对比度以提高可读性",
+      "grayscale": "黑白模式",
+      "grayscaleHint": "去除颜色以减少夜间眼睛疲劳"
+    },
+    "mosaicView": {
+      "title": "网格视图",
+      "mobileColumns": "移动端列数",
+      "mobileColumnsHint": "移动设备上的列数",
+      "desktopColumns": "桌面端列数",
+      "desktopColumnsHint": "大屏幕上的列数",
+      "preview": "预览：{columns} 列（{device}）",
+      "columns": "{n} 列"
+    },
+    "notifications": {
+      "title": "通知",
+      "push": "推送通知",
+      "pushHint": "接收账户活动通知"
+    },
+    "exportImport": {
+      "title": "导出 / 导入",
+      "export": "导出密码",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "导出元数据到 CSV（不含密码）",
+      "exportJsonHint": "导出到 Lemonade JSON 格式",
+      "import": "导入密码",
+      "importButton": "导入文件",
+      "importHint": "从 CSV 或 JSON 导入（Bitwarden、1Password）",
+      "supportedFormats": "支持的格式：Lemonade、Bitwarden、1Password",
+      "noPasswordsExport": "没有可导出的密码",
+      "exportedCount": "已导出 {count} 个密码",
+      "exportedMetadata": "已导出 {count} 个密码（仅元数据）",
+      "importFound": "发现 {count} 个条目。是否导入？",
+      "importedCount": "已导入 {count} 个密码",
+      "importTitle": "导入密码",
+      "formatError": "不支持的格式。请使用 CSV 或 JSON。",
+      "noValidEntries": "未找到有效条目",
+      "errorExport": "导出时出错",
+      "errorImport": "导入时出错"
+    },
+    "about": {
+      "title": "关于",
+      "version": "版本"
+    },
+    "language": {
+      "title": "语言",
+      "appLanguage": "应用语言",
+      "selectLanguage": "选择语言",
+      "languageHint": "选择您的首选语言",
+      "languagesSupported": "支持 {count} 种语言"
+    },
+    "messages": {
+      "saved": "设置保存成功",
+      "errorLoading": "加载设置时出错",
+      "errorSaving": "保存设置时出错"
+    }
+  },
+  "envVault": {
+    "title": "环境变量库",
+    "subtitle": "安全存储您的环境变量",
+    "premiumRequired": "需要高级版订阅",
+    "premiumHint": "升级到高级版以访问环境变量库",
+    "sortAZ": "A-Z 排序",
+    "sortRecent": "最近",
+    "projectsCount": "{count} 个项目",
+    "lockVault": "锁定保险库",
+    "dropZone": {
+      "title": "将项目文件夹拖放到此处",
+      "hint": "我们将找到所有 .env、.npmrc、credentials.json 和密钥文件",
+      "browse": "或浏览文件",
+      "scanning": "正在扫描...",
+      "multipleProjectsTitle": "检测到多个文件夹",
+      "multipleProjectsMessage": "您同时拖放了{count}个文件夹。为获得最佳结果，请逐个添加项目。",
+      "largeFolderTitle": "检测到非常大的文件夹",
+      "largeFolderMessage": "文件夹\"{folder}\"似乎非常大。请拖放单个项目文件夹。",
+      "multipleProjectsInsideMessage": "文件夹\"{folder}\"似乎包含多个项目。请分别拖放每个项目文件夹。",
+      "cancel": "取消",
+      "continueAnyway": "继续"
+    },
+    "project": {
+      "noProjects": "暂无项目",
+      "noProjectsHint": "拖放项目文件夹以开始",
+      "addProject": "添加项目",
+      "deleteProject": "删除项目",
+      "deleteConfirm": "您确定要删除此项目吗？",
+      "exportProject": "导出 .env",
+      "files": "{count} 个文件",
+      "lastUpdated": "最后更新"
+    },
+    "fileTypes": {
+      "env": "环境",
+      "npm": "NPM 配置",
+      "credentials": "凭据",
+      "secrets": "密钥"
+    },
+    "masterPassword": {
+      "title": "主密码",
+      "create": "创建主密码",
+      "enter": "输入主密码",
+      "hint": "此密码在本地加密您的环境变量",
+      "confirm": "确认密码",
+      "mismatch": "密码不匹配",
+      "weak": "密码太弱",
+      "incorrect": "密码错误"
+    },
+    "master": {
+      "setupTitle": "配置您的 Env Vault",
+      "lockedTitle": "Env Vault 已锁定",
+      "setupSubtitle": "创建主密码以保护您的环境变量",
+      "lockedSubtitle": "输入主密码以访问",
+      "masterPassword": "主密码",
+      "password": "密码",
+      "confirmPassword": "确认密码",
+      "createVault": "创建 Vault",
+      "unlock": "解锁",
+      "infoText": "此密码与您的登录无关。请将其保存在安全的地方。",
+      "strength": {
+        "veryWeak": "非常弱",
+        "weak": "弱",
+        "medium": "中等",
+        "strong": "强",
+        "veryStrong": "非常强"
+      },
+      "errors": {
+        "noMatch": "密码不匹配",
+        "minLength": "密码必须至少8个字符",
+        "generic": "处理密码时出错"
+      }
+    },
+    "loading": "正在加载环境变量库...",
+    "paywall": {
+      "title": "环境变量库是高级版功能",
+      "description": "安全存储和管理您的 .env 文件、API 密钥和密钥。此功能仅对高级版用户开放。",
+      "feature1": "导入完整项目文件夹",
+      "feature2": "自动检测 .env、credentials.json 等",
+      "feature3": "额外的 AES-256 加密",
+      "feature4": "导出回 .env 格式",
+      "upgradeBtn": "托管 — 29 美元终身",
+      "alreadyPremium": "已经是高级版？",
+      "refreshPage": "刷新页面"
+    },
+    "projectDetail": {
+      "changeIcon": "更换图标",
+      "selectIcon": "选择图标",
+      "add": "添加",
+      "addFile": "添加变量文件",
+      "export": "导出",
+      "deleteProject": "删除项目",
+      "searchVariable": "搜索变量...",
+      "variables": "变量",
+      "files": "文件",
+      "secret": "机密",
+      "hide": "隐藏",
+      "show": "显示",
+      "copy": "复制",
+      "noVariablesFound": "未找到变量",
+      "aiContextFiles": "AI 上下文文件",
+      "aiContextFilesDesc": "AI 助手的上下文文件",
+      "fileCount": "{count} 个文件",
+      "viewAll": "查看全部",
+      "download": "下载",
+      "delete": "删除",
+      "scanned": "扫描时间",
+      "addFileTitle": "添加变量文件",
+      "fileName": "文件名",
+      "pasteContent": "粘贴内容",
+      "uploadFile": "上传文件",
+      "fileContent": "文件内容",
+      "clickToSelect": "点击选择文件",
+      "preview": "预览",
+      "andMore": "... 还有 {count} 个",
+      "cancel": "取消"
+    },
+    "messages": {
+      "imported": "项目导入成功",
+      "exported": "环境已导出",
+      "deleted": "项目已删除",
+      "errorImport": "导入项目时出错",
+      "errorExport": "导出时出错",
+      "errorDelete": "删除项目时出错",
+      "noEnvFiles": "未找到环境文件",
+      "filesFound": "找到 {count} 个文件"
+    }
+  },
+  "admin": {
+    "title": "管理面板",
+    "users": {
+      "title": "用户",
+      "search": "搜索用户...",
+      "role": "角色",
+      "changeRole": "更改角色",
+      "noUsers": "未找到用户",
+      "errorLoading": "加载用户时出错"
+    }
+  },
+  "tickets": {
+    "title": "支持",
+    "myTickets": "我的工单",
+    "newTicket": "新建工单",
+    "noTickets": "暂无工单",
+    "noTicketsHint": "如需帮助请创建工单",
+    "form": {
+      "subject": "主题",
+      "subjectPlaceholder": "简要描述您的问题",
+      "description": "描述",
+      "descriptionPlaceholder": "详细描述您的问题",
+      "category": "类别",
+      "priority": "优先级"
+    },
+    "categories": {
+      "bug": "错误报告",
+      "feature": "功能请求",
+      "billing": "账单",
+      "other": "其他"
+    },
+    "priorities": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "statuses": {
+      "open": "待处理",
+      "inProgress": "处理中",
+      "resolved": "已解决",
+      "closed": "已关闭"
+    },
+    "messages": {
+      "created": "工单创建成功",
+      "updated": "工单已更新",
+      "messageSent": "消息已发送",
+      "errorCreating": "创建工单时出错",
+      "errorLoading": "加载工单时出错",
+      "errorSending": "发送消息时出错"
+    },
+    "chat": {
+      "placeholder": "输入消息...",
+      "send": "发送",
+      "close": "关闭工单",
+      "closed": "此工单已关闭",
+      "ticketClosed": "此工单已被关闭",
+      "you": "您",
+      "support": "客服"
+    },
+    "time": {
+      "justNow": "刚刚",
+      "minutesAgo": "{n}分钟前",
+      "hoursAgo": "{n}小时前",
+      "daysAgo": "{n}天前",
+      "weeksAgo": "{n}周前"
+    },
+    "admin": {
+      "allTickets": "所有工单",
+      "openTickets": "待处理",
+      "closedTickets": "已关闭",
+      "open": "待处理",
+      "closed": "已关闭",
+      "noOpenTickets": "没有待处理的工单",
+      "searchPlaceholder": "按邮箱或主题搜索...",
+      "lastMessage": "最后消息",
+      "responses": "{n}条回复"
+    }
+  },
+  "session": {
+    "expired": "您的会话已过期。请重新登录。"
+  },
+  "errors": {
+    "generic": "发生错误",
+    "network": "网络错误。请检查您的连接。",
+    "unauthorized": "未授权。请重新登录。",
+    "notFound": "未找到",
+    "serverError": "服务器错误。请稍后重试。",
+    "invalidUrl": "无效的链接或不支持的环境",
+    "sessionExpired": "会话已过期。请重新登录。"
+  },
+  "premium": {
+    "title": "升级到高级版",
+    "limitReached": "已达到免费限制",
+    "unlockMore": "解锁更多功能",
+    "hints": {
+      "passwordLimit": "您即将达到 {limit} 个密码的限制。升级获取无限存储。",
+      "weakPasswords": "发现 {count} 个弱密码。高级版包含 AI 安全分析。",
+      "afterExport": "升级获取加密云备份。",
+      "newUser": "开始您的旅程，享受无限密码和环境变量库。"
+    },
+    "cta": "立即升级",
+    "dismiss": "稍后再说"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonade 已锁定",
+    "unlockButton": "使用生物识别解锁",
+    "unlockFallback": "使用 Google 登录",
+    "unlockError": "认证失败。请重试或使用 Google 登录。",
+    "verifying": "验证中...",
+    "tapToRetry": "点击重试",
+    "registerSuccess": "生物识别注册成功！",
+    "removeSuccess": "通行密钥已移除"
+  },
+  "notFound": {
+    "title": "糟糕，这里什么都没有...",
+    "message": "您要找的页面不存在。",
+    "goHome": "返回首页"
+  },
+  "secureNotes": {
+    "title": "安全笔记",
+    "empty": "还没有安全笔记",
+    "emptyHint": "点击 + 按钮添加您的第一条笔记",
+    "create": "新建笔记",
+    "edit": "编辑笔记",
+    "view": "查看笔记",
+    "noteTitle": "标题",
+    "noteContent": "内容",
+    "placeholder": "写下您的安全笔记...",
+    "created": "笔记已创建",
+    "updated": "笔记已更新",
+    "deleted": "笔记已移至回收站",
+    "restored": "笔记已恢复",
+    "permanentlyDeleted": "笔记已永久删除",
+    "search": "搜索笔记...",
+    "deleteConfirm": "将此笔记移至回收站？",
+    "premium": "安全笔记是高级功能",
+    "premiumDescription": "安全存储加密笔记。笔记采用AES-256加密。",
+    "premiumFeature1": "AES-256加密笔记",
+    "premiumFeature2": "完整的增删改查，含回收站和恢复",
+    "premiumFeature3": "服务器端 AES-256 加密"
+  },
+  "emergency": {
+    "title": "紧急访问",
+    "description": "指定信任联系人，他们可以请求访问您的密码",
+    "addContact": "添加信任联系人",
+    "email": "联系人邮箱",
+    "waitPeriod": "等待期",
+    "waitPeriodHelp": "如果您未回应，访问将在此时间后自动批准",
+    "days": "{n} 天",
+    "status": {
+      "invited": "已邀请",
+      "active": "待命",
+      "requesting": "请求访问中",
+      "approved": "已授权",
+      "denied": "已拒绝",
+      "revoked": "已撤销"
+    },
+    "actions": {
+      "approve": "立即批准",
+      "deny": "拒绝",
+      "revoke": "撤销访问",
+      "request": "请求访问"
+    },
+    "messages": {
+      "contactAdded": "紧急联系人已添加",
+      "accessRequested": "已请求访问",
+      "accessApproved": "紧急访问已批准",
+      "accessDenied": "紧急访问已拒绝",
+      "contactRevoked": "紧急联系人已移除"
+    },
+    "trustee": {
+      "title": "我是以下用户的信任联系人",
+      "empty": "还没有人将您添加为紧急联系人",
+      "viewPasswords": "查看密码",
+      "accessExpires": "访问权限过期时间 {date}"
+    },
+    "grantor": {
+      "title": "我的信任联系人",
+      "empty": "尚未添加紧急联系人",
+      "emptyHint": "添加一个在紧急情况下可以访问您密码的人",
+      "pendingRequest": "已请求访问"
+    },
+    "premium": "紧急访问是高级功能"
+  }
+}

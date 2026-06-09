@@ -1,0 +1,490 @@
+<!--
+     ___
+    /   \
+   | ** |
+    \___/
+   LEMONADE
+   PASSWORD
+   MANAGER
+
+        _.._
+      .' .-'`
+     /  /
+    |  |
+    \  \
+     '._'-._
+        ```
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEMONADE // docs</title>
+  <meta name="description" content="Documentation for Lemonade Password Manager - Your secrets. Encrypted. Yours.">
+  <meta name="keywords" content="password manager, encryption, AES-256, zero-knowledge, security, lemonade">
+  <meta name="author" content="Lemonade">
+  <meta property="og:title" content="LEMONADE // docs">
+  <meta property="og:description"
+    content="Documentation for Lemonade Password Manager v2.2.4 - Your secrets. Encrypted. Yours.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://docs.lemonadepass.app">
+  <meta property="og:image" content="https://docs.lemonadepass.app/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="LEMONADE // docs">
+  <meta name="twitter:description" content="Documentation for Lemonade Password Manager v2.2.4">
+  <link rel="icon" href="LemonadeLogo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Top Bar -->
+  <nav class="top-bar">
+    <div class="top-bar-left">
+      <span class="lemon-logo"><img src="LemonadeLogo.png" alt="Lemonade" width="22" height="22"></span>
+      <span data-i18n="nav.brand">LEMONADE DOCS</span>
+    </div>
+    <div class="top-bar-center" id="mobile-menu">
+      <a href="#getting-started" class="nav-pill" data-i18n="nav.start">Getting Started</a>
+      <a href="#vault" class="nav-pill" data-i18n="nav.vault">Vault</a>
+      <a href="#env-vault" class="nav-pill" data-i18n="nav.env">Env Vault</a>
+      <a href="#security" class="nav-pill" data-i18n="nav.security">Security</a>
+      <a href="#extensions" class="nav-pill" data-i18n="nav.extensions">Extensions</a>
+      <a href="#sharing" class="nav-pill" data-i18n="nav.sharing">Sharing</a>
+      <a href="#premium" class="nav-pill" data-i18n="nav.premium">Pricing</a>
+      <a href="#architecture" class="nav-pill" data-i18n="nav.architecture">Architecture</a>
+
+      <a href="#faq" class="nav-pill" data-i18n="nav.faq">FAQ</a>
+    </div>
+    <div class="top-bar-right">
+      <div class="lang-selector">
+        <button id="lang-current" aria-label="Language selector">🇺🇸 English</button>
+        <div id="lang-dropdown"></div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀️</button>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- Hero Section -->
+    <section class="hero reveal">
+      <h1 data-i18n="hero.title">LEMONADE PASSWORD MANAGER</h1>
+      <p class="hero-version">v2.2.4 // docs.lemonadepass.app</p>
+      <p class="typing-text" id="hero-subtitle" data-i18n="hero.subtitle">Your secrets. Encrypted. Yours.</p>
+      <span class="badge">v2.2.4</span>
+      <div class="hero-nav">
+        <a href="#getting-started" class="nav-pill" data-i18n="hero.nav.start">Getting Started</a>
+        <a href="#vault" class="nav-pill" data-i18n="hero.nav.vault">Password Vault</a>
+        <a href="#security" class="nav-pill" data-i18n="hero.nav.security">Security Audit</a>
+        <a href="#extensions" class="nav-pill" data-i18n="hero.nav.extensions">Extensions</a>
+        <a href="#architecture" class="nav-pill" data-i18n="hero.nav.architecture">Architecture</a>
+      </div>
+    </section>
+
+    <!-- Getting Started -->
+    <section id="getting-started" class="reveal">
+      <h2 data-i18n="start.title">// GETTING STARTED</h2>
+      <div class="steps-grid">
+        <div class="step-card glass-card reveal">
+          <span class="step-icon">🔑</span>
+          <h3 data-i18n="start.step1.title">Sign Up</h3>
+          <p data-i18n="start.step1.desc">Sign in with your Google account and you're ready to use Lemonade. If you need
+            encrypted environment variable storage, you can set up an Env Vault master password later.</p>
+        </div>
+        <div class="step-card glass-card reveal">
+          <span class="step-icon">🔐</span>
+          <h3 data-i18n="start.step2.title">First Password</h3>
+          <p data-i18n="start.step2.desc">Add your first credential to the vault. Store usernames, passwords, URLs, and
+            notes — all encrypted and synced across devices.</p>
+        </div>
+        <div class="step-card glass-card reveal">
+          <span class="step-icon">🧩</span>
+          <h3 data-i18n="start.step3.title">Install Extension</h3>
+          <p data-i18n="start.step3.desc">Get the Chrome or Firefox extension. It auto-fills credentials on sites that
+            match URLs saved in your vault.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Password Vault -->
+    <section id="vault" class="reveal">
+      <h2 data-i18n="vault.title">// PASSWORD VAULT</h2>
+      <div class="glass-card">
+        <div class="feature-grid">
+          <div class="feature-item reveal">
+            <h4 data-i18n="vault.feat1.title">AES-256 Encryption</h4>
+            <p data-i18n="vault.feat1.desc">Your credentials are encrypted and stored securely in Firebase. Sensitive
+              fields are protected with server-side encryption.</p>
+          </div>
+          <div class="feature-item reveal">
+            <h4 data-i18n="vault.feat2.title">Auto-fill</h4>
+            <p data-i18n="vault.feat2.desc">Browser extension detects login forms and fills credentials instantly.
+              Supports Chrome and Firefox.</p>
+          </div>
+          <div class="feature-item reveal">
+            <h4 data-i18n="vault.feat3.title">Security Audit</h4>
+            <p data-i18n="vault.feat3.desc">Detects weak and reused passwords. Get actionable
+              recommendations to strengthen your vault.</p>
+          </div>
+          <div class="feature-item reveal">
+            <h4 data-i18n="vault.feat4.title">Secure Sharing</h4>
+            <p data-i18n="vault.feat4.desc">Share credentials with other Lemonade users. Select a contact, share, and
+              they receive it securely in their vault.</p>
+          </div>
+        </div>
+        <div class="code-block">
+          <div class="code-block-header">
+            <span data-i18n="vault.code.title">encryption_flow.pseudo</span>
+            <button class="copy-btn" data-i18n="vault.code.copy">Copy</button>
+          </div>
+          <pre><code><span class="hl-comment">// Env Vault Encryption (client-side, zero-knowledge)</span>
+<span class="hl-variable">master_password</span> <span class="hl-operator">=</span> <span class="hl-function">user_input</span><span class="hl-bracket">()</span>
+<span class="hl-variable">salt</span> <span class="hl-operator">=</span> <span class="hl-builtin">crypto</span>.<span class="hl-function">getRandomValues</span><span class="hl-bracket">(</span><span class="hl-keyword">new</span> <span class="hl-builtin">Uint8Array</span><span class="hl-bracket">(</span><span class="hl-number">16</span><span class="hl-bracket">))</span>
+<span class="hl-variable">key</span> <span class="hl-operator">=</span> <span class="hl-keyword">await</span> <span class="hl-builtin">crypto</span>.<span class="hl-builtin">subtle</span>.<span class="hl-function">deriveKey</span><span class="hl-bracket">(</span>
+  <span class="hl-bracket">{</span> <span class="hl-property">name</span>: <span class="hl-string">'PBKDF2'</span>, <span class="hl-property">salt</span>, <span class="hl-property">iterations</span>: <span class="hl-number">600000</span>, <span class="hl-property">hash</span>: <span class="hl-string">'SHA-256'</span> <span class="hl-bracket">}</span>,
+  <span class="hl-param">masterKeyMaterial</span>,
+  <span class="hl-bracket">{</span> <span class="hl-property">name</span>: <span class="hl-string">'AES-GCM'</span>, <span class="hl-property">length</span>: <span class="hl-number">256</span> <span class="hl-bracket">}</span>
+<span class="hl-bracket">)</span>
+<span class="hl-variable">iv</span> <span class="hl-operator">=</span> <span class="hl-builtin">crypto</span>.<span class="hl-function">getRandomValues</span><span class="hl-bracket">(</span><span class="hl-keyword">new</span> <span class="hl-builtin">Uint8Array</span><span class="hl-bracket">(</span><span class="hl-number">12</span><span class="hl-bracket">))</span>
+<span class="hl-variable">ciphertext</span> <span class="hl-operator">=</span> <span class="hl-keyword">await</span> <span class="hl-builtin">crypto</span>.<span class="hl-builtin">subtle</span>.<span class="hl-function">encrypt</span><span class="hl-bracket">(</span>
+  <span class="hl-bracket">{</span> <span class="hl-property">name</span>: <span class="hl-string">'AES-GCM'</span>, <span class="hl-property">iv</span> <span class="hl-bracket">}</span>,
+  <span class="hl-param">key</span>, <span class="hl-param">plaintext</span>
+<span class="hl-bracket">)</span>
+<span class="hl-comment">// master_password and key NEVER leave the device</span>
+
+<span class="hl-comment">// Password Vault: encrypted server-side via Cloud Functions</span></code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Env Vault -->
+    <section id="env-vault" class="reveal">
+      <h2 data-i18n="env.title">// ENV VAULT</h2>
+      <div class="glass-card">
+        <div class="highlight-panel">
+          <h3 data-i18n="env.highlight.title">Environment Variable Storage</h3>
+          <p data-i18n="env.highlight.desc">Store and manage your environment variables securely. Drag and drop your project folder and Lemonade automatically extracts all .env files. They are encrypted and synced across your devices, never stored in plaintext.</p>
+        </div>
+        <div class="drag-drop-zone">
+          <p data-i18n="env.drop.text">Drag & drop your project folder here</p>
+        </div>
+        <div class="file-types-grid">
+          <div class="file-type glass-card reveal">
+            <code>.env</code>
+            <span data-i18n="env.type.default">Default</span>
+          </div>
+          <div class="file-type glass-card reveal">
+            <code>.env.local</code>
+            <span data-i18n="env.type.local">Local</span>
+          </div>
+          <div class="file-type glass-card reveal">
+            <code>.env.production</code>
+            <span data-i18n="env.type.production">Production</span>
+          </div>
+          <div class="file-type glass-card reveal">
+            <code>.env.development</code>
+            <span data-i18n="env.type.development">Development</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Audit -->
+    <section id="security" class="reveal">
+      <h2 data-i18n="security.title">// SECURITY AUDIT</h2>
+      <div class="gauges-grid">
+        <div class="gauge glass-card reveal" data-severity="red">
+          <div class="gauge-meter" data-value="2">
+            <span class="gauge-value">2</span>
+          </div>
+          <h4 data-i18n="security.compromised.title">Compromised</h4>
+          <p data-i18n="security.compromised.desc">Passwords flagged as compromised. Change them immediately.</p>
+        </div>
+        <div class="gauge glass-card reveal" data-severity="orange">
+          <div class="gauge-meter" data-value="5">
+            <span class="gauge-value">5</span>
+          </div>
+          <h4 data-i18n="security.weak.title">Weak</h4>
+          <p data-i18n="security.weak.desc">Passwords classified as weak or very weak. Consider updating them.</p>
+        </div>
+        <div class="gauge glass-card reveal" data-severity="yellow">
+          <div class="gauge-meter" data-value="8">
+            <span class="gauge-value">8</span>
+          </div>
+          <h4 data-i18n="security.medium.title">Medium</h4>
+          <p data-i18n="security.medium.desc">Passwords with acceptable strength that could still be improved.</p>
+        </div>
+        <div class="gauge glass-card reveal" data-severity="green">
+          <div class="gauge-meter" data-value="35">
+            <span class="gauge-value">35</span>
+          </div>
+          <h4 data-i18n="security.strong.title">Strong</h4>
+          <p data-i18n="security.strong.desc">Passwords with high entropy rated as strong.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Browser Extensions -->
+    <section id="extensions" class="reveal">
+      <h2 data-i18n="extensions.title">// BROWSER EXTENSIONS</h2>
+      <div class="extensions-grid">
+        <div class="glass-card reveal">
+          <h3 data-i18n="extensions.chrome.title">Chrome Extension</h3>
+          <span class="extension-icon">
+            <img src="chrome.svg" alt="Chrome" width="40" height="40">
+          </span>
+          <ol>
+            <li data-i18n="extensions.chrome.step1">Download from Chrome Web Store or load unpacked</li>
+            <li data-i18n="extensions.chrome.step2">Sign in with your Lemonade account</li>
+            <li data-i18n="extensions.chrome.step3">Click the extension icon to auto-fill credentials</li>
+          </ol>
+          <a href="https://chromewebstore.google.com/detail/lemonade-password-manager/lblkhcfbpmelkmhjdpdkfamicaganhik" target="_blank" rel="noopener noreferrer" class="extension-link" data-i18n="extensions.chrome.download">Get from Chrome Web Store</a>
+          <div class="code-block">
+            <div class="code-block-header">
+              <span data-i18n="extensions.chrome.manifest">manifest.json (MV3)</span>
+              <button class="copy-btn" data-i18n="extensions.chrome.copy">Copy</button>
+            </div>
+            <pre><code><span class="hl-bracket">{</span>
+  <span class="hl-key">"manifest_version"</span>: <span class="hl-number">3</span>,
+  <span class="hl-key">"name"</span>: <span class="hl-string">"Lemonade Password Manager"</span>,
+  <span class="hl-key">"version"</span>: <span class="hl-string">"1.0.1"</span>,
+  <span class="hl-key">"permissions"</span>: [<span class="hl-string">"activeTab"</span>, <span class="hl-string">"storage"</span>, <span class="hl-string">"identity"</span>],
+  <span class="hl-key">"background"</span>: <span class="hl-bracket">{</span>
+    <span class="hl-key">"service_worker"</span>: <span class="hl-string">"background.js"</span>
+  <span class="hl-bracket">}</span>
+<span class="hl-bracket">}</span></code></pre>
+          </div>
+        </div>
+        <div class="glass-card reveal">
+          <h3 data-i18n="extensions.firefox.title">Firefox Extension</h3>
+          <span class="extension-icon">
+            <img src="firefox.svg" alt="Firefox" width="40" height="40">
+          </span>
+          <ol>
+            <li data-i18n="extensions.firefox.step1">Install from Firefox Add-ons or load as temporary extension</li>
+            <li data-i18n="extensions.firefox.step2">Sign in with your Lemonade account</li>
+            <li data-i18n="extensions.firefox.step3">Click the extension icon to auto-fill credentials</li>
+          </ol>
+          <a href="https://addons.mozilla.org/es-AR/firefox/addon/lemonade-password-manager/" target="_blank" rel="noopener noreferrer" class="extension-link" data-i18n="extensions.firefox.download">Get from Firefox Add-ons</a>
+          <div class="highlight-panel">
+            <p data-i18n="extensions.firefox.note">Firefox uses <code>browser.*</code> APIs with native Promises instead
+              of <code>chrome.*</code> callbacks. Background uses scripts array instead of service_worker.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sharing -->
+    <section id="sharing" class="reveal">
+      <h2 data-i18n="sharing.title">// SECURE SHARING</h2>
+      <div class="sharing-steps">
+        <div class="sharing-step glass-card reveal">
+          <div class="sharing-step__number">1</div>
+          <div class="sharing-step__content">
+            <h4 data-i18n="sharing.step1.title">Search & Select</h4>
+            <p data-i18n="sharing.step1.desc">Find a user by email and choose the credential you want to share.</p>
+          </div>
+        </div>
+        <div class="sharing-step__connector"></div>
+        <div class="sharing-step glass-card reveal">
+          <div class="sharing-step__number">2</div>
+          <div class="sharing-step__content">
+            <h4 data-i18n="sharing.step2.title">Send Securely</h4>
+            <p data-i18n="sharing.step2.desc">The credential is sent through authenticated server endpoints.</p>
+          </div>
+        </div>
+        <div class="sharing-step__connector"></div>
+        <div class="sharing-step glass-card reveal">
+          <div class="sharing-step__number">3</div>
+          <div class="sharing-step__content">
+            <h4 data-i18n="sharing.step3.title">Accept or Reject</h4>
+            <p data-i18n="sharing.step3.desc">The recipient reviews and accepts or rejects the shared credential in
+              their vault.</p>
+          </div>
+        </div>
+      </div>
+      <div class="glass-card highlight-panel">
+        <h4 data-i18n="sharing.security.title">Security Notes</h4>
+        <ul>
+          <li data-i18n="sharing.security.note1">All sharing goes through authenticated and secured server endpoints.
+          </li>
+          <li data-i18n="sharing.security.note2">Recipients can accept or reject shared credentials.</li>
+          <li data-i18n="sharing.security.note3">You can block users from sending you shares.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="premium" class="reveal">
+      <h2 data-i18n="premium.title">// PRICING</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card glass-card reveal">
+          <h3 data-i18n="premium.free.title">Self-host</h3>
+          <p class="pricing-price" data-i18n="premium.free.price">Free · Your Firebase</p>
+          <ul>
+            <li data-i18n="premium.free.feat1">Full source code (AGPLv3)</li>
+            <li data-i18n="premium.free.feat2">Every feature — no premium tier</li>
+            <li data-i18n="premium.free.feat3">Your data, your control</li>
+            <li data-i18n="premium.free.feat4">Typically &lt; $1/mo Firebase usage</li>
+          </ul>
+        </div>
+        <div class="pricing-card pricing-recommended glass-card reveal">
+          <h3 data-i18n="premium.pro.title">Hosted</h3>
+          <p class="pricing-price" data-i18n="premium.pro.price">$29 lifetime</p>
+          <ul>
+            <li data-i18n="premium.pro.feat1">Everything in Self-host</li>
+            <li data-i18n="premium.pro.feat2">No Firebase setup — just sign in</li>
+            <li data-i18n="premium.pro.feat3">Official Chrome &amp; Firefox extensions</li>
+            <li data-i18n="premium.pro.feat4">Managed updates and security patches</li>
+            <li data-i18n="premium.pro.feat5">Export your data anytime — zero lock-in</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Architecture -->
+    <section id="architecture" class="reveal">
+      <h2 data-i18n="arch.title">// SECURITY ARCHITECTURE</h2>
+      <div class="glass-card">
+        <div class="code-block">
+          <div class="code-block-header">
+            <span data-i18n="arch.flow.title">encryption_architecture.md</span>
+            <button class="copy-btn" data-i18n="arch.flow.copy">Copy</button>
+          </div>
+          <pre><code><span class="hl-bracket">┌───────────────────────────────────────────────────┐</span>
+<span class="hl-bracket">│</span>         <span class="hl-title">LEMONADE CRYPTO PIPELINE (ENV VAULT)</span>      <span class="hl-bracket">│</span>
+<span class="hl-bracket">├───────────────────────────────────────────────────┤</span>
+<span class="hl-bracket">│</span>                                                   <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-variable">Env Vault Master Password</span>                        <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">│</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">▼</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">┌──────────┐</span>                                     <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">│</span> <span class="hl-function">PBKDF2</span>   <span class="hl-bracket">│</span> <span class="hl-property">iterations</span>: <span class="hl-number">600,000</span>                 <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">│</span> <span class="hl-function">SHA-256</span>  <span class="hl-bracket">│</span> <span class="hl-property">salt</span>: <span class="hl-string">random per user</span>               <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">└────┬─────┘</span>                                     <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">│</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">▼</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-keyword">Derived Key</span> (<span class="hl-number">256-bit</span>)                            <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">│</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>       <span class="hl-operator">▼</span>                                           <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">┌──────────────┐</span>                                 <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">│</span> <span class="hl-function">AES-256-GCM</span>  <span class="hl-bracket">│</span> <span class="hl-property">iv</span>: <span class="hl-string">random per operation</span>        <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">│</span> <span class="hl-function">Encrypt</span>      <span class="hl-bracket">│</span> <span class="hl-property">auth tag</span> <span class="hl-string">verified</span>               <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-bracket">└──────┬───────┘</span>                                 <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>         <span class="hl-operator">│</span>                                         <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>         <span class="hl-operator">▼</span>                                         <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-keyword">Ciphertext</span> <span class="hl-operator">→</span> <span class="hl-builtin">Firebase Firestore</span>                  <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>                                                   <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-warning">⚠ Master password NEVER leaves device</span>            <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-warning">⚠ Derived key stored in sessionStorage only</span>      <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  <span class="hl-warning">⚠ Server stores ONLY encrypted data</span>              <span class="hl-bracket">│</span>
+<span class="hl-bracket">├───────────────────────────────────────────────────┤</span>
+<span class="hl-bracket">│</span>         <span class="hl-title">PASSWORD VAULT</span>                            <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>                                                   <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  Password entries are encrypted server-side       <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  via <span class="hl-builtin">Firebase Cloud Functions</span> with managed keys   <span class="hl-bracket">│</span>
+<span class="hl-bracket">│</span>  Data in transit protected by <span class="hl-string">HTTPS/TLS</span>           <span class="hl-bracket">│</span>
+<span class="hl-bracket">└───────────────────────────────────────────────────┘</span></code></pre>
+        </div>
+
+        <div class="arch-details">
+          <div class="highlight-panel reveal">
+            <h4 data-i18n="arch.aes.title">AES-256-GCM</h4>
+            <p data-i18n="arch.aes.desc">Galois/Counter Mode provides both confidentiality and authenticity. Each
+              encryption operation uses a unique 96-bit IV. The 128-bit authentication tag ensures data integrity and
+              detects tampering.</p>
+          </div>
+          <div class="highlight-panel reveal">
+            <h4 data-i18n="arch.zk.title">Zero-Knowledge (Env Vault)</h4>
+            <p data-i18n="arch.zk.desc">The Env Vault uses true zero-knowledge architecture. Your master password never
+              leaves your device. Encryption and decryption happen entirely in the browser using Web Crypto API. The
+              server stores only ciphertext.</p>
+          </div>
+          <div class="highlight-panel reveal">
+            <h4 data-i18n="arch.kdf.title">Key Derivation: PBKDF2</h4>
+            <p data-i18n="arch.kdf.desc">PBKDF2 with 600,000 iterations of SHA-256 transforms your Env Vault master
+              password into a 256-bit encryption key. A random salt per user prevents rainbow table attacks.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="reveal">
+      <h2 data-i18n="faq.title">// FAQ</h2>
+      <div class="faq-list">
+        <div class="faq-item glass-card">
+          <button class="faq-question faq-toggle" data-i18n="faq.q1">Is Lemonade free?</button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a1">Lemonade is open source under AGPLv3 and self-hostable on a Firebase free tier
+              project — that costs you effectively nothing for personal use. If you'd rather not set up your own
+              Firebase, the hosted version at lemonadepass.com is a one-time payment of US$ 29 for lifetime access. No
+              subscription, no feature gating between the two paths.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item glass-card">
+          <button class="faq-question faq-toggle" data-i18n="faq.q2">Where is my data stored?</button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a2">Encrypted data is stored on Firebase. Only ciphertext reaches our servers. Decryption
+              happens exclusively on your device using your master password.</p>
+          </div>
+        </div>
+        <div class="faq-item glass-card">
+          <button class="faq-question faq-toggle" data-i18n="faq.q3">What happens if I forget my master
+            password?</button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a3">Your account uses Google or email authentication. If you set an Env Vault master
+              password, that cannot be recovered since it is zero-knowledge — only you know it.</p>
+          </div>
+        </div>
+        <div class="faq-item glass-card">
+          <button class="faq-question faq-toggle" data-i18n="faq.q4">Is Lemonade a native app?</button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a4">Lemonade is a PWA (Progressive Web App). You can install it on any device directly from the browser, no app store needed. It requires an internet connection to access your vault securely.</p>
+          </div>
+        </div>
+        <div class="faq-item glass-card">
+          <button class="faq-question faq-toggle" data-i18n="faq.q5">How does sharing work securely?</button>
+          <div class="faq-answer">
+            <p data-i18n="faq.a5">You search for a user, select the credential to share, and it is sent securely through
+              authenticated server endpoints. The recipient can accept or reject the shared credential in their vault.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Status Bar -->
+  <footer class="status-bar" id="status-bar">
+    <span data-i18n="status.encryption">encryption: AES-256</span>
+    <span class="status-separator">&vert;</span>
+    <span data-i18n="status.protocol">protocol: zero-knowledge</span>
+    <span class="status-separator">&vert;</span>
+    <span data-i18n="status.status">status: SECURE</span>
+    <span class="status-separator">&vert;</span>
+    <span>v2.2.4</span>
+  </footer>
+
+  <!-- Matrix Rain Easter Egg (Konami Code) -->
+  <div class="matrix-rain" hidden></div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
