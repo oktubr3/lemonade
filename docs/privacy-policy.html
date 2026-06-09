@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Lemonade Password Manager</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #2c3e50;
+            background: #fafafa;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 48px;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+        }
+        .last-updated {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        h2 {
+            font-size: 1.2rem;
+            margin-top: 32px;
+            margin-bottom: 12px;
+            color: #1a1a2e;
+        }
+        p, li {
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+        }
+        ul {
+            padding-left: 24px;
+        }
+        a {
+            color: #f96154;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.85rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p class="last-updated">Last updated: January 30, 2026</p>
+
+        <p>Lemonade Password Manager ("we", "our", "the app") is committed to protecting your privacy. This policy explains what data we collect, how we use it, and your rights.</p>
+
+        <h2>1. What We Collect</h2>
+        <ul>
+            <li><strong>Account information:</strong> Email address and display name, provided through Google Sign-In authentication.</li>
+            <li><strong>Vault data:</strong> Passwords, Secure Notes, and credentials that you store in the app. Vault data is encrypted with AES-256-GCM; encryption keys are managed server-side. Env Vault uses client-side encryption with a user-controlled master password.</li>
+            <li><strong>Subscription status:</strong> Whether your account is on the free or premium plan.</li>
+        </ul>
+
+        <h2>2. What We Do NOT Collect</h2>
+        <ul>
+            <li>We do not collect browsing history.</li>
+            <li>We do not collect or log the websites where you use autofill.</li>
+            <li>We do not collect your master password or encryption keys.</li>
+            <li>We do not sell, share, or transfer personal data to third parties.</li>
+            <li>We do not use analytics or tracking tools in the browser extension.</li>
+        </ul>
+
+        <h2>3. Browser Extension</h2>
+        <p>The Lemonade Password Manager browser extension ("Autofill companion") communicates exclusively with Lemonade servers to retrieve your encrypted credentials. The extension:</p>
+        <ul>
+            <li>Only activates on pages with login forms.</li>
+            <li>Does not read or store page content.</li>
+            <li>Does not inject ads or trackers.</li>
+            <li>Requires authentication with your Lemonade account to function.</li>
+        </ul>
+
+        <h2>4. Data Storage and Security</h2>
+        <ul>
+            <li>All vault data is encrypted using AES-256 before being stored in Google Cloud Firestore.</li>
+            <li>Authentication is handled by Firebase Authentication (Google Sign-In).</li>
+            <li>We use HTTPS for all communications.</li>
+            <li>Firestore security rules enforce that users can only access their own data.</li>
+        </ul>
+
+        <h2>5. Third-Party Services</h2>
+        <p>We use the following third-party services:</p>
+        <ul>
+            <li><strong>Firebase Authentication:</strong> For user sign-in (<a href="https://firebase.google.com/support/privacy">Firebase Privacy Policy</a>).</li>
+            <li><strong>Google Cloud Firestore:</strong> For encrypted data storage.</li>
+            <li><strong>Firebase Hosting:</strong> For serving the web application.</li>
+            <li><strong>Polar:</strong> For payment processing of premium subscriptions (<a href="https://polar.sh/legal/privacy">Polar Privacy Policy</a>).</li>
+        </ul>
+
+        <h2>6. Data Retention and Deletion</h2>
+        <p>Your data is retained as long as your account is active. You can delete your account and all associated data at any time from the app settings. Upon deletion, all vault data is permanently removed from our servers.</p>
+
+        <h2>7. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li>Access all data stored in your account (visible in the app).</li>
+            <li>Export your data.</li>
+            <li>Delete your account and all associated data.</li>
+        </ul>
+
+        <h2>8. Changes to This Policy</h2>
+        <p>We may update this privacy policy from time to time. Changes will be posted on this page with an updated date.</p>
+
+        <h2>9. Contact</h2>
+        <p>If you have questions about this privacy policy, contact us at <a href="mailto:maurohabbaby.dev@gmail.com">maurohabbaby.dev@gmail.com</a>.</p>
+
+        <div class="footer">
+            <p>&copy; 2026 Lemonade Password Manager &mdash; <a href="https://lemonadepass.app">lemonadepass.app</a></p>
+        </div>
+    </div>
+</body>
+</html>

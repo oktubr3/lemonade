@@ -1,0 +1,40 @@
+{
+  "name": "lemonade-pass-manager-functions",
+  "version": "1.0.0",
+  "description": "Firebase Functions for Lemonade Password Manager",
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
+    "@polar-sh/sdk": "^0.47.1",
+    "@simplewebauthn/server": "^13.3.0",
+    "cors": "^2.8.6",
+    "crypto-js": "^4.2.0",
+    "firebase-admin": "^13.8.0",
+    "firebase-functions": "^7.2.5",
+    "otplib": "^13.4.0"
+  },
+  "devDependencies": {
+    "firebase-functions-test": "^3.1.0"
+  },
+  "overrides": {
+    "@google-cloud/firestore": "^8.5.0",
+    "@google-cloud/storage": "^7.19.0",
+    "@tootallnate/once": "^3.0.1",
+    "gaxios": "^7.1.4",
+    "google-gax": "^5.0.6",
+    "http-proxy-agent": "^9.0.0",
+    "uuid": "^14.0.0"
+  },
+  "private": true
+}
