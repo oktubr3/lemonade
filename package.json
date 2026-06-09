@@ -19,7 +19,7 @@
     "dependencies": {
         "@quasar/extras": "^1.16.4",
         "@simplewebauthn/browser": "^13.2.2",
-        "axios": "^1.17.0",
+        "axios": "^1.16.0",
         "firebase": "^12.8.0",
         "pinia": "^2.0.11",
         "qr-scanner": "^1.4.2",
