@@ -1,0 +1,291 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper para verificar si el usuario es admin
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function affectedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function userPublicKeys() {
+      return [
+        'uid',
+        'email',
+        'displayName',
+        'photoURL',
+        'updatedAt',
+        'createdAt',
+        'lastLoginAt'
+      ];
+    }
+
+    function userSettingsKeys() {
+      return [
+        'mobileColumns',
+        'desktopColumns',
+        'theme',
+        'notifications',
+        'biometricAuth',
+        'enableAISecurityAnalysis',
+        'enablePasswordAgeCheck',
+        'enableReusedCheck',
+        'enableAccessibilityFocus',
+        'enableHighContrast',
+        'enableGrayscale',
+        'sessionTimeoutDays',
+        'lockOnExit',
+        'language',
+        'updatedAt'
+      ];
+    }
+
+    // Hardening helpers. Each `isValidOptional*` returns true when the field is
+    // absent OR present-with-valid-type-and-size. Used to bound storage abuse
+    // and enforce type safety on all user-writable string fields.
+    function isValidOptionalString(data, key, maxSize) {
+      return !(key in data) || (data[key] is string && data[key].size() <= maxSize);
+    }
+
+    function validUserStringFields(data) {
+      return isValidOptionalString(data, 'email', 256)
+        && isValidOptionalString(data, 'displayName', 200)
+        && isValidOptionalString(data, 'photoURL', 2048);
+    }
+
+    function validEnvProjectStringFields(data) {
+      return isValidOptionalString(data, 'description', 2000)
+        && isValidOptionalString(data, 'icon', 100)
+        && isValidOptionalString(data, 'color', 50)
+        && isValidOptionalString(data, 'sourceFolder', 1000);
+    }
+
+    function validEnvVariableStringFields(data) {
+      return isValidOptionalString(data, 'encryptedValue', 100000)
+        && isValidOptionalString(data, 'fileName', 500)
+        && isValidOptionalString(data, 'filePath', 2000)
+        && isValidOptionalString(data, 'category', 50);
+    }
+
+    function validEnvContextFileStringFields(data) {
+      return isValidOptionalString(data, 'encryptedContent', 900000)
+        && isValidOptionalString(data, 'fileName', 500)
+        && isValidOptionalString(data, 'filePath', 2000)
+        && isValidOptionalString(data, 'aiTool', 50)
+        && isValidOptionalString(data, 'label', 200)
+        && isValidOptionalString(data, 'contentPreview', 2000);
+    }
+
+    // Reglas para entradas de contraseñas
+    match /password_entries/{entryId} {
+      // Solo permitir acceso a usuarios autenticados y solo a sus propios datos
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.userId;
+      // Escrituras solo via Cloud Functions/Admin SDK para preservar cifrado y auditoria.
+      allow create, update, delete: if false;
+    }
+
+    // Reglas para usuarios
+    match /users/{userId} {
+      // Cada usuario puede leer su propio documento; admin puede leer todos.
+      allow read: if request.auth != null
+                  && (request.auth.uid == userId || isAdmin());
+      // El usuario solo puede crear/actualizar campos publicos. Roles, billing,
+      // bloqueo y campos admin son server-owned y se modifican via Cloud Functions.
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasOnly(userPublicKeys())
+                    && request.resource.data.uid == request.auth.uid
+                    && validUserStringFields(request.resource.data);
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && affectedKeys().hasOnly(userPublicKeys())
+                    && (!('uid' in request.resource.data) || request.resource.data.uid == request.auth.uid)
+                    && validUserStringFields(request.resource.data);
+      allow delete: if false;
+      // Admin puede actualizar usuarios (pero no crear ni eliminar)
+      allow update: if isAdmin();
+    }
+
+    // Reglas para logs de auditoría (solo lectura para el usuario, escritura para funciones)
+    match /audit_logs/{logId} {
+      allow read: if request.auth != null
+                 && (request.auth.uid == resource.data.userId || isAdmin());
+      // Las funciones del servidor pueden escribir logs
+      allow write: if false; // Solo las funciones del servidor pueden escribir
+    }
+
+    // Reglas para configuración de usuario
+    match /user_settings/{userId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasOnly(userSettingsKeys());
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && affectedKeys().hasOnly(userSettingsKeys());
+      allow delete: if false;
+    }
+
+    // Reglas para usuarios bloqueados
+    match /blocked_users/{blockId} {
+      allow read: if request.auth != null
+                 && request.auth.uid == resource.data.blockerUserId;
+      allow write: if false;
+    }
+
+    // Reglas para passwords compartidos
+    match /shared_passwords/{shareId} {
+      // Permitir lectura si es el remitente o destinatario
+      allow read: if request.auth != null
+                 && (request.auth.uid == resource.data.fromUserId
+                    || request.auth.uid == resource.data.toUserId
+                    || isAdmin());
+      // Solo las funciones del servidor pueden escribir
+      allow write: if false;
+    }
+
+    // Notas seguras: contenido cifrado solo via Cloud Functions; lectura directa no expone contenido claro.
+    match /secure_notes/{noteId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.userId;
+      allow write: if false;
+    }
+
+    // Acceso de emergencia: solo lectura para participantes; cambios via Cloud Functions.
+    match /emergency_access/{accessId} {
+      allow read: if request.auth != null
+                  && (request.auth.uid == resource.data.grantorId
+                      || request.auth.uid == resource.data.trusteeId);
+      allow write: if false;
+    }
+
+    // ====== ENV VAULT COLLECTIONS ======
+
+    // Reglas para proyectos de env vault
+    match /env_projects/{projectId} {
+      allow read, delete: if request.auth != null
+                       && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                   && request.auth.uid == request.resource.data.userId
+                   && request.resource.data.keys().hasAll(['userId', 'name', 'createdAt'])
+                   && request.resource.data.keys().hasOnly(['userId', 'name', 'description', 'icon', 'color', 'sourceFolder', 'envFilesCount', 'variablesCount', 'aiContextFilesCount', 'hasAiContext', 'createdAt', 'updatedAt'])
+                   && request.resource.data.userId is string
+                   && request.resource.data.name is string
+                   && request.resource.data.name.size() > 0
+                   && request.resource.data.name.size() <= 200
+                   && validEnvProjectStringFields(request.resource.data);
+      allow update: if request.auth != null
+                   && request.auth.uid == resource.data.userId
+                   && request.resource.data.userId == resource.data.userId
+                   && request.resource.data.keys().hasOnly(['userId', 'name', 'description', 'icon', 'color', 'sourceFolder', 'envFilesCount', 'variablesCount', 'aiContextFilesCount', 'hasAiContext', 'createdAt', 'updatedAt'])
+                   && (!('name' in request.resource.data) || (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 200))
+                   && validEnvProjectStringFields(request.resource.data);
+    }
+
+    // Reglas para variables de entorno
+    match /env_variables/{variableId} {
+      allow read, delete: if request.auth != null
+                       && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                   && request.auth.uid == request.resource.data.userId
+                   && request.resource.data.keys().hasAll(['userId', 'projectId', 'variableName', 'encryptedValue', 'createdAt'])
+                   && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'variableName', 'encryptedValue', 'category', 'isSecret', 'createdAt', 'updatedAt'])
+                   && request.resource.data.userId is string
+                   && request.resource.data.variableName is string
+                   && request.resource.data.variableName.size() > 0
+                   && request.resource.data.variableName.size() <= 500
+                   && request.resource.data.encryptedValue is string
+                   && validEnvVariableStringFields(request.resource.data);
+      allow update: if request.auth != null
+                   && request.auth.uid == resource.data.userId
+                   && request.resource.data.userId == resource.data.userId
+                   && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'variableName', 'encryptedValue', 'category', 'isSecret', 'createdAt', 'updatedAt'])
+                   && request.resource.data.encryptedValue is string
+                   && (!('variableName' in request.resource.data) || (request.resource.data.variableName is string && request.resource.data.variableName.size() > 0 && request.resource.data.variableName.size() <= 500))
+                   && validEnvVariableStringFields(request.resource.data);
+    }
+
+    // Reglas para configuración del vault (password maestro)
+    match /env_vault_settings/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.data.keys().hasAll(['passwordHash', 'salt', 'kdfIterations', 'createdAt'])
+                   && request.resource.data.keys().hasOnly(['passwordHash', 'salt', 'kdfIterations', 'verifierVersion', 'createdAt', 'lastAccess', 'updatedAt'])
+                   && request.resource.data.passwordHash is string
+                   && request.resource.data.passwordHash.size() <= 1024
+                   && request.resource.data.salt is string
+                   && request.resource.data.salt.size() <= 256
+                   && request.resource.data.kdfIterations is int
+                   && request.resource.data.kdfIterations >= 100000;
+      // UPDATE hardening:
+      //   - salt is immutable after creation (rotating it without re-encrypting
+      //     all env_variables would brick the vault). Password rotation MUST go
+      //     through a Cloud Function that re-encrypts atomically.
+      //   - kdfIterations must monotonically increase. A user can strengthen
+      //     their own PBKDF2 work factor but never weaken it.
+      allow update: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.data.keys().hasOnly(['passwordHash', 'salt', 'kdfIterations', 'verifierVersion', 'createdAt', 'lastAccess', 'updatedAt'])
+                   && (!('salt' in request.resource.data) || request.resource.data.salt == resource.data.salt)
+                   && (!('passwordHash' in request.resource.data) || (request.resource.data.passwordHash is string && request.resource.data.passwordHash.size() <= 1024))
+                   && (!('kdfIterations' in request.resource.data)
+                       || (request.resource.data.kdfIterations is int
+                           && request.resource.data.kdfIterations >= 100000
+                           && request.resource.data.kdfIterations >= resource.data.kdfIterations));
+    }
+
+    // Reglas para archivos de contexto IA
+    match /env_context_files/{fileId} {
+      allow read, delete: if request.auth != null
+                       && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                   && request.auth.uid == request.resource.data.userId
+                   && request.resource.data.keys().hasAll(['userId', 'projectId', 'encryptedContent', 'createdAt'])
+                   && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'aiTool', 'encryptedContent', 'fileSize', 'contentPreview', 'icon', 'label', 'createdAt', 'updatedAt'])
+                   && request.resource.data.userId is string
+                   && request.resource.data.encryptedContent is string
+                   && (!('icon' in request.resource.data) || (request.resource.data.icon is string && request.resource.data.icon.size() <= 100))
+                   && validEnvContextFileStringFields(request.resource.data);
+      allow update: if request.auth != null
+                   && request.auth.uid == resource.data.userId
+                   && request.resource.data.userId == resource.data.userId
+                   && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'aiTool', 'encryptedContent', 'fileSize', 'contentPreview', 'icon', 'label', 'createdAt', 'updatedAt'])
+                   && request.resource.data.encryptedContent is string
+                   && (!('icon' in request.resource.data) || (request.resource.data.icon is string && request.resource.data.icon.size() <= 100))
+                   && validEnvContextFileStringFields(request.resource.data);
+    }
+
+    // Reglas para WebAuthn credentials (solo lectura para el dueño, escritura via Cloud Functions)
+    match /webauthn_credentials/{credentialId} {
+      allow read: if request.auth != null
+                 && request.auth.uid == resource.data.userId;
+      allow write: if false;
+    }
+
+    // Reglas para WebAuthn challenges (solo Cloud Functions)
+    match /webauthn_challenges/{challengeId} {
+      allow read, write: if false;
+    }
+
+    // Reglas para tickets de soporte
+    match /tickets/{ticketId} {
+      // Usuario puede leer sus propios tickets, admin puede leer todos
+      allow read: if request.auth != null
+                 && (request.auth.uid == resource.data.userId || isAdmin());
+      // Solo las funciones del servidor pueden escribir (vía Cloud Functions)
+      allow write: if false;
+    }
+
+    // Denegar acceso a cualquier otra colección
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

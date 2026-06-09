@@ -1,0 +1,11 @@
+/*
+ * Lemonade Pass Manager - Content Styles
+ * Note: Most styles are in Shadow DOM for isolation
+ * This file is for any global overrides if needed
+ */
+
+.lemonade-shadow-host {
+    position: absolute !important;
+    z-index: 2147483647 !important;
+    pointer-events: none !important;
+}

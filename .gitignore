@@ -1,0 +1,71 @@
+.DS_Store
+.thumbs.db
+node_modules
+
+# Quasar core related directories
+.quasar
+/dist
+/quasar.config.*.temporary.compiled*
+
+# Cordova related directories and files
+/src-cordova/node_modules
+/src-cordova/platforms
+/src-cordova/plugins
+/src-cordova/www
+
+# Capacitor related directories and files
+/src-capacitor/www
+/src-capacitor/node_modules
+/android
+/ios
+/www
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Stray npm lockfile in root — pnpm-lock.yaml is the source of truth.
+# functions/package-lock.json (which DOES use npm) is intentionally tracked.
+/package-lock.json
+
+# local .env files
+.env.local*
+.env
+.env.development.local
+.env.production.local
+.env.local
+functions/.env
+functions/.env.local
+firebase-debug.log
+
+# Playwright MCP
+.playwright-mcp/
+
+# Google Cloud SDK
+google-cloud-sdk/
+google-cloud-cli-*.tar.gz
+
+# Extension build artifacts
+lemonade-chrome-extension-v*.zip
+lemonade-firefox-extension-v*.zip
+.gemini_security/
+
+# Capacitor Android build artifacts (large generated files, ~150MB)
+src-capacitor/android/app/src/main/assets/public/
+src-capacitor/android/.gradle/
+src-capacitor/android/build/
+src-capacitor/android/app/build/
+
+# Defense-in-depth: Firebase service accounts must never be committed
+serviceAccount*.json
+*-firebase-adminsdk-*.json
+*-service-account-*.json
+**/firebase-service-account.json

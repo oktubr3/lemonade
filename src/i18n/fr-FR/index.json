@@ -1,0 +1,757 @@
+{
+  "common": {
+    "appName": "Lemonade",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "create": "Créer",
+    "close": "Fermer",
+    "search": "Rechercher",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "next": "Suivant",
+    "yes": "Oui",
+    "no": "Non",
+    "ok": "OK",
+    "copied": "Copié dans le presse-papiers",
+    "copyError": "Erreur lors de la copie dans le presse-papiers",
+    "saved": "Enregistré",
+    "noResults": "Aucun résultat trouvé",
+    "retry": "Réessayer",
+    "clear": "Effacer",
+    "logout": "Déconnexion",
+    "login": "Connexion",
+    "signUp": "Inscription"
+  },
+  "nav": {
+    "home": "Accueil",
+    "passwords": "Mots de passe",
+    "envVault": "Env Vault",
+    "settings": "Paramètres",
+    "admin": "Admin",
+    "tickets": "Support",
+    "notes": "Notes"
+  },
+  "login": {
+    "title": "Bienvenue sur Lemonade",
+    "subtitle": "Gestionnaire de mots de passe sécurisé pour développeurs",
+    "passwordManager": "Gestionnaire de mots de passe",
+    "tagline": "Sécurisé • Simple • Beau",
+    "signInWithGoogle": "Se connecter avec Google",
+    "signingIn": "Connexion en cours...",
+    "continueAsGuest": "Continuer en tant qu'invité",
+    "termsNotice": "En vous connectant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité",
+    "error": {
+      "generic": "Erreur de connexion",
+      "popupBlocked": "La fenêtre popup a été bloquée. Veuillez autoriser les popups pour ce site.",
+      "networkError": "Erreur réseau. Veuillez vérifier votre connexion."
+    },
+    "locked": {
+      "title": "Compte Suspendu",
+      "message": "Votre compte a été suspendu pour inactivité. Contactez l'administrateur pour le réactiver.",
+      "contact": "Contacter l'Admin",
+      "tryAgain": "Essayer avec un autre compte"
+    }
+  },
+  "passwords": {
+    "title": "Mes mots de passe",
+    "searchPlaceholder": "Rechercher des mots de passe...",
+    "noPasswords": "Aucun mot de passe pour le moment",
+    "noPasswordsHint": "Cliquez sur le bouton + pour ajouter votre premier mot de passe",
+    "addPassword": "Ajouter un mot de passe",
+    "editPassword": "Modifier le mot de passe",
+    "deletePassword": "Supprimer le mot de passe",
+    "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce mot de passe ?",
+    "copyPassword": "Copier le mot de passe",
+    "copyUsername": "Copier l'identifiant",
+    "copyUrl": "Copier l'URL",
+    "openUrl": "Ouvrir l'URL",
+    "viewDetails": "Voir les détails",
+    "limitReached": "Vous avez atteint la limite de {limit} mots de passe",
+    "upgradeForMore": "Passez à Premium pour des mots de passe illimités",
+    "loading": "Chargement des mots de passe...",
+    "decrypting": "Déchiffrement du mot de passe...",
+    "count": "{count} mots de passe",
+    "sortAZ": "Trier A-Z",
+    "sortZA": "Trier Z-A",
+    "listView": "Vue liste",
+    "mosaicView": "Vue mosaïque",
+    "tableView": "Vue tableau",
+    "changeView": "Changer de vue",
+    "sortBy": {
+      "site": "Site",
+      "name": "Nom",
+      "date": "Date",
+      "user": "Utilisateur"
+    },
+    "menu": {
+      "view": "Voir",
+      "edit": "Modifier",
+      "copyAll": "Tout copier",
+      "share": "Partager",
+      "highlight": "Surligner",
+      "unhighlight": "Retirer le surlignage",
+      "delete": "Supprimer",
+      "moreOptions": "Plus d'options"
+    },
+    "dialog": {
+      "newTitle": "Nouveau mot de passe",
+      "editTitle": "Modifier le mot de passe",
+      "newSubtitle": "Remplissez les champs pour enregistrer votre nouveau mot de passe",
+      "editSubtitle": "Mettez à jour les informations du mot de passe"
+    },
+    "form": {
+      "title": "Titre",
+      "titleRequired": "Titre *",
+      "titlePlaceholder": "ex., Compte Gmail",
+      "titleValidation": "Le titre est requis",
+      "username": "Identifiant / Email",
+      "usernamePlaceholder": "ex., jean[at]email.com",
+      "password": "Mot de passe",
+      "passwordRequired": "Mot de passe *",
+      "passwordPlaceholder": "Entrez le mot de passe",
+      "passwordValidation": "Le mot de passe est requis",
+      "url": "URL du site",
+      "urlPlaceholder": "ex., https://gmail.com",
+      "notes": "Notes",
+      "notesPlaceholder": "Notes supplémentaires (optionnel)",
+      "folder": "Dossier",
+      "folderPlaceholder": "Sélectionnez ou créez un dossier",
+      "advancedOptions": "Options avancées",
+      "generatePassword": "Générer un mot de passe",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe"
+    },
+    "messages": {
+      "created": "Mot de passe créé avec succès",
+      "updated": "Mot de passe mis à jour avec succès",
+      "deleted": "Mot de passe supprimé",
+      "errorSaving": "Erreur lors de l'enregistrement du mot de passe",
+      "errorDeleting": "Erreur lors de la suppression du mot de passe",
+      "errorLoading": "Erreur lors du chargement du mot de passe",
+      "passwordEmpty": "Le mot de passe ne peut pas être vide",
+      "dataCopied": "Données copiées dans le presse-papiers"
+    },
+    "security": {
+      "checking": "Analyse de la sécurité du mot de passe avec l'IA...",
+      "bulkCheckTitle": "Vérification de sécurité en masse",
+      "bulkCheckStart": "Vérification en masse démarrée",
+      "bulkCheckProgress": "Progression : {percentage}%",
+      "bulkCheckComplete": "Vérification terminée !",
+      "bulkCheckStopping": "Arrêt de la vérification en masse...",
+      "quotaLimit": "Limite de quota atteinte",
+      "errorChecking": "Erreur lors de la vérification de la sécurité",
+      "aiDisabled": "L'analyse de sécurité par IA est désactivée",
+      "compromised": "COMPROMIS - Changez immédiatement",
+      "compromisedTitle": "MOT DE PASSE COMPROMIS !",
+      "understood": "Compris",
+      "changePassword": "Changer le mot de passe",
+      "improvableTitle": "Mot de passe améliorable",
+      "improvable": "Améliorable",
+      "securityLevel": "Niveau de sécurité",
+      "issuesFound": "Problèmes trouvés",
+      "recommendations": "Recommandations",
+      "immediateActions": "Actions immédiates",
+      "improvementSuggestions": "Suggestions d'amélioration",
+      "criticalRisk": "RISQUE CRITIQUE : Ce mot de passe a été trouvé dans des fuites de données publiques. Les attaquants le connaissent et peuvent l'utiliser pour accéder à votre compte.",
+      "improvementOpportunity": "Opportunité d'amélioration : Votre mot de passe fonctionne, mais pourrait être plus sécurisé avec quelques ajustements simples.",
+      "analyzedWith": "Analysé avec",
+      "startCheck": "Démarrer la vérification",
+      "improvePassword": "Améliorer le mot de passe",
+      "dontRemind": "Ne plus me rappeler",
+      "justClose": "Fermer",
+      "oldPassword": "Ancien mot de passe",
+      "oldPasswordHint": "Dernière mise à jour : il y a {age}",
+      "considerUpdating": "Pensez à le mettre à jour pour la sécurité",
+      "ageYears": "{n} an | {n} ans",
+      "ageMonths": "{n} mois | {n} mois",
+      "ageDays": "{n} jour | {n} jours",
+      "ageToday": "Aujourd'hui",
+      "ageUnknown": "Date inconnue",
+      "levels": {
+        "very_weak": "Très faible",
+        "weak": "Faible",
+        "moderate": "Moyen",
+        "strong": "Fort",
+        "very_strong": "Très fort",
+        "unknown": "Inconnu"
+      },
+      "vuln": {
+        "tooShort": "Mot de passe trop court",
+        "sequential": "Contient des séquences de chiffres prévisibles",
+        "repeating": "Contient des caractères répétés",
+        "keyboard": "Contient des motifs de clavier courants",
+        "breached": "Trouvé dans {count} fuites de données connues"
+      },
+      "rec": {
+        "minChars": "Utilisez au moins 8 caractères",
+        "consider12": "Envisagez d'utiliser 12+ caractères",
+        "uppercase": "Incluez des lettres majuscules",
+        "lowercase": "Incluez des lettres minuscules",
+        "numbers": "Incluez des chiffres",
+        "special": "Incluez des caractères spéciaux",
+        "changeNow": "Changez ce mot de passe immédiatement",
+        "uniquePassword": "Utilisez un mot de passe unique pour chaque compte"
+      }
+    },
+    "filters": {
+      "all": "Tous",
+      "favorites": "Favoris",
+      "shared": "Partagés",
+      "weak": "Faibles",
+      "compromised": "Compromis",
+      "reused": "Réutilisés",
+      "old": "Anciens"
+    },
+    "history": {
+      "title": "Historique des mots de passe",
+      "empty": "Aucun mot de passe précédent",
+      "changedAt": "Modifié le {date}",
+      "copied": "Ancien mot de passe copié"
+    },
+    "reused": {
+      "badge": "Réutilisé",
+      "warning": "Ce mot de passe est utilisé sur {count} sites",
+      "description": "Utiliser le même mot de passe sur plusieurs sites est un risque de sécurité",
+      "check": "Vérifier les mots de passe réutilisés",
+      "found": "{count} mots de passe réutilisés trouvés",
+      "noneFound": "Aucun mot de passe réutilisé trouvé"
+    },
+    "trash": {
+      "title": "Corbeille",
+      "empty": "La corbeille est vide",
+      "emptyHint": "Les mots de passe supprimés apparaîtront ici",
+      "banner": "Les éléments sont définitivement supprimés après 30 jours",
+      "restore": "Restaurer",
+      "deleteForever": "Supprimer définitivement",
+      "confirmPermanent": "Cette action est irréversible. Supprimer ce mot de passe définitivement ?",
+      "restored": "Mot de passe restauré",
+      "permanentlyDeleted": "Mot de passe supprimé définitivement",
+      "movedToTrash": "Mot de passe déplacé vers la corbeille"
+    },
+    "customFields": {
+      "title": "Champs personnalisés",
+      "add": "Ajouter un champ",
+      "label": "Nom du champ",
+      "value": "Valeur du champ",
+      "types": {
+        "text": "Texte",
+        "password": "Mot de passe",
+        "pin": "PIN"
+      },
+      "max": "Maximum {max} champs personnalisés"
+    },
+    "totp": {
+      "title": "Authentification à deux facteurs",
+      "code": "Code 2FA",
+      "setup": "Ajouter 2FA",
+      "remove": "Supprimer 2FA",
+      "secret": "Clé secrète",
+      "secretHint": "Collez la clé secrète du service",
+      "saved": "2FA configuré avec succès",
+      "removed": "2FA supprimé",
+      "copied": "Code 2FA copié",
+      "invalid": "Clé secrète invalide",
+      "badge": "2FA Actif",
+      "scanQr": "Scanner le code QR",
+      "orManual": "ou saisissez la clé secrète manuellement",
+      "qrSuccess": "Code QR scanné avec succès",
+      "qrInvalid": "Code QR invalide — ce n'est pas un code 2FA valide",
+      "cameraError": "Impossible d'accéder à la caméra"
+    }
+  },
+  "generator": {
+    "title": "Générateur de mots de passe",
+    "length": "Longueur",
+    "uppercase": "Majuscules (A-Z)",
+    "lowercase": "Minuscules (a-z)",
+    "numbers": "Chiffres (0-9)",
+    "symbols": "Symboles (!#$%)",
+    "generate": "Générer",
+    "copy": "Copier",
+    "use": "Utiliser ce mot de passe"
+  },
+  "sharing": {
+    "title": "Partager le mot de passe",
+    "shareWith": "Partager avec",
+    "searchUsers": "Rechercher des utilisateurs...",
+    "shareConfirm": "Partager \"{title}\" avec {user} ?",
+    "shared": "Mot de passe partagé avec {user}",
+    "errorSharing": "Erreur lors du partage du mot de passe",
+    "pendingShares": "Partages en attente",
+    "accept": "Accepter",
+    "reject": "Refuser",
+    "accepted": "\"{title}\" ajouté à vos mots de passe",
+    "rejected": "Mot de passe refusé",
+    "errorAccepting": "Erreur lors de l'acceptation",
+    "errorRejecting": "Erreur lors du refus",
+    "recentContacts": "Contacts récents",
+    "minSearchChars": "Tapez au moins 3 caractères pour rechercher",
+    "noRecentContacts": "Tapez un email ou un nom pour rechercher des utilisateurs",
+    "blockUser": "Bloquer l'utilisateur",
+    "blockConfirm": "Bloquer {user} ? Il ne pourra plus partager de mots de passe avec vous.",
+    "userBlocked": "Utilisateur bloqué",
+    "errorBlocking": "Erreur lors du blocage de l'utilisateur"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "profile": {
+      "title": "Profil utilisateur",
+      "displayName": "Nom affiché",
+      "email": "Email"
+    },
+    "subscription": {
+      "title": "Compte",
+      "free": "Gratuit",
+      "premium": "Hosted (à vie)",
+      "founder": "Fondateur",
+      "admin": "Admin",
+      "trial": "Essai",
+      "upgradeButton": "Obtenir Hosted — 29 US$ à vie",
+      "manageButton": "Gérer l'abonnement",
+      "founderBadge": "Beta Testeur",
+      "features": {
+        "title": "Inclus :",
+        "envVault": "Env Vault - Variables d'environnement",
+        "unlimited": "Mots de passe illimités",
+        "aiSecurity": "Détection des fuites (HaveIBeenPwned)",
+        "prioritySupport": "Support prioritaire"
+      },
+      "fullAccess": "Accès complet à toutes les fonctionnalités",
+      "founderThanks": "Premium gratuit à vie - Merci de croire en Lemonade",
+      "upgradeHint": "Passez à la version supérieure pour débloquer Env Vault et plus",
+      "nextRenewal": "Prochain renouvellement",
+      "premiumUntil": "Premium jusqu'au",
+      "statusCanceled": "Annulé (actif jusqu'à la fin de la période)",
+      "status": "Statut",
+      "welcomePremium": "Bienvenue ! Votre compte hosted à vie est actif.",
+      "errorCheckout": "Erreur lors du démarrage du paiement",
+      "errorPortal": "Erreur lors de l'accès au portail"
+    },
+    "security": {
+      "title": "Sécurité",
+      "biometric": "Déverrouillage biométrique",
+      "biometricHint": "Utilisez l'empreinte digitale ou la reconnaissance faciale pour déverrouiller Lemonade",
+      "biometricRegister": "Enregistrer la biométrie",
+      "biometricRegistered": "Biométrie enregistrée",
+      "biometricRemove": "Supprimer",
+      "biometricRemoveConfirm": "Supprimer cette passkey ? Vous devrez vous réenregistrer pour utiliser le déverrouillage biométrique.",
+      "biometricNotSupported": "Votre appareil ne prend pas en charge l'authentification biométrique",
+      "biometricDeviceName": "Appareil",
+      "biometricRegisteredOn": "Enregistré",
+      "sessionDuration": "Durée de session",
+      "sessionDurationHint": "Votre session expirera après ce délai, nécessitant une nouvelle connexion.",
+      "neverExpireWarning": "Attention : Les sessions qui n'expirent jamais présentent un risque de sécurité. Toute personne ayant accès à cet appareil pourrait accéder à vos mots de passe.",
+      "lockOnExit": "Verrouiller à la sortie",
+      "lockOnExitHint": "Exiger une authentification au retour dans l'app",
+      "encryptionModel": "Modèle de chiffrement",
+      "encryptionModelVault": "Coffre de mots de passe : AES-256-GCM côté serveur. La clé de chiffrement est gérée par l'infrastructure sécurisée de Lemonade.",
+      "encryptionModelEnvVault": "Env Vault : chiffrement de bout en bout sur votre appareil. Vos variables ne peuvent pas être lues par les serveurs de Lemonade.",
+      "sessionOptions": {
+        "oneDay": "1 jour",
+        "threeDays": "3 jours",
+        "oneWeek": "1 semaine",
+        "twoWeeks": "2 semaines",
+        "oneMonth": "1 mois",
+        "never": "Jamais"
+      }
+    },
+    "privacy": {
+      "title": "Confidentialité",
+      "aiAnalysis": "Détection des fuites",
+      "aiAnalysisHint": "Vérifiez si vos mots de passe apparaissent dans des fuites de données connues (via HaveIBeenPwned)",
+      "passwordAge": "Vérification de l'ancienneté des mots de passe",
+      "passwordAgeHint": "Afficher des indicateurs pour les mots de passe non mis à jour depuis plus de 6 mois",
+      "reusedCheck": "Détection des mots de passe réutilisés",
+      "reusedCheckHint": "Détecter et mettre en évidence les mots de passe utilisés dans plusieurs entrées",
+      "allDisabled": "Les deux fonctionnalités sont désactivées pour protéger votre vie privée"
+    },
+    "appearance": {
+      "title": "Apparence",
+      "theme": "Thème",
+      "themeHint": "Choisissez le thème de l'application",
+      "themeAuto": "Automatique",
+      "themeLight": "Clair",
+      "themeDark": "Sombre",
+      "accessibilityFocus": "Indicateurs de focus",
+      "accessibilityFocusHint": "Afficher des contours jaunes sur les éléments ciblés pour la navigation au clavier"
+    },
+    "accessibility": {
+      "title": "Accessibilité",
+      "focusIndicators": "Indicateurs de focus",
+      "focusIndicatorsHint": "Afficher des contours jaunes sur les éléments ciblés pour la navigation au clavier",
+      "highContrast": "Contraste élevé",
+      "highContrastHint": "Augmenter le contraste pour une meilleure lisibilité",
+      "grayscale": "Noir et blanc",
+      "grayscaleHint": "Supprimer les couleurs pour reposer les yeux la nuit"
+    },
+    "mosaicView": {
+      "title": "Vue mosaïque",
+      "mobileColumns": "Colonnes sur mobile",
+      "mobileColumnsHint": "Nombre de colonnes sur les appareils mobiles",
+      "desktopColumns": "Colonnes sur bureau",
+      "desktopColumnsHint": "Nombre de colonnes sur les grands écrans",
+      "preview": "Aperçu : {columns} colonnes ({device})",
+      "columns": "{n} colonnes"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "push": "Notifications push",
+      "pushHint": "Recevoir des notifications sur l'activité de votre compte"
+    },
+    "exportImport": {
+      "title": "Exporter / Importer",
+      "export": "Exporter les mots de passe",
+      "exportCsv": "CSV",
+      "exportJson": "JSON",
+      "exportCsvHint": "Exporter les métadonnées en CSV (sans mots de passe)",
+      "exportJsonHint": "Exporter au format JSON Lemonade",
+      "import": "Importer des mots de passe",
+      "importButton": "Importer un fichier",
+      "importHint": "Importer depuis CSV ou JSON (Bitwarden, 1Password)",
+      "supportedFormats": "Formats pris en charge : Lemonade, Bitwarden, 1Password",
+      "noPasswordsExport": "Aucun mot de passe à exporter",
+      "exportedCount": "{count} mots de passe exportés",
+      "exportedMetadata": "{count} mots de passe exportés (métadonnées uniquement)",
+      "importFound": "{count} entrées trouvées. Voulez-vous les importer ?",
+      "importedCount": "{count} mots de passe importés",
+      "importTitle": "Importer des mots de passe",
+      "formatError": "Format non pris en charge. Utilisez CSV ou JSON.",
+      "noValidEntries": "Aucune entrée valide trouvée",
+      "errorExport": "Erreur lors de l'exportation",
+      "errorImport": "Erreur lors de l'importation"
+    },
+    "about": {
+      "title": "À propos",
+      "version": "Version"
+    },
+    "language": {
+      "title": "Langue",
+      "appLanguage": "Langue de l'application",
+      "selectLanguage": "Sélectionner la langue",
+      "languageHint": "Choisissez votre langue préférée",
+      "languagesSupported": "{count} langues supportées"
+    },
+    "messages": {
+      "saved": "Paramètres enregistrés avec succès",
+      "errorLoading": "Erreur lors du chargement des paramètres",
+      "errorSaving": "Erreur lors de l'enregistrement des paramètres"
+    }
+  },
+  "envVault": {
+    "title": "Env Vault",
+    "subtitle": "Stockage sécurisé pour vos variables d'environnement",
+    "premiumRequired": "Abonnement Premium requis",
+    "premiumHint": "Passez à Premium pour accéder à Env Vault",
+    "sortAZ": "Trier A-Z",
+    "sortRecent": "Récents",
+    "projectsCount": "{count} projets",
+    "lockVault": "Verrouiller le coffre",
+    "dropZone": {
+      "title": "Déposez votre dossier de projet ici",
+      "hint": "Nous trouverons tous les fichiers .env, .npmrc, credentials.json et secrets",
+      "browse": "Ou parcourir les fichiers",
+      "scanning": "Analyse en cours...",
+      "multipleProjectsTitle": "Plusieurs dossiers détectés",
+      "multipleProjectsMessage": "Vous avez déposé {count} dossiers à la fois. Pour de meilleurs résultats, ajoutez les projets un par un.",
+      "largeFolderTitle": "Dossier très volumineux détecté",
+      "largeFolderMessage": "Le dossier \"{folder}\" semble très volumineux. Glissez les dossiers de projets individuels.\n\nExemple : Au lieu de glisser \"Apps\", glissez \"Apps/mon-projet-1\".",
+      "multipleProjectsInsideMessage": "Le dossier \"{folder}\" semble contenir plusieurs projets. Glissez chaque dossier de projet individuellement.\n\nExemple : Au lieu de glisser \"Apps\", glissez \"Apps/mon-projet-1\".",
+      "cancel": "Annuler",
+      "continueAnyway": "Continuer quand même"
+    },
+    "project": {
+      "noProjects": "Aucun projet pour le moment",
+      "noProjectsHint": "Glissez et déposez un dossier de projet pour commencer",
+      "addProject": "Ajouter un projet",
+      "deleteProject": "Supprimer le projet",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce projet ?",
+      "exportProject": "Exporter .env",
+      "files": "{count} fichiers",
+      "lastUpdated": "Dernière mise à jour"
+    },
+    "fileTypes": {
+      "env": "Environnement",
+      "npm": "Config NPM",
+      "credentials": "Identifiants",
+      "secrets": "Secrets"
+    },
+    "masterPassword": {
+      "title": "Mot de passe principal",
+      "create": "Créer un mot de passe principal",
+      "enter": "Entrez le mot de passe principal",
+      "hint": "Ce mot de passe chiffre vos variables d'environnement localement",
+      "confirm": "Confirmer le mot de passe",
+      "mismatch": "Les mots de passe ne correspondent pas",
+      "weak": "Le mot de passe est trop faible",
+      "incorrect": "Mot de passe incorrect"
+    },
+    "master": {
+      "setupTitle": "Configurez votre Env Vault",
+      "lockedTitle": "Env Vault Verrouillé",
+      "setupSubtitle": "Créez un mot de passe principal pour protéger vos variables d'environnement",
+      "lockedSubtitle": "Entrez votre mot de passe principal pour accéder",
+      "masterPassword": "Mot de passe principal",
+      "password": "Mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "createVault": "Créer le Vault",
+      "unlock": "Déverrouiller",
+      "infoText": "Ce mot de passe est indépendant de votre connexion. Conservez-le en lieu sûr.",
+      "strength": {
+        "veryWeak": "Très faible",
+        "weak": "Faible",
+        "medium": "Moyen",
+        "strong": "Fort",
+        "veryStrong": "Très fort"
+      },
+      "errors": {
+        "noMatch": "Les mots de passe ne correspondent pas",
+        "minLength": "Le mot de passe doit contenir au moins 8 caractères",
+        "generic": "Erreur lors du traitement du mot de passe"
+      }
+    },
+    "loading": "Chargement d'Env Vault...",
+    "paywall": {
+      "title": "Env Vault est Premium",
+      "description": "Stockez et gérez vos fichiers .env, clés API et secrets en toute sécurité. Cette fonctionnalité est disponible pour les utilisateurs Premium.",
+      "feature1": "Importer des dossiers de projet complets",
+      "feature2": "Détection automatique de .env, credentials.json, etc.",
+      "feature3": "Chiffrement AES-256 supplémentaire",
+      "feature4": "Exporter au format .env",
+      "upgradeBtn": "Hosted — 29 US$ à vie",
+      "alreadyPremium": "Déjà Premium ?",
+      "refreshPage": "Actualiser la page"
+    },
+    "projectDetail": {
+      "changeIcon": "Changer l'icône",
+      "selectIcon": "Sélectionner une icône",
+      "add": "Ajouter",
+      "addFile": "Ajouter un fichier de variables",
+      "export": "Exporter",
+      "deleteProject": "Supprimer le projet",
+      "searchVariable": "Rechercher une variable...",
+      "variables": "variables",
+      "files": "fichiers",
+      "secret": "secret",
+      "hide": "Masquer",
+      "show": "Afficher",
+      "copy": "Copier",
+      "noVariablesFound": "Aucune variable trouvée",
+      "aiContextFiles": "Fichiers de contexte IA",
+      "aiContextFilesDesc": "Fichiers de contexte pour assistants IA",
+      "fileCount": "{count} fichier(s)",
+      "viewAll": "Voir tout",
+      "download": "Télécharger",
+      "delete": "Supprimer",
+      "scanned": "Scanné",
+      "addFileTitle": "Ajouter un fichier de variables",
+      "fileName": "Nom du fichier",
+      "pasteContent": "Coller le contenu",
+      "uploadFile": "Téléverser un fichier",
+      "fileContent": "Contenu du fichier",
+      "clickToSelect": "Cliquez pour sélectionner un fichier",
+      "preview": "Aperçu",
+      "andMore": "... et {count} de plus",
+      "cancel": "Annuler"
+    },
+    "messages": {
+      "imported": "Projet importé avec succès",
+      "exported": "Environnement exporté",
+      "deleted": "Projet supprimé",
+      "errorImport": "Erreur lors de l'importation du projet",
+      "errorExport": "Erreur lors de l'exportation",
+      "errorDelete": "Erreur lors de la suppression du projet",
+      "noEnvFiles": "Aucun fichier d'environnement trouvé",
+      "filesFound": "{count} fichiers trouvés"
+    }
+  },
+  "admin": {
+    "title": "Panneau d'administration",
+    "users": {
+      "title": "Utilisateurs",
+      "search": "Rechercher des utilisateurs...",
+      "role": "Rôle",
+      "changeRole": "Changer le rôle",
+      "noUsers": "Aucun utilisateur trouvé",
+      "errorLoading": "Erreur lors du chargement des utilisateurs"
+    }
+  },
+  "tickets": {
+    "title": "Support",
+    "myTickets": "Mes tickets",
+    "newTicket": "Nouveau ticket",
+    "noTickets": "Aucun ticket pour le moment",
+    "noTicketsHint": "Créez un ticket si vous avez besoin d'aide",
+    "form": {
+      "subject": "Sujet",
+      "subjectPlaceholder": "Brève description de votre problème",
+      "description": "Description",
+      "descriptionPlaceholder": "Décrivez votre problème en détail",
+      "category": "Catégorie",
+      "priority": "Priorité"
+    },
+    "categories": {
+      "bug": "Rapport de bug",
+      "feature": "Demande de fonctionnalité",
+      "billing": "Facturation",
+      "other": "Autre"
+    },
+    "priorities": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute"
+    },
+    "statuses": {
+      "open": "Ouvert",
+      "inProgress": "En cours",
+      "resolved": "Résolu",
+      "closed": "Fermé"
+    },
+    "messages": {
+      "created": "Ticket créé avec succès",
+      "updated": "Ticket mis à jour",
+      "messageSent": "Message envoyé",
+      "errorCreating": "Erreur lors de la création du ticket",
+      "errorLoading": "Erreur lors du chargement des tickets",
+      "errorSending": "Erreur lors de l'envoi du message"
+    },
+    "chat": {
+      "placeholder": "Écrire un message...",
+      "send": "Envoyer",
+      "close": "Fermer le ticket",
+      "closed": "Ce ticket est fermé",
+      "ticketClosed": "Ce ticket a été fermé",
+      "you": "Vous",
+      "support": "Support"
+    },
+    "time": {
+      "justNow": "À l'instant",
+      "minutesAgo": "Il y a {n} min",
+      "hoursAgo": "Il y a {n}h",
+      "daysAgo": "Il y a {n}j",
+      "weeksAgo": "Il y a {n}sem"
+    },
+    "admin": {
+      "allTickets": "Tous les tickets",
+      "openTickets": "Ouverts",
+      "closedTickets": "Fermés",
+      "open": "Ouvert",
+      "closed": "Fermé",
+      "noOpenTickets": "Aucun ticket ouvert",
+      "searchPlaceholder": "Rechercher par email ou sujet...",
+      "lastMessage": "Dernier message",
+      "responses": "{n} réponse | {n} réponses"
+    }
+  },
+  "session": {
+    "expired": "Votre session a expiré. Veuillez vous reconnecter."
+  },
+  "errors": {
+    "generic": "Une erreur est survenue",
+    "network": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "unauthorized": "Non autorisé. Veuillez vous reconnecter.",
+    "notFound": "Non trouvé",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "invalidUrl": "URL invalide ou environnement non pris en charge",
+    "sessionExpired": "Session expirée. Veuillez vous reconnecter."
+  },
+  "premium": {
+    "title": "Passez Premium",
+    "limitReached": "Limite gratuite atteinte",
+    "unlockMore": "Débloquez plus de fonctionnalités",
+    "hints": {
+      "passwordLimit": "Vous approchez de la limite de {limit} mots de passe. Passez à l'offre supérieure pour un stockage illimité.",
+      "weakPasswords": "{count} mots de passe faibles trouvés. Premium inclut l'analyse de sécurité par IA.",
+      "afterExport": "Passez à l'offre supérieure pour des sauvegardes chiffrées dans le cloud.",
+      "newUser": "Commencez votre aventure avec des mots de passe illimités et Env Vault."
+    },
+    "cta": "Mettre à niveau maintenant",
+    "dismiss": "Peut-être plus tard"
+  },
+  "biometric": {
+    "unlockTitle": "Lemonade est verrouillé",
+    "unlockButton": "Déverrouiller avec la biométrie",
+    "unlockFallback": "Se connecter avec Google",
+    "unlockError": "L'authentification a échoué. Réessayez ou connectez-vous avec Google.",
+    "verifying": "Verification...",
+    "tapToRetry": "Appuyez pour reessayer",
+    "registerSuccess": "Biométrie enregistrée avec succès !",
+    "removeSuccess": "Passkey supprimée"
+  },
+  "notFound": {
+    "title": "Oups. Rien ici...",
+    "message": "La page que vous recherchez n'existe pas.",
+    "goHome": "Retour à l'accueil"
+  },
+  "secureNotes": {
+    "title": "Notes Securisees",
+    "empty": "Aucune note securisee",
+    "emptyHint": "Cliquez sur le bouton + pour ajouter votre premiere note",
+    "create": "Nouvelle Note",
+    "edit": "Modifier la Note",
+    "view": "Voir la Note",
+    "noteTitle": "Titre",
+    "noteContent": "Contenu",
+    "placeholder": "Ecrivez votre note securisee...",
+    "created": "Note creee",
+    "updated": "Note mise a jour",
+    "deleted": "Note deplacee dans la corbeille",
+    "restored": "Note restauree",
+    "permanentlyDeleted": "Note supprimee definitivement",
+    "search": "Rechercher des notes...",
+    "deleteConfirm": "Deplacer cette note dans la corbeille ?",
+    "premium": "Notes Sécurisées",
+    "premiumDescription": "Stockez des notes chiffrees en toute securite. Les notes sont chiffrees avec AES-256.",
+    "premiumFeature1": "Notes chiffrees AES-256",
+    "premiumFeature2": "CRUD complet avec corbeille et restauration",
+    "premiumFeature3": "Chiffrement AES-256 cote serveur"
+  },
+  "emergency": {
+    "title": "Acces d'urgence",
+    "description": "Designez des contacts de confiance qui peuvent demander l'acces a vos mots de passe",
+    "addContact": "Ajouter un contact de confiance",
+    "email": "Email du contact",
+    "waitPeriod": "Delai d'attente",
+    "waitPeriodHelp": "Temps avant que l'acces soit automatiquement approuve si vous ne repondez pas",
+    "days": "{n} jour | {n} jours",
+    "status": {
+      "invited": "Invite",
+      "active": "En attente",
+      "requesting": "Demande d'acces",
+      "approved": "Acces accorde",
+      "denied": "Refuse",
+      "revoked": "Revoque"
+    },
+    "actions": {
+      "approve": "Approuver maintenant",
+      "deny": "Refuser",
+      "revoke": "Revoquer l'acces",
+      "request": "Demander l'acces"
+    },
+    "messages": {
+      "contactAdded": "Contact d'urgence ajoute",
+      "accessRequested": "Acces demande",
+      "accessApproved": "Acces d'urgence approuve",
+      "accessDenied": "Acces d'urgence refuse",
+      "contactRevoked": "Contact d'urgence supprime"
+    },
+    "trustee": {
+      "title": "Je suis contact de confiance pour",
+      "empty": "Personne ne vous a ajoute comme contact d'urgence",
+      "viewPasswords": "Voir les mots de passe",
+      "accessExpires": "L'acces expire le {date}"
+    },
+    "grantor": {
+      "title": "Mes contacts de confiance",
+      "empty": "Aucun contact d'urgence ajoute",
+      "emptyHint": "Ajoutez quelqu'un qui peut acceder a vos mots de passe en cas d'urgence",
+      "pendingRequest": "Acces demande"
+    },
+    "premium": "Accès d'urgence"
+  }
+}

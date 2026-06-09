@@ -1,0 +1,56 @@
+name: Feature request
+description: Suggest an idea or improvement
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing a feature request, please consider opening a **Discussion** instead if your idea is open-ended or exploratory. Issues are best for concrete, actionable requests.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before opening
+      options:
+        - label: I searched existing issues and discussions and did not find a similar proposal.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: Describe the user-facing problem or use case. Avoid jumping straight to a solution — the problem statement often shapes the design.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Optional. If you have an idea for how to solve it, describe it here.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you thought about, and why you rejected them.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Where would this live?
+      multiple: true
+      options:
+        - PWA / web app
+        - Chrome extension
+        - Firefox extension
+        - Cloud Functions / backend
+        - Documentation
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context (optional)

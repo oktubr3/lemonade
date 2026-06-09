@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= productName %></title>
+
+        <meta charset="utf-8" />
+        <meta name="description" content="<%= productDescription %>" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <meta
+            name="viewport"
+            content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width<% if (ctx.mode.cordova || ctx.mode.capacitor) { %>, viewport-fit=cover<% } %>"
+        />
+
+        <!-- PWA theme colors -->
+        <meta name="theme-color" content="#F7DC6F" />
+        <meta name="msapplication-navbutton-color" content="#F7DC6F" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="128x128"
+            href="icons/favicon-128x128.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="96x96"
+            href="icons/favicon-96x96.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="32x32"
+            href="icons/favicon-32x32.png"
+        />
+        <link
+            rel="icon"
+            type="image/png"
+            sizes="16x16"
+            href="icons/favicon-16x16.png"
+        />
+        <link rel="icon" type="image/ico" href="favicon.ico" />
+
+        <!-- Preconnect a servicios externos para reducir latencia del primer byte.
+             preconnect hace DNS + TCP + TLS handshake adelantado; dns-prefetch
+             solo DNS (mas barato para dominios menos criticos). -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+        <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+        <link rel="dns-prefetch" href="https://securetoken.googleapis.com">
+        <link rel="dns-prefetch" href="https://us-central1-passmanager-d2b6d.cloudfunctions.net">
+        <!-- Google Fonts - Inter -->
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+        <style>
+            body { margin: 0; background: #010409; }
+            #app-loading {
+                position: fixed;
+                inset: 0;
+                z-index: 99999;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: #010409;
+                transition: opacity 0.3s ease;
+            }
+            #app-loading .app-card {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                width: 260px;
+                height: 200px;
+                border-radius: 20px;
+                background: rgba(22, 27, 34, 0.95);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            }
+            #app-loading img {
+                width: 40px;
+                height: 40px;
+                opacity: 0.85;
+                filter: drop-shadow(0 2px 8px rgba(255, 215, 0, 0.15));
+            }
+            #app-loading .app-name {
+                margin-top: 16px;
+                color: #FFFFFF;
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+                font-size: 20px;
+                font-weight: 600;
+                letter-spacing: -0.02em;
+            }
+            #app-loading .app-subtitle {
+                margin-top: 4px;
+                color: rgba(139, 148, 158, 0.7);
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+                font-size: 13px;
+                font-weight: 400;
+            }
+            #app-loading .app-loader {
+                margin-top: 32px;
+                width: 120px;
+                height: 2px;
+                background: rgba(255, 255, 255, 0.06);
+                border-radius: 1px;
+                overflow: hidden;
+            }
+            #app-loading .app-loader-bar {
+                height: 100%;
+                width: 40%;
+                background: rgba(255, 215, 0, 0.4);
+                border-radius: 1px;
+                animation: app-load 1.2s ease-in-out infinite;
+            }
+            @keyframes app-load {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(350%); }
+            }
+            #app-loading.fade-out { opacity: 0; pointer-events: none; }
+        </style>
+    </head>
+    <body>
+        <div id="app-loading">
+            <div class="app-card">
+                <img src="icons/icon-128x128.png" alt="Lemonade" />
+                <div class="app-name">Lemonade</div>
+                <div class="app-subtitle">Password Manager</div>
+                <div class="app-loader"><div class="app-loader-bar"></div></div>
+            </div>
+        </div>
+        <!-- quasar:entry-point -->
+        <script>
+            // Hide splash when app mounts
+            const observer = new MutationObserver(() => {
+                const qApp = document.getElementById('q-app');
+                if (qApp && qApp.children.length > 0) {
+                    const splash = document.getElementById('app-loading');
+                    if (splash) {
+                        splash.classList.add('fade-out');
+                        setTimeout(() => splash.remove(), 300);
+                    }
+                    observer.disconnect();
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        </script>
+        <script>
+            console.log('%c\ud83c\udf4b Lemonade Password Manager %cv2.2.4', 'color: #FFE135; font-size: 16px; font-weight: bold;', 'color: #888; font-size: 12px;');
+            console.log('%cYour secrets are safe with us.', 'color: #0f0; font-family: monospace;');
+        </script>
+    </body>
+</html>

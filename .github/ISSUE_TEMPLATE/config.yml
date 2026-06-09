@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/oktubr3/lemonade/security/advisories/new
+    about: Report a security issue privately through GitHub Security Advisories. Do not open a public issue for vulnerabilities.
+  - name: Question or open-ended idea
+    url: https://github.com/oktubr3/lemonade/discussions
+    about: For questions, support, or ideas you want to discuss, use GitHub Discussions instead of opening an issue.
+  - name: Self-hosting help
+    url: https://github.com/oktubr3/lemonade/discussions/categories/self-hosting
+    about: Stuck setting up your own Firebase deployment? Ask in the self-hosting discussion category.
