@@ -6,17 +6,30 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
-// Override del @quasar/extras roboto-font.css para que el texto se pinte con
-// el system fallback mientras baja el woff, en vez de quedarse invisible (FOIT).
-// No cambia el aspecto final, solo acelera el primer render visible.
-@font-face {
-    font-family: 'Roboto';
-    font-display: swap;
+// Desde Quasar 2.27 QIcon envuelve la ligatura en un <span>:
+//   <i class="q-icon material-icons"><span>translate</span></i>
+// La regla .material-icons aplica al <i>, pero ese <span> cae bajo el `*` de
+// arriba y se pinta con Inter: el icono se ve como su texto literal
+// ("translate", "vpn_key", "admin_panel_settings"). Que herede del <i>.
+//
+// El `*` universal es la causa de fondo — rompe la herencia en todo el arbol.
+// Migrarlo a `body` es lo correcto, pero toca toda la tipografia: pendiente.
+.q-icon > * {
+    font-family: inherit;
 }
-@font-face {
-    font-family: 'Material Icons';
-    font-display: block; // block para iconos evita "fallback text" parpadeando
-}
+
+// NO declarar @font-face sin `src` para "parchear" font-display de otra hoja.
+// Un @font-face sin src no modifica la declaracion original: es una declaracion
+// separada e invalida que, segun el orden de los chunks CSS, PISA a la buena y
+// deja la familia sin archivo de fuente.
+//
+// Aca costo una caida visible: los iconos de Material se renderizaban como su
+// texto ligatura ("admin_panel_settings", "vpn_key") en toda la app. Con Vite 7
+// el orden dejaba ganar al @font-face real de @quasar/extras; Rolldown (Vite 8)
+// invirtio ese orden y el bloque vacio empezo a ganar.
+//
+// Si hace falta ajustar font-display, hay que hacerlo en la declaracion completa
+// (con su src), no en una vacia.
 
 // Accessibility filters via overlay (no rompe position: fixed)
 .a11y-high-contrast::after,

@@ -1,18 +1,27 @@
-/* eslint-env node */
 
 /*
  * This file runs in a Node context (it's NOT transpiled by Babel), so use only
  * the ES6 features that are supported by your Node version. https://node.green/
+ * It is ESM: no require(), no __dirname without the shim below.
  */
 
 // Configuration for your app
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
 
-const { configure } = require("quasar/wrappers");
-const path = require("path");
-const VueI18nPlugin = require("@intlify/unplugin-vue-i18n/vite");
+// @quasar/app-vite 3 only accepts quasar.config.js (ESM) or .ts — it dropped
+// .cjs, so this file is ESM and uses defineConfig instead of the old
+// `configure` from quasar/wrappers.
+import { defineConfig } from "@quasar/app-vite";
+import path from "node:path";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 
-module.exports = configure(function (/* ctx */) {
+// __dirname and require() do not exist in ESM.
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8"));
+
+export default defineConfig(function (/* ctx */) {
     return {
         // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
         // preFetch: true,
@@ -33,6 +42,21 @@ module.exports = configure(function (/* ctx */) {
 
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build
         build: {
+            // @quasar/app-vite 3 shrank the default aliases to just '@' and
+            // '#q-app'. These were provided by app-vite 2 and are used across
+            // ~58 imports plus `~assets/` in templates, so they are restored
+            // here rather than rewriting every call site.
+            alias: {
+                src: path.join(__dirname, "src"),
+                app: __dirname,
+                components: path.join(__dirname, "src/components"),
+                layouts: path.join(__dirname, "src/layouts"),
+                pages: path.join(__dirname, "src/pages"),
+                assets: path.join(__dirname, "src/assets"),
+                boot: path.join(__dirname, "src/boot"),
+                stores: path.join(__dirname, "src/stores"),
+            },
+
             target: {
                 browser: [
                     "es2022",
@@ -53,14 +77,30 @@ module.exports = configure(function (/* ctx */) {
 
             // publicPath: '/',
             // analyze: true,
-            // env: {},
-            // rawDefine: {}
+            // OJO: en @quasar/app-vite 3 `build.env` NO es un mapa de variables,
+            // es { clientPrefix, backendPrefix }. Pisarlo con variables sueltas
+            // anula el prefijo y NINGUNA var de .env.local llega al cliente.
+            //
+            // Ademas app-vite 3 cambio el prefijo de cliente de VITE_ a QCLI_.
+            // Este proyecto usa import.meta.env.VITE_FIREBASE_* en src/boot/firebase.js,
+            // asi que sin esto Firebase arranca sin apiKey (auth/invalid-api-key)
+            // y la app no carga. Se aceptan los dos prefijos.
+            env: {
+                clientPrefix: ["VITE_", "QCLI_"],
+            },
+
+
             // ignorePublicFolder: true,
             // minify: false,
             // polyfillModulePreload: true,
             // distDir
 
             extendViteConf(viteConf) {
+                // Version en runtime. Se define aca y no en build.rawDefine porque
+                // ese camino no sustituyo el identificador en el bundle.
+                viteConf.define = viteConf.define || {};
+                viteConf.define.__APP_VERSION__ = JSON.stringify(pkg.version);
+
                 viteConf.build = viteConf.build || {};
                 viteConf.build.rollupOptions = viteConf.build.rollupOptions || {};
                 viteConf.build.rollupOptions.output = viteConf.build.rollupOptions.output || {};
@@ -182,8 +222,8 @@ module.exports = configure(function (/* ctx */) {
                 json.display = "standalone";
                 
                 // CRÍTICO: Añadir versión para forzar actualizaciones del manifest
-                json.version = require('./package.json').version;
-                json.version_name = `Lemonade ${require('./package.json').version}`;
+                json.version = pkg.version;
+                json.version_name = `Lemonade ${pkg.version}`;
             }
         },
 

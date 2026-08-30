@@ -23,6 +23,11 @@ function ensureWorker() {
     _worker.onerror = (err) => {
         for (const entry of _pending.values()) entry.reject(err);
         _pending.clear();
+        // Drop the broken instance. Keeping it would make every later
+        // postMessage go to a dead worker: postMessage does not throw, so the
+        // promise would never settle and the unlock would hang forever.
+        try { _worker?.terminate(); } catch { /* already gone */ }
+        _worker = null;
     };
     return _worker;
 }
@@ -64,31 +69,54 @@ async function hkdfExpand(rootBits, info) {
     );
 }
 
-// Current (v3): enc key and verifier are domain-separated via HKDF so neither can be
-// derived from the other even if an attacker reads the stored verifier.
-export async function deriveAesKey(password, salt, iterations = 600000) {
-    const root = await deriveBits(password, salt, iterations);
-    const encBits = await hkdfExpand(root, "lemonade-enc-v1");
-    return crypto.subtle.importKey(
-        "raw", encBits, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
-    );
+function toHex(bits) {
+    return Array.from(new Uint8Array(bits), b => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function derivePasswordVerifier(password, salt, iterations = 600000) {
-    const root = await deriveBits(password, salt, iterations);
-    const verBits = await hkdfExpand(root, "lemonade-ver-v1");
-    return Array.from(new Uint8Array(verBits), b => b.toString(16).padStart(2, "0")).join("");
-}
-
-// Legacy (v1/v2): raw PBKDF2 bits used directly — kept only for transparent migration.
-export async function deriveAesKeyRaw(password, salt, iterations) {
-    const bits = await deriveBits(password, salt, iterations);
+function importAesKey(bits) {
     return crypto.subtle.importKey(
         "raw", bits, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
     );
 }
 
-export async function derivePasswordVerifierRaw(password, salt, iterations) {
+// Current (v3): enc key and verifier are domain-separated via HKDF so neither can be
+// derived from the other even if an attacker reads the stored verifier.
+//
+// PBKDF2 is by far the most expensive step (600k iterations). Every caller that
+// needs BOTH the key and the verifier for the same password must use
+// deriveVaultSecrets, which runs PBKDF2 once and expands the single root into
+// both outputs. Calling deriveAesKey + derivePasswordVerifier separately doubles
+// the cost for an identical result.
+export async function deriveVaultSecrets(password, salt, iterations = 600000) {
+    const root = await deriveBits(password, salt, iterations);
+    const [encBits, verBits] = await Promise.all([
+        hkdfExpand(root, "lemonade-enc-v1"),
+        hkdfExpand(root, "lemonade-ver-v1"),
+    ]);
+    return { key: await importAesKey(encBits), verifier: toHex(verBits) };
+}
+
+export async function deriveAesKey(password, salt, iterations = 600000) {
+    const root = await deriveBits(password, salt, iterations);
+    return importAesKey(await hkdfExpand(root, "lemonade-enc-v1"));
+}
+
+export async function derivePasswordVerifier(password, salt, iterations = 600000) {
+    const root = await deriveBits(password, salt, iterations);
+    return toHex(await hkdfExpand(root, "lemonade-ver-v1"));
+}
+
+// Legacy (v1/v2): raw PBKDF2 bits used directly — kept only for transparent migration.
+// Same single-root rule as above: use deriveVaultSecretsRaw when both are needed.
+export async function deriveVaultSecretsRaw(password, salt, iterations) {
     const bits = await deriveBits(password, salt, iterations);
-    return Array.from(new Uint8Array(bits), b => b.toString(16).padStart(2, "0")).join("");
+    return { key: await importAesKey(bits), verifier: toHex(bits) };
+}
+
+export async function deriveAesKeyRaw(password, salt, iterations) {
+    return importAesKey(await deriveBits(password, salt, iterations));
+}
+
+export async function derivePasswordVerifierRaw(password, salt, iterations) {
+    return toHex(await deriveBits(password, salt, iterations));
 }

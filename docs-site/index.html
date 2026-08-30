@@ -23,17 +23,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LEMONADE // docs</title>
   <meta name="description" content="Documentation for Lemonade Password Manager - Your secrets. Encrypted. Yours.">
-  <meta name="keywords" content="password manager, encryption, AES-256, zero-knowledge, security, lemonade">
+  <meta name="keywords" content="password manager, encryption, AES-256, zero-knowledge env vault, security, lemonade">
   <meta name="author" content="Lemonade">
   <meta property="og:title" content="LEMONADE // docs">
   <meta property="og:description"
-    content="Documentation for Lemonade Password Manager v2.2.4 - Your secrets. Encrypted. Yours.">
+    content="Documentation for Lemonade Password Manager v2.2.16 - Your secrets. Encrypted. Yours.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://docs.lemonadepass.app">
   <meta property="og:image" content="https://docs.lemonadepass.app/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="LEMONADE // docs">
-  <meta name="twitter:description" content="Documentation for Lemonade Password Manager v2.2.4">
+  <meta name="twitter:description" content="Documentation for Lemonade Password Manager v2.2.16">
   <link rel="icon" href="LemonadeLogo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -82,9 +82,9 @@
     <!-- Hero Section -->
     <section class="hero reveal">
       <h1 data-i18n="hero.title">LEMONADE PASSWORD MANAGER</h1>
-      <p class="hero-version">v2.2.4 // docs.lemonadepass.app</p>
+      <p class="hero-version">v2.2.16 // docs.lemonadepass.app</p>
       <p class="typing-text" id="hero-subtitle" data-i18n="hero.subtitle">Your secrets. Encrypted. Yours.</p>
-      <span class="badge">v2.2.4</span>
+      <span class="badge">v2.2.16</span>
       <div class="hero-nav">
         <a href="#getting-started" class="nav-pill" data-i18n="hero.nav.start">Getting Started</a>
         <a href="#vault" class="nav-pill" data-i18n="hero.nav.vault">Password Vault</a>
@@ -404,7 +404,7 @@
           <div class="highlight-panel reveal">
             <h4 data-i18n="arch.aes.title">AES-256-GCM</h4>
             <p data-i18n="arch.aes.desc">Galois/Counter Mode provides both confidentiality and authenticity. Each
-              encryption operation uses a unique 96-bit IV. The 128-bit authentication tag ensures data integrity and
+              encryption operation uses a unique random IV — 96-bit in the Env Vault, 128-bit server-side. The 128-bit authentication tag ensures data integrity and
               detects tampering.</p>
           </div>
           <div class="highlight-panel reveal">
@@ -474,11 +474,11 @@
   <footer class="status-bar" id="status-bar">
     <span data-i18n="status.encryption">encryption: AES-256</span>
     <span class="status-separator">&vert;</span>
-    <span data-i18n="status.protocol">protocol: zero-knowledge</span>
+    <span data-i18n="status.protocol">env vault: zero-knowledge</span>
     <span class="status-separator">&vert;</span>
     <span data-i18n="status.status">status: SECURE</span>
     <span class="status-separator">&vert;</span>
-    <span>v2.2.4</span>
+    <span>v2.2.16</span>
   </footer>
 
   <!-- Matrix Rain Easter Egg (Konami Code) -->

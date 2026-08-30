@@ -142,9 +142,23 @@ const handleSessionExpired = async () => {
     router.push('/login');
 };
 
-// Fire-and-forget warmup ping to wake up Cloud Functions
+// Fire-and-forget warmup ping to wake up Cloud Functions.
+// Each function is a separate Cloud Run service, so pinging healthCheck warms
+// only healthCheck — the decrypt path stays cold. Measured cold start is
+// 7.7-9.3s against 0.24s warm, so the functions the user is about to hit have
+// to be woken individually. GET is rejected by their method guard before any
+// auth check or Firestore read, which makes these pings cheap and side-effect
+// free.
+const WARMUP_TARGETS = [
+    'getPasswordEntryHttp',
+    'getSecureNotesHttp',
+    'checkReusedPasswordsHttp'
+];
+
 const warmupCloudFunctions = () => {
-    fetch(`${FUNCTIONS_URL}/healthCheck`).catch(() => {});
+    for (const fn of WARMUP_TARGETS) {
+        fetch(`${FUNCTIONS_URL}/${fn}`, { method: 'GET' }).catch(() => {});
+    }
 };
 
 const handleBiometricUnlocked = () => {

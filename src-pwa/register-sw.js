@@ -64,7 +64,11 @@ if (window.location.pathname.startsWith('/__/')) {
     });
   };
 
-  register(process.env.SERVICE_WORKER_FILE, {
+  // @quasar/app-vite 3 renombro esta constante: antes process.env.SERVICE_WORKER_FILE,
+  // ahora import.meta.env.QUASAR_SERVICE_WORKER_FILE. Con la vieja llega `undefined`
+  // y el navegador intenta registrar "/undefined", que devuelve el index.html
+  // (MIME text/html) y aborta el registro: sin SW no hay sistema de updates.
+  register(import.meta.env.QUASAR_SERVICE_WORKER_FILE, {
     ready () {
       console.log('PWA: Service Worker activo');
     },

@@ -150,7 +150,6 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
                 if (isReusedCheckEnabled()) loadReusedCache(userID);
             } catch (error) {
                 throw error;
-                entries.value = [];
             }
         } else {
             throw new Error("No authenticated user.");
@@ -450,7 +449,7 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
             }
 
             
-            // Check security with Gemini including URL/site info
+            // Check security: HaveIBeenPwned breach lookup + local strength scoring
             const analysis = await passwordSecurityService.checkPasswordSecurity(
                 decryptedPassword,
                 entry.title || entry.name,
