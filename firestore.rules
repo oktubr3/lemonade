@@ -64,16 +64,29 @@ service cloud.firestore {
         && isValidOptionalString(data, 'sourceFolder', 1000);
     }
 
+    // Encrypted payloads are stored as {encrypted: <hex>, iv: <hex>} maps, never
+    // as plain strings. Validating them as strings rejects every write.
+    function isValidEncryptedBlob(data, key, maxSize) {
+      return key in data
+        && data[key] is map
+        && data[key].keys().hasOnly(['encrypted', 'iv'])
+        && data[key].keys().hasAll(['encrypted', 'iv'])
+        && data[key].encrypted is string
+        && data[key].encrypted.size() > 0
+        && data[key].encrypted.size() <= maxSize
+        && data[key].iv is string
+        && data[key].iv.size() > 0
+        && data[key].iv.size() <= 64;
+    }
+
     function validEnvVariableStringFields(data) {
-      return isValidOptionalString(data, 'encryptedValue', 100000)
-        && isValidOptionalString(data, 'fileName', 500)
+      return isValidOptionalString(data, 'fileName', 500)
         && isValidOptionalString(data, 'filePath', 2000)
         && isValidOptionalString(data, 'category', 50);
     }
 
     function validEnvContextFileStringFields(data) {
-      return isValidOptionalString(data, 'encryptedContent', 900000)
-        && isValidOptionalString(data, 'fileName', 500)
+      return isValidOptionalString(data, 'fileName', 500)
         && isValidOptionalString(data, 'filePath', 2000)
         && isValidOptionalString(data, 'aiTool', 50)
         && isValidOptionalString(data, 'label', 200)
@@ -200,13 +213,13 @@ service cloud.firestore {
                    && request.resource.data.variableName is string
                    && request.resource.data.variableName.size() > 0
                    && request.resource.data.variableName.size() <= 500
-                   && request.resource.data.encryptedValue is string
+                   && isValidEncryptedBlob(request.resource.data, 'encryptedValue', 100000)
                    && validEnvVariableStringFields(request.resource.data);
       allow update: if request.auth != null
                    && request.auth.uid == resource.data.userId
                    && request.resource.data.userId == resource.data.userId
                    && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'variableName', 'encryptedValue', 'category', 'isSecret', 'createdAt', 'updatedAt'])
-                   && request.resource.data.encryptedValue is string
+                   && isValidEncryptedBlob(request.resource.data, 'encryptedValue', 100000)
                    && (!('variableName' in request.resource.data) || (request.resource.data.variableName is string && request.resource.data.variableName.size() > 0 && request.resource.data.variableName.size() <= 500))
                    && validEnvVariableStringFields(request.resource.data);
     }
@@ -226,8 +239,16 @@ service cloud.firestore {
                    && request.resource.data.kdfIterations >= 100000;
       // UPDATE hardening:
       //   - salt is immutable after creation (rotating it without re-encrypting
-      //     all env_variables would brick the vault). Password rotation MUST go
-      //     through a Cloud Function that re-encrypts atomically.
+      //     every env_variable and env_context_file bricks the vault — this is
+      //     what orphaned the pre-May-2026 context files). Key migrations and
+      //     password rotation reuse the salt and re-derive via HKDF instead.
+      //   - passwordHash IS client-writable: rotation runs client-side in
+      //     envVault.js (changeMasterPassword), which re-encrypts every variable
+      //     in one batch before updating the verifier. Known limitation: a
+      //     hijacked session can overwrite the verifier and lock the owner out.
+      //     It cannot read anything -- the data stays encrypted under the key
+      //     derived from the real password. Closing it needs a server-side
+      //     rotation endpoint.
       //   - kdfIterations must monotonically increase. A user can strengthen
       //     their own PBKDF2 work factor but never weaken it.
       allow update: if request.auth != null
@@ -250,14 +271,14 @@ service cloud.firestore {
                    && request.resource.data.keys().hasAll(['userId', 'projectId', 'encryptedContent', 'createdAt'])
                    && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'aiTool', 'encryptedContent', 'fileSize', 'contentPreview', 'icon', 'label', 'createdAt', 'updatedAt'])
                    && request.resource.data.userId is string
-                   && request.resource.data.encryptedContent is string
+                   && isValidEncryptedBlob(request.resource.data, 'encryptedContent', 900000)
                    && (!('icon' in request.resource.data) || (request.resource.data.icon is string && request.resource.data.icon.size() <= 100))
                    && validEnvContextFileStringFields(request.resource.data);
       allow update: if request.auth != null
                    && request.auth.uid == resource.data.userId
                    && request.resource.data.userId == resource.data.userId
                    && request.resource.data.keys().hasOnly(['userId', 'projectId', 'fileName', 'filePath', 'aiTool', 'encryptedContent', 'fileSize', 'contentPreview', 'icon', 'label', 'createdAt', 'updatedAt'])
-                   && request.resource.data.encryptedContent is string
+                   && isValidEncryptedBlob(request.resource.data, 'encryptedContent', 900000)
                    && (!('icon' in request.resource.data) || (request.resource.data.icon is string && request.resource.data.icon.size() <= 100))
                    && validEnvContextFileStringFields(request.resource.data);
     }

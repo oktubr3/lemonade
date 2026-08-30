@@ -1,5 +1,32 @@
 # Changelog
 
+## v2.2.16 — Env Vault write fix (2026-07-16)
+
+### Fixed
+- **Env Vault writes were rejected in production.** The rules hardening in
+  v2.2.x validated `encryptedValue` / `encryptedContent` as `is string`, but
+  the app has always stored them as `{encrypted, iv}` maps. Every write to
+  `env_variables` and `env_context_files` failed with "Missing or insufficient
+  permissions" — updating or merging a project was impossible. Rules now
+  validate the real blob shape (map with hex `encrypted` + `iv`, size-bounded)
+  and still reject strings, malformed blobs and extra keys.
+- **Key migrations could never complete.** `upgradeToHkdfKeys`,
+  `upgradeKdfIterations` and `changeMasterPassword` rotated the salt, which the
+  rules make immutable — so the batch was denied. The salt is now reused; HKDF
+  already domain-separates the encryption key from the verifier, so a new salt
+  was never needed.
+- **Undecryptable AI context files aborted the migration.** Context files were
+  excluded from key migrations until May 2026, leaving vaults migrated before
+  then with files encrypted under a lost key. A single `OperationError` from one
+  of them aborted the whole migration, so the vault never reached verifier v3.
+  They are now skipped with a warning instead.
+
+### Added
+- `pnpm run test:rules` — Firestore rules tests covering Env Vault writes, salt
+  immutability, blob validation and cross-user isolation. Rules compilation
+  passes regardless of whether real documents can be written; only these tests
+  catch that.
+
 ## v2.2.15 — Open source release (2026-06-09)
 
 This release ships Lemonade as a public AGPLv3 project. The hosted product at

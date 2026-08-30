@@ -1,4 +1,3 @@
-/* eslint-env serviceworker */
 
 /*
  * This file (which will be your service worker)
@@ -29,10 +28,11 @@ cleanupOutdatedCaches()
 
 // Non-SSR fallback to index.html
 // Production SSR fallback to offline.html (except for dev)
-if (process.env.MODE !== 'ssr' || process.env.PROD) {
+// Constantes renombradas en @quasar/app-vite 3 (antes process.env.*).
+if (import.meta.env.MODE !== 'ssr' || import.meta.env.PROD) {
   registerRoute(
     new NavigationRoute(
-      createHandlerBoundToURL(process.env.PWA_FALLBACK_HTML),
+      createHandlerBoundToURL(import.meta.env.QUASAR_PWA_FALLBACK_HTML),
       { denylist: [/sw\.js$/, /workbox-(.)*\.js$/, /\/__\//] }
     )
   )

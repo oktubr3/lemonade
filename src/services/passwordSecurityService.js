@@ -1,4 +1,6 @@
-// Password Security Service - Uses Firebase Functions backend with Gemini AI
+// Password Security Service - Uses the Firebase Functions backend.
+// Breach data comes from HaveIBeenPwned (k-anonymity, only the first 5 chars of
+// the SHA-1 are sent); strength scoring is a local heuristic. No AI involved.
 import { auth } from "boot/firebase";
 import { FUNCTIONS_URL } from "../config/functions";
 

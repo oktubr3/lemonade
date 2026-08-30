@@ -116,7 +116,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Copy',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Galois/Counter Mode provides both confidentiality and authenticity. Each encryption operation uses a unique 96-bit IV. The 128-bit authentication tag ensures data integrity and detects tampering.',
+    'arch.aes.desc': 'Galois/Counter Mode provides both confidentiality and authenticity. Each encryption operation uses a unique random IV — 96-bit in the Env Vault, 128-bit server-side. The 128-bit authentication tag ensures data integrity and detects tampering.',
     'arch.zk.title': 'Zero-Knowledge (Env Vault)',
     'arch.zk.desc': 'Lemonade servers store only ciphertext. Your master password is never transmitted, logged, or stored anywhere outside your device. Even if our servers are compromised, your data remains encrypted and unreadable.',
     'arch.kdf.title': 'Key Derivation: PBKDF2',
@@ -141,7 +141,7 @@ const translations = {
     'faq.q5': 'How does sharing work securely?',
     'faq.a5': 'You search for a user, select the credential to share, and it is sent securely through authenticated server endpoints. The recipient can accept or reject the shared credential in their vault.',
     'status.encryption': 'encryption: AES-256',
-    'status.protocol': 'protocol: zero-knowledge',
+    'status.protocol': 'env vault: zero-knowledge',
     'status.status': 'status: SECURE'
   },
 
@@ -241,7 +241,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Copiar',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'El modo Galois/Counter proporciona confidencialidad y autenticidad. Cada operación de cifrado usa un IV único de 96 bits. La etiqueta de autenticación de 128 bits garantiza la integridad de los datos y detecta manipulaciones.',
+    'arch.aes.desc': 'El modo Galois/Counter proporciona confidencialidad y autenticidad. Cada operación de cifrado usa un IV único y aleatorio: 96 bits en el Env Vault, 128 bits en el servidor. La etiqueta de autenticación de 128 bits garantiza la integridad de los datos y detecta manipulaciones.',
     'arch.zk.title': 'Conocimiento Cero (Env Vault)',
     'arch.zk.desc': 'Los servidores de Lemonade solo almacenan texto cifrado. Tu contraseña maestra nunca se transmite, registra o almacena fuera de tu dispositivo. Incluso si nuestros servidores son comprometidos, tus datos permanecen cifrados e ilegibles.',
     'arch.kdf.title': 'Derivación de Clave: PBKDF2',
@@ -266,7 +266,7 @@ const translations = {
     'faq.q5': '¿Cómo funciona el compartir de forma segura?',
     'faq.a5': 'Buscas un usuario, seleccionas la credencial a compartir, y se envía de forma segura a través de endpoints autenticados del servidor. El destinatario puede aceptar o rechazar la credencial compartida en su bóveda.',
     'status.encryption': 'cifrado: AES-256',
-    'status.protocol': 'protocolo: conocimiento-cero',
+    'status.protocol': 'env vault: conocimiento-cero',
     'status.status': 'estado: SEGURO'
   },
 
@@ -366,7 +366,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Copiar',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'O modo Galois/Counter fornece confidencialidade e autenticidade. Cada operação de criptografia usa um IV único de 96 bits. A tag de autenticação de 128 bits garante a integridade dos dados e detecta adulterações.',
+    'arch.aes.desc': 'O modo Galois/Counter fornece confidencialidade e autenticidade. Cada operação de criptografia usa um IV único e aleatório: 96 bits no Env Vault, 128 bits no servidor. A tag de autenticação de 128 bits garante a integridade dos dados e detecta adulterações.',
     'arch.zk.title': 'Conhecimento Zero (Env Vault)',
     'arch.zk.desc': 'Os servidores do Lemonade armazenam apenas texto cifrado. Sua senha mestra nunca é transmitida, registrada ou armazenada fora do seu dispositivo. Mesmo se nossos servidores forem comprometidos, seus dados permanecem criptografados e ilegíveis.',
     'arch.kdf.title': 'Derivação de Chave: PBKDF2',
@@ -391,7 +391,7 @@ const translations = {
     'faq.q5': 'Como o compartilhamento funciona de forma segura?',
     'faq.a5': 'Você busca um usuário, seleciona a credencial para compartilhar, e ela é enviada de forma segura através de endpoints autenticados do servidor. O destinatário pode aceitar ou rejeitar a credencial compartilhada em seu cofre.',
     'status.encryption': 'criptografia: AES-256',
-    'status.protocol': 'protocolo: conhecimento-zero',
+    'status.protocol': 'env vault: conhecimento-zero',
     'status.status': 'status: SEGURO'
   },
 
@@ -491,7 +491,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Copier',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Le mode Galois/Counter fournit confidentialité et authenticité. Chaque opération de chiffrement utilise un IV unique de 96 bits. Le tag d\'authentification de 128 bits assure l\'intégrité des données et détecte les altérations.',
+    'arch.aes.desc': 'Le mode Galois/Counter fournit confidentialité et authenticité. Chaque opération de chiffrement utilise un IV unique et aléatoire : 96 bits dans l\'Env Vault, 128 bits côté serveur. Le tag d\'authentification de 128 bits assure l\'intégrité des données et détecte les altérations.',
     'arch.zk.title': 'Connaissance Nulle (Env Vault)',
     'arch.zk.desc': 'Les serveurs Lemonade ne stockent que du texte chiffré. Votre mot de passe maître n\'est jamais transmis, enregistré ou stocké en dehors de votre appareil. Même si nos serveurs sont compromis, vos données restent chiffrées et illisibles.',
     'arch.kdf.title': 'Dérivation de Clé : PBKDF2',
@@ -516,7 +516,7 @@ const translations = {
     'faq.q5': 'Comment le partage fonctionne-t-il de manière sécurisée ?',
     'faq.a5': 'Vous recherchez un utilisateur, sélectionnez l\'identifiant à partager, et il est envoyé en toute sécurité via des points de terminaison serveur authentifiés. Le destinataire peut accepter ou rejeter l\'identifiant partagé dans son coffre.',
     'status.encryption': 'chiffrement : AES-256',
-    'status.protocol': 'protocole : connaissance nulle',
+    'status.protocol': 'env vault : connaissance nulle',
     'status.status': 'statut : SÉCURISÉ'
   },
 
@@ -616,7 +616,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Kopieren',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Der Galois/Counter-Modus bietet Vertraulichkeit und Authentizität. Jede Verschlüsselungsoperation verwendet einen einzigartigen 96-Bit-IV. Der 128-Bit-Authentifizierungs-Tag gewährleistet Datenintegrität und erkennt Manipulationen.',
+    'arch.aes.desc': 'Der Galois/Counter-Modus bietet Vertraulichkeit und Authentizität. Jede Verschlüsselungsoperation verwendet einen einzigartigen zufälligen IV — 96 Bit im Env Vault, 128 Bit serverseitig. Der 128-Bit-Authentifizierungs-Tag gewährleistet Datenintegrität und erkennt Manipulationen.',
     'arch.zk.title': 'Zero-Knowledge (Env Vault)',
     'arch.zk.desc': 'Lemonade-Server speichern nur Chiffretext. Dein Master-Passwort wird niemals übertragen, protokolliert oder außerhalb deines Geräts gespeichert. Selbst wenn unsere Server kompromittiert werden, bleiben deine Daten verschlüsselt und unlesbar.',
     'arch.kdf.title': 'Schlüsselableitung: PBKDF2',
@@ -641,7 +641,7 @@ const translations = {
     'faq.q5': 'Wie funktioniert sicheres Teilen?',
     'faq.a5': 'Du suchst nach einem Benutzer, wählst die zu teilende Zugangsdaten aus, und sie werden sicher über authentifizierte Server-Endpunkte gesendet. Der Empfänger kann die geteilten Zugangsdaten in seinem Tresor akzeptieren oder ablehnen.',
     'status.encryption': 'Verschlüsselung: AES-256',
-    'status.protocol': 'Protokoll: Zero-Knowledge',
+    'status.protocol': 'Env Vault: Zero-Knowledge',
     'status.status': 'Status: SICHER'
   },
 
@@ -741,7 +741,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Copia',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'La modalità Galois/Counter fornisce riservatezza e autenticità. Ogni operazione di crittografia usa un IV unico di 96 bit. Il tag di autenticazione di 128 bit garantisce l\'integrità dei dati e rileva le manomissioni.',
+    'arch.aes.desc': 'La modalità Galois/Counter fornisce riservatezza e autenticità. Ogni operazione di crittografia usa un IV unico e casuale: 96 bit nell\'Env Vault, 128 bit lato server. Il tag di autenticazione di 128 bit garantisce l\'integrità dei dati e rileva le manomissioni.',
     'arch.zk.title': 'Conoscenza Zero (Env Vault)',
     'arch.zk.desc': 'I server Lemonade archiviano solo testo cifrato. La tua password principale non viene mai trasmessa, registrata o archiviata al di fuori del tuo dispositivo. Anche se i nostri server vengono compromessi, i tuoi dati rimangono crittografati e illeggibili.',
     'arch.kdf.title': 'Derivazione Chiave: PBKDF2',
@@ -766,7 +766,7 @@ const translations = {
     'faq.q5': 'Come funziona la condivisione sicura?',
     'faq.a5': 'Cerchi un utente, selezioni la credenziale da condividere, e viene inviata in modo sicuro tramite endpoint server autenticati. Il destinatario può accettare o rifiutare la credenziale condivisa nella sua cassaforte.',
     'status.encryption': 'crittografia: AES-256',
-    'status.protocol': 'protocollo: conoscenza zero',
+    'status.protocol': 'env vault: conoscenza zero',
     'status.status': 'stato: SICURO'
   },
 
@@ -866,7 +866,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'コピー',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Galois/Counterモードは機密性と真正性の両方を提供します。各暗号化操作は固有の96ビットIVを使用します。128ビット認証タグがデータの整合性を保証し、改ざんを検出します。',
+    'arch.aes.desc': 'Galois/Counterモードは機密性と真正性の両方を提供します。各暗号化操作は固有のランダムIV（Env Vaultは96ビット、サーバー側は128ビット）を使用します。128ビット認証タグがデータの整合性を保証し、改ざんを検出します。',
     'arch.zk.title': 'ゼロ知識（Env Vault）',
     'arch.zk.desc': 'Lemonadeサーバーは暗号文のみを保存します。マスターパスワードはデバイスの外に送信、記録、保存されることはありません。サーバーが侵害されても、データは暗号化されたまま読み取り不可能です。',
     'arch.kdf.title': '鍵導出: PBKDF2',
@@ -891,7 +891,7 @@ const translations = {
     'faq.q5': '安全な共有はどのように機能しますか？',
     'faq.a5': 'ユーザーを検索し、共有する認証情報を選択すると、認証されたサーバーエンドポイントを通じて安全に送信されます。受信者はvaultで共有された認証情報を承認または拒否できます。',
     'status.encryption': '暗号化: AES-256',
-    'status.protocol': 'プロトコル: ゼロ知識',
+    'status.protocol': 'Env Vault: ゼロ知識',
     'status.status': 'ステータス: 安全'
   },
 
@@ -991,7 +991,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': '복사',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Galois/Counter 모드는 기밀성과 진정성을 모두 제공합니다. 각 암호화 작업은 고유한 96비트 IV를 사용합니다. 128비트 인증 태그가 데이터 무결성을 보장하고 변조를 감지합니다.',
+    'arch.aes.desc': 'Galois/Counter 모드는 기밀성과 진정성을 모두 제공합니다. 각 암호화 작업은 고유한 무작위 IV(Env Vault는 96비트, 서버는 128비트)를 사용합니다. 128비트 인증 태그가 데이터 무결성을 보장하고 변조를 감지합니다.',
     'arch.zk.title': '제로 지식 (Env Vault)',
     'arch.zk.desc': 'Lemonade 서버는 암호문만 저장합니다. 마스터 비밀번호는 기기 외부로 전송, 기록 또는 저장되지 않습니다. 서버가 침해되더라도 데이터는 암호화되어 읽을 수 없습니다.',
     'arch.kdf.title': '키 파생: PBKDF2',
@@ -1016,7 +1016,7 @@ const translations = {
     'faq.q5': '안전한 공유는 어떻게 작동하나요?',
     'faq.a5': '사용자를 검색하고 공유할 자격 증명을 선택하면 인증된 서버 엔드포인트를 통해 안전하게 전송됩니다. 수신자는 vault에서 공유된 자격 증명을 수락하거나 거부할 수 있습니다.',
     'status.encryption': '암호화: AES-256',
-    'status.protocol': '프로토콜: 제로 지식',
+    'status.protocol': 'Env Vault: 제로 지식',
     'status.status': '상태: 안전'
   },
 
@@ -1116,7 +1116,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': '复制',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Galois/Counter模式同时提供机密性和真实性。每次加密操作使用唯一的96位IV。128位认证标签确保数据完整性并检测篡改。',
+    'arch.aes.desc': 'Galois/Counter模式同时提供机密性和真实性。每次加密操作使用唯一的随机IV（Env Vault 为 96 位，服务端为 128 位）。128位认证标签确保数据完整性并检测篡改。',
     'arch.zk.title': '零知识（Env Vault）',
     'arch.zk.desc': 'Lemonade服务器只存储密文。你的主密码永远不会被传输、记录或存储在设备之外。即使服务器被入侵，你的数据仍然是加密且不可读的。',
     'arch.kdf.title': '密钥派生：PBKDF2',
@@ -1141,7 +1141,7 @@ const translations = {
     'faq.q5': '安全共享是如何工作的？',
     'faq.a5': '您搜索用户，选择要共享的凭据，它通过经过身份验证的服务器端点安全发送。接收者可以在其vault中接受或拒绝共享的凭据。',
     'status.encryption': '加密：AES-256',
-    'status.protocol': '协议：零知识',
+    'status.protocol': 'Env Vault：零知识',
     'status.status': '状态：安全'
   },
 
@@ -1241,7 +1241,7 @@ const translations = {
     'arch.flow.title': 'encryption_architecture.md',
     'arch.flow.copy': 'Копировать',
     'arch.aes.title': 'AES-256-GCM',
-    'arch.aes.desc': 'Режим Galois/Counter обеспечивает конфиденциальность и подлинность. Каждая операция шифрования использует уникальный 96-битный IV. 128-битный тег аутентификации гарантирует целостность данных и обнаруживает подделку.',
+    'arch.aes.desc': 'Режим Galois/Counter обеспечивает конфиденциальность и подлинность. Каждая операция шифрования использует уникальный случайный IV — 96 бит в Env Vault, 128 бит на сервере. 128-битный тег аутентификации гарантирует целостность данных и обнаруживает подделку.',
     'arch.zk.title': 'Нулевое знание (Env Vault)',
     'arch.zk.desc': 'Серверы Lemonade хранят только шифротекст. Ваш мастер-пароль никогда не передаётся, не записывается и не хранится за пределами вашего устройства. Даже при компрометации серверов ваши данные остаются зашифрованными и нечитаемыми.',
     'arch.kdf.title': 'Выведение ключа: PBKDF2',
@@ -1266,7 +1266,7 @@ const translations = {
     'faq.q5': 'Как работает безопасный общий доступ?',
     'faq.a5': 'Вы ищете пользователя, выбираете учётные данные для общего доступа, и они безопасно отправляются через аутентифицированные серверные конечные точки. Получатель может принять или отклонить общие учётные данные в своём хранилище.',
     'status.encryption': 'шифрование: AES-256',
-    'status.protocol': 'протокол: нулевое знание',
+    'status.protocol': 'env vault: нулевое знание',
     'status.status': 'статус: ЗАЩИЩЁН'
   }
 };
@@ -1755,7 +1755,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Log a friendly message for curious devs
   console.log(
-    '%c\u{1F34B} Lemonade Password Manager %cv2.2.4',
+    '%c\u{1F34B} Lemonade Password Manager %cv2.2.16',
     'color: #FFE135; font-size: 16px; font-weight: bold;',
     'color: #888; font-size: 12px;'
   );

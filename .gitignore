@@ -69,3 +69,9 @@ serviceAccount*.json
 *-firebase-adminsdk-*.json
 *-service-account-*.json
 **/firebase-service-account.json
+
+# Local agent settings and emulator debug output — never belong in the repo
+.claude/settings.local.json
+firestore-debug.log
+firebase-debug.log
+ui-debug.log

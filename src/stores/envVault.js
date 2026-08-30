@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import { getAuth } from "firebase/auth";
 import { collection, getDocs, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "boot/firebase";
-import { deriveAesKey, derivePasswordVerifier, deriveAesKeyRaw, derivePasswordVerifierRaw } from "src/utils/cryptoWorker";
+import { deriveVaultSecrets, deriveVaultSecretsRaw, derivePasswordVerifier, deriveAesKeyRaw } from "src/utils/cryptoWorker";
 import { onAppResume } from "src/utils/appResumeListeners";
 
 export const useEnvVaultStore = defineStore("envVault", () => {
@@ -66,7 +66,9 @@ export const useEnvVaultStore = defineStore("envVault", () => {
         clearSession();
     }
 
-    // Restore session from sessionStorage
+    // The key is never persisted, so there is nothing to restore. Kept as a
+    // no-op that also clears any session written by an older build, and returns
+    // false so callers always fall through to asking for the master password.
     async function restoreSession() {
         try {
             const auth = getAuth();
@@ -190,11 +192,8 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             // Generate random salt
             const salt = generateSalt();
 
-            // Derive key with PBKDF2
-            const key = await deriveKey(password, salt, CURRENT_KDF_ITERATIONS);
-
-            // Strong verifier for future validation
-            const passwordHash = await hashPassword(password, salt, CURRENT_KDF_ITERATIONS);
+            // One PBKDF2 pass expanded via HKDF into both the key and the verifier
+            const { key, verifier: passwordHash } = await deriveVaultSecrets(password, salt, CURRENT_KDF_ITERATIONS);
 
             // Save configuration
             const settingsRef = doc(db, 'env_vault_settings', auth.currentUser.uid);
@@ -242,35 +241,32 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                 : LEGACY_KDF_ITERATIONS;
             const verifierVersion = vaultSettings.value.verifierVersion || 1;
 
-            // Try current HKDF verifier (v3)
-            let passwordHash = await hashPassword(password, vaultSettings.value.salt, iterations);
+            // Try current HKDF verifier (v3). One PBKDF2 pass produces the verifier
+            // AND the key, so the happy path never derives twice.
+            const v3 = await deriveVaultSecrets(password, vaultSettings.value.salt, iterations);
+            let key = v3.key;
             let useLegacyKey = false;
-            let legacyIterations = iterations;
 
-            if (passwordHash !== vaultSettings.value.passwordHash) {
-                if (verifierVersion < 3) {
-                    // Try v2: raw PBKDF2 bits as hex verifier
-                    const v2hash = await hashPasswordRaw(password, vaultSettings.value.salt, iterations);
-                    if (v2hash === vaultSettings.value.passwordHash) {
-                        useLegacyKey = true;
-                    } else {
-                        // Try v1: SHA-256(password + salt)
-                        const v1hash = await hashPasswordLegacy(password, vaultSettings.value.salt);
-                        if (v1hash !== vaultSettings.value.passwordHash) {
-                            throw new Error("Incorrect password");
-                        }
-                        useLegacyKey = true;
-                        legacyIterations = LEGACY_KDF_ITERATIONS;
-                    }
-                } else {
+            if (v3.verifier !== vaultSettings.value.passwordHash) {
+                if (verifierVersion >= 3) {
                     throw new Error("Incorrect password");
                 }
+                // Try v2: raw PBKDF2 bits as hex verifier (same single-pass rule)
+                const v2 = await deriveVaultSecretsRaw(password, vaultSettings.value.salt, iterations);
+                if (v2.verifier === vaultSettings.value.passwordHash) {
+                    key = v2.key;
+                    useLegacyKey = true;
+                } else {
+                    // Try v1: SHA-256(password + salt), key still raw PBKDF2 but at
+                    // the legacy work factor, so it needs its own derivation.
+                    const v1hash = await hashPasswordLegacy(password, vaultSettings.value.salt);
+                    if (v1hash !== vaultSettings.value.passwordHash) {
+                        throw new Error("Incorrect password");
+                    }
+                    key = await deriveKeyRaw(password, vaultSettings.value.salt, LEGACY_KDF_ITERATIONS);
+                    useLegacyKey = true;
+                }
             }
-
-            // Derive key: legacy raw-PBKDF2 for v1/v2 vaults, HKDF for v3
-            const key = useLegacyKey
-                ? await deriveKeyRaw(password, vaultSettings.value.salt, legacyIterations)
-                : await deriveKey(password, vaultSettings.value.salt, iterations);
 
             derivedKey.value = key;
             isUnlocked.value = true;
@@ -302,24 +298,46 @@ export const useEnvVaultStore = defineStore("envVault", () => {
 
     // Re-encrypts a user's env_context_files into an existing batch.
     // Used in all key migrations to keep atomicity.
+    //
+    // Context files were left out of key migrations until May 2026, so vaults
+    // migrated before then hold files encrypted under a key whose salt is gone.
+    // Those are unrecoverable: skip them instead of aborting the migration, or
+    // the vault can never reach v3.
     async function addContextFilesToBatch(uid, oldKey, newKey, batch) {
         const ctxCollection = collection(db, 'env_context_files');
         const ctxQuery = query(ctxCollection, where('userId', '==', uid));
         const ctxSnapshot = await getDocs(ctxQuery);
+        const skipped = [];
         await Promise.all(
             ctxSnapshot.docs.map(async (docSnap) => {
-                const decrypted = await decryptValue(docSnap.data().encryptedContent, oldKey);
+                let decrypted;
+                try {
+                    decrypted = await decryptValue(docSnap.data().encryptedContent, oldKey);
+                } catch {
+                    skipped.push(docSnap.data().fileName || docSnap.id);
+                    return;
+                }
                 const newEncrypted = await encryptValue(decrypted, newKey);
                 batch.update(docSnap.ref, { encryptedContent: newEncrypted });
             })
         );
+        if (skipped.length > 0) {
+            console.warn(
+                `Skipped ${skipped.length} undecryptable context file(s) during key migration:`,
+                skipped
+            );
+        }
+        return skipped;
     }
 
     // Migrate vault v1/v2 (raw PBKDF2) to v3 (HKDF key separation).
-    // Decrypts with the old key, generates new salt, re-encrypts with separated HKDF key.
+    // Decrypts with the old key and re-encrypts with the separated HKDF key.
+    // The salt is reused on purpose: HKDF already domain-separates the enc key
+    // from the verifier, and env_vault_settings rules make the salt immutable.
     async function upgradeToHkdfKeys(password, oldKey) {
         try {
             const auth = getAuth();
+            const salt = vaultSettings.value.salt;
             const variablesCollection = collection(db, 'env_variables');
             const q = query(variablesCollection, where('userId', '==', auth.currentUser.uid));
             const querySnapshot = await getDocs(q);
@@ -331,9 +349,7 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                 })
             );
 
-            const newSalt = generateSalt();
-            const newKey = await deriveKey(password, newSalt, CURRENT_KDF_ITERATIONS);
-            const newPasswordHash = await hashPassword(password, newSalt, CURRENT_KDF_ITERATIONS);
+            const { key: newKey, verifier: newPasswordHash } = await deriveVaultSecrets(password, salt, CURRENT_KDF_ITERATIONS);
 
             const reencrypted = await Promise.all(
                 decryptedVars.map(async (v) => ({
@@ -350,7 +366,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             const settingsRef = doc(db, 'env_vault_settings', auth.currentUser.uid);
             batch.update(settingsRef, {
                 passwordHash: newPasswordHash,
-                salt: newSalt,
                 kdfIterations: CURRENT_KDF_ITERATIONS,
                 verifierVersion: CURRENT_VERIFIER_VERSION,
                 updatedAt: new Date()
@@ -360,7 +375,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             vaultSettings.value = {
                 ...vaultSettings.value,
                 passwordHash: newPasswordHash,
-                salt: newSalt,
                 kdfIterations: CURRENT_KDF_ITERATIONS,
                 verifierVersion: CURRENT_VERIFIER_VERSION
             };
@@ -371,10 +385,12 @@ export const useEnvVaultStore = defineStore("envVault", () => {
         }
     }
 
-    // Migrate vault to the current PBKDF2 iterations (same password, new salt + key)
+    // Migrate vault to the current PBKDF2 iterations (same password and salt, new key).
+    // The salt is reused because env_vault_settings rules make it immutable.
     async function upgradeKdfIterations(password, oldKey) {
         try {
             const auth = getAuth();
+            const salt = vaultSettings.value.salt;
             const variablesCollection = collection(db, 'env_variables');
             const q = query(variablesCollection, where('userId', '==', auth.currentUser.uid));
             const querySnapshot = await getDocs(q);
@@ -386,9 +402,7 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                 })
             );
 
-            const newSalt = generateSalt();
-            const newKey = await deriveKey(password, newSalt, CURRENT_KDF_ITERATIONS);
-            const newPasswordHash = await hashPassword(password, newSalt, CURRENT_KDF_ITERATIONS);
+            const { key: newKey, verifier: newPasswordHash } = await deriveVaultSecrets(password, salt, CURRENT_KDF_ITERATIONS);
 
             const reencrypted = await Promise.all(
                 decryptedVars.map(async (v) => ({
@@ -405,7 +419,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             const settingsRef = doc(db, 'env_vault_settings', auth.currentUser.uid);
             batch.update(settingsRef, {
                 passwordHash: newPasswordHash,
-                salt: newSalt,
                 kdfIterations: CURRENT_KDF_ITERATIONS,
                 verifierVersion: CURRENT_VERIFIER_VERSION,
                 updatedAt: new Date()
@@ -415,7 +428,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             vaultSettings.value = {
                 ...vaultSettings.value,
                 passwordHash: newPasswordHash,
-                salt: newSalt,
                 kdfIterations: CURRENT_KDF_ITERATIONS,
                 verifierVersion: CURRENT_VERIFIER_VERSION
             };
@@ -468,10 +480,11 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                 })
             );
 
-            // Generate new salt and derive new key
-            const newSalt = generateSalt();
-            const newKey = await deriveKey(newPassword, newSalt, CURRENT_KDF_ITERATIONS);
-            const newPasswordHash = await hashPassword(newPassword, newSalt, CURRENT_KDF_ITERATIONS);
+            // Derive the new key from the existing salt: env_vault_settings rules
+            // make the salt immutable, and PBKDF2 already binds it to this user.
+            // One pass yields both the key and the verifier.
+            const salt = vaultSettings.value.salt;
+            const { key: newKey, verifier: newPasswordHash } = await deriveVaultSecrets(newPassword, salt, CURRENT_KDF_ITERATIONS);
 
             // Re-encrypt all variables with the new key in parallel
             const reencrypted = await Promise.all(
@@ -490,7 +503,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             const settingsRef = doc(db, 'env_vault_settings', auth.currentUser.uid);
             batch.update(settingsRef, {
                 passwordHash: newPasswordHash,
-                salt: newSalt,
                 kdfIterations: CURRENT_KDF_ITERATIONS,
                 verifierVersion: CURRENT_VERIFIER_VERSION,
                 updatedAt: new Date()
@@ -499,7 +511,7 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             await batch.commit();
 
             // Update local state
-            vaultSettings.value = { ...vaultSettings.value, passwordHash: newPasswordHash, salt: newSalt, kdfIterations: CURRENT_KDF_ITERATIONS, verifierVersion: CURRENT_VERIFIER_VERSION };
+            vaultSettings.value = { ...vaultSettings.value, passwordHash: newPasswordHash, kdfIterations: CURRENT_KDF_ITERATIONS, verifierVersion: CURRENT_VERIFIER_VERSION };
             derivedKey.value = newKey;
             lastActivity.value = Date.now();
 
@@ -1167,24 +1179,17 @@ export const useEnvVaultStore = defineStore("envVault", () => {
         return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // Derive HKDF v3 key (production).
-    async function deriveKey(password, salt, iterations = CURRENT_KDF_ITERATIONS) {
-        return deriveAesKey(password, salt, iterations);
-    }
-
-    // Derive raw PBKDF2 key (only for migration of v1/v2 vaults).
+    // Derive raw PBKDF2 key (only for migration of v1 vaults, whose verifier is
+    // a plain SHA-256 and so carries no key material to reuse).
     async function deriveKeyRaw(password, salt, iterations) {
         return deriveAesKeyRaw(password, salt, iterations);
     }
 
-    // Hash password with HKDF v3 (production).
+    // Verifier only. Used where the key is not needed (checking the current
+    // password before a rotation); everything that needs both goes through
+    // deriveVaultSecrets to avoid a second PBKDF2 pass.
     async function hashPassword(password, salt, iterations = CURRENT_KDF_ITERATIONS) {
         return derivePasswordVerifier(password, salt, iterations);
-    }
-
-    // Hash password raw PBKDF2 (only to verify v2 vaults during migration).
-    async function hashPasswordRaw(password, salt, iterations) {
-        return derivePasswordVerifierRaw(password, salt, iterations);
     }
 
     async function hashPasswordLegacy(password, salt) {
