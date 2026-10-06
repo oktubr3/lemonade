@@ -43,13 +43,13 @@ importers:
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
-        version: 10.0.1(eslint@10.11.0(jiti@2.7.0))
+        version: 10.0.1(eslint@10.12.0(jiti@2.7.0))
       '@firebase/rules-unit-testing':
         specifier: ^5.0.0
         version: 5.0.2(firebase@12.19.0)
       '@intlify/unplugin-vue-i18n':
         specifier: ^11.2.5
-        version: 11.2.5(@vue/compiler-dom@3.5.43)(eslint@10.11.0(jiti@2.7.0))(rollup@4.62.4)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))
+        version: 11.2.5(@vue/compiler-dom@3.5.43)(eslint@10.12.0(jiti@2.7.0))(rollup@4.62.4)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))
       '@quasar/app-vite':
         specifier: ^3.10.1
         version: 3.10.1(@types/node@26.6.3)(esbuild@0.28.2)(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3)))(quasar@2.34.0)(sass@1.105.1)(terser@5.51.2)(typescript@6.0.3)(vue-router@5.3.1(@vue/compiler-sfc@3.5.43)(esbuild@0.28.2)(pinia@4.0.3(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.43(typescript@6.0.3)))(rolldown@1.2.12)(rollup@4.62.4)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))(workbox-build@7.4.1)(yaml@2.9.0)
@@ -57,14 +57,14 @@ importers:
         specifier: ^10.6.1
         version: 10.6.1(postcss@8.5.28)
       eslint:
-        specifier: ^10.11.0
-        version: 10.11.0(jiti@2.7.0)
+        specifier: ^10.12.0
+        version: 10.12.0(jiti@2.7.0)
       eslint-config-prettier:
         specifier: ^10.1.8
-        version: 10.1.8(eslint@10.11.0(jiti@2.7.0))
+        version: 10.1.8(eslint@10.12.0(jiti@2.7.0))
       eslint-plugin-vue:
         specifier: ^10.11.1
-        version: 10.11.1(eslint@10.11.0(jiti@2.7.0))(vue-eslint-parser@10.4.1(eslint@10.11.0(jiti@2.7.0)))
+        version: 10.11.1(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.1(eslint@10.12.0(jiti@2.7.0)))
       globals:
         specifier: ^17.12.0
         version: 17.12.0
@@ -82,7 +82,7 @@ importers:
         version: 5.0.3(@types/node@26.6.3)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))
       vue-eslint-parser:
         specifier: ^10.3.0
-        version: 10.4.1(eslint@10.11.0(jiti@2.7.0))
+        version: 10.4.1(eslint@10.12.0(jiti@2.7.0))
 
 packages:
 
@@ -2236,8 +2236,8 @@ packages:
     resolution: {integrity: sha512-tD40eHxA35h0PEIZNeIjkHoDR4YjjJp34biM0mDvplBe//mB+IHCqHDGV7pxF+7MklTvighcCPPZC7ynWyjdTA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  eslint@10.11.0:
-    resolution: {integrity: sha512-P7a6UEEqb9G95MYAtqkmsTbVXIYyzIfl6NGOIJk162PaahFxFyeGcrlXYFSiagECg4sEm8IseJdZBKR3rx6MsQ==}
+  eslint@10.12.0:
+    resolution: {integrity: sha512-npHjrHb2o4ehH3mE+YuxABR+0gyb0aVWCIolgJDArwCiHEIsonBm3ZKjel5b0U5+a+MbEvIyRCGCzD3eKKK2NA==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
     hasBin: true
     peerDependencies:
@@ -3131,8 +3131,8 @@ packages:
   regjsgen@0.8.0:
     resolution: {integrity: sha512-RvwtGe3d7LvWiDQXeQw8p5asZUmfU1G/l6WbUXeHta7Y2PEIvBTwH6E2EfmYUK8pxcxEdEmaomqyp0vZZ7C+3Q==}
 
-  regjsparser@0.13.3:
-    resolution: {integrity: sha512-ycwFAS14Jw4mppvmK4GR/J6u3WpWpjkEApehuHtLc/8VpPNpDMbQ4WjqwplXifGeyKOzHSFLmSPqzksDQE2Sfg==}
+  regjsparser@0.13.4:
+    resolution: {integrity: sha512-EWV80YgFaVgFrjGCAsV7oybp4GOxbls5RzBg8OB0nKEVXsBJR1JlV8Di1JhCROg3MzTfe1RI8yitIm1eOs68iA==}
     hasBin: true
 
   relateurl@0.2.7:
@@ -4789,9 +4789,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@eslint-community/eslint-utils@4.10.1(eslint@10.11.0(jiti@2.7.0))':
+  '@eslint-community/eslint-utils@4.10.1(eslint@10.12.0(jiti@2.7.0))':
     dependencies:
-      eslint: 10.11.0(jiti@2.7.0)
+      eslint: 10.12.0(jiti@2.7.0)
       eslint-visitor-keys: 3.4.3
 
   '@eslint-community/regexpp@4.12.2': {}
@@ -4812,9 +4812,9 @@ snapshots:
     dependencies:
       '@types/json-schema': 7.0.15
 
-  '@eslint/js@10.0.1(eslint@10.11.0(jiti@2.7.0))':
+  '@eslint/js@10.0.1(eslint@10.12.0(jiti@2.7.0))':
     optionalDependencies:
-      eslint: 10.11.0(jiti@2.7.0)
+      eslint: 10.12.0(jiti@2.7.0)
 
   '@eslint/object-schema@3.0.5': {}
 
@@ -5205,9 +5205,9 @@ snapshots:
 
   '@intlify/shared@11.4.10': {}
 
-  '@intlify/unplugin-vue-i18n@11.2.5(@vue/compiler-dom@3.5.43)(eslint@10.11.0(jiti@2.7.0))(rollup@4.62.4)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))':
+  '@intlify/unplugin-vue-i18n@11.2.5(@vue/compiler-dom@3.5.43)(eslint@10.12.0(jiti@2.7.0))(rollup@4.62.4)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.3)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.105.1)(sass@1.105.1)(terser@5.51.2)(yaml@2.9.0))(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))':
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.11.0(jiti@2.7.0))
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.12.0(jiti@2.7.0))
       '@intlify/bundle-utils': 11.2.5(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))
       '@intlify/shared': 11.4.10
       '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.4.10)(@vue/compiler-dom@3.5.43)(vue-i18n@11.4.10(vue@3.5.43(typescript@6.0.3)))(vue@3.5.43(typescript@6.0.3))
@@ -5893,10 +5893,6 @@ snapshots:
 
   '@vue/shared@3.5.43': {}
 
-  acorn-jsx@5.3.2(acorn@8.18.0):
-    dependencies:
-      acorn: 8.18.0
-
   acorn-jsx@5.3.2(acorn@8.19.0):
     dependencies:
       acorn: 8.19.0
@@ -6393,19 +6389,19 @@ snapshots:
     optionalDependencies:
       source-map: 0.6.1
 
-  eslint-config-prettier@10.1.8(eslint@10.11.0(jiti@2.7.0)):
+  eslint-config-prettier@10.1.8(eslint@10.12.0(jiti@2.7.0)):
     dependencies:
-      eslint: 10.11.0(jiti@2.7.0)
+      eslint: 10.12.0(jiti@2.7.0)
 
-  eslint-plugin-vue@10.11.1(eslint@10.11.0(jiti@2.7.0))(vue-eslint-parser@10.4.1(eslint@10.11.0(jiti@2.7.0))):
+  eslint-plugin-vue@10.11.1(eslint@10.12.0(jiti@2.7.0))(vue-eslint-parser@10.4.1(eslint@10.12.0(jiti@2.7.0))):
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.11.0(jiti@2.7.0))
-      eslint: 10.11.0(jiti@2.7.0)
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.12.0(jiti@2.7.0))
+      eslint: 10.12.0(jiti@2.7.0)
       natural-compare: 1.4.0
       nth-check: 2.1.1
       postcss-selector-parser: 7.1.6
       semver: 7.8.5
-      vue-eslint-parser: 10.4.1(eslint@10.11.0(jiti@2.7.0))
+      vue-eslint-parser: 10.4.1(eslint@10.12.0(jiti@2.7.0))
       xml-name-validator: 5.0.0
 
   eslint-scope@9.1.2:
@@ -6419,9 +6415,9 @@ snapshots:
 
   eslint-visitor-keys@5.0.1: {}
 
-  eslint@10.11.0(jiti@2.7.0):
+  eslint@10.12.0(jiti@2.7.0):
     dependencies:
-      '@eslint-community/eslint-utils': 4.10.1(eslint@10.11.0(jiti@2.7.0))
+      '@eslint-community/eslint-utils': 4.10.1(eslint@10.12.0(jiti@2.7.0))
       '@eslint-community/regexpp': 4.12.2
       '@eslint/config-array': 0.23.5
       '@eslint/config-helpers': 0.7.0
@@ -6458,8 +6454,8 @@ snapshots:
 
   espree@11.2.0:
     dependencies:
-      acorn: 8.18.0
-      acorn-jsx: 5.3.2(acorn@8.18.0)
+      acorn: 8.19.0
+      acorn-jsx: 5.3.2(acorn@8.19.0)
       eslint-visitor-keys: 5.0.1
 
   espree@9.6.1:
@@ -6998,7 +6994,7 @@ snapshots:
 
   jsonc-eslint-parser@2.4.2:
     dependencies:
-      acorn: 8.19.0
+      acorn: 8.18.0
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
       semver: 7.8.5
@@ -7404,7 +7400,7 @@ snapshots:
       regenerate: 1.5.0
       regenerate-unicode-properties: 10.3.0
       regjsgen: 0.8.0
-      regjsparser: 0.13.3
+      regjsparser: 0.13.4
       unicode-match-property-ecmascript: 2.0.0
       unicode-match-property-value-ecmascript: 2.2.1
     optional: true
@@ -7412,7 +7408,7 @@ snapshots:
   regjsgen@0.8.0:
     optional: true
 
-  regjsparser@0.13.3:
+  regjsparser@0.13.4:
     dependencies:
       jsesc: 3.1.0
     optional: true
@@ -8051,10 +8047,10 @@ snapshots:
     transitivePeerDependencies:
       - msw
 
-  vue-eslint-parser@10.4.1(eslint@10.11.0(jiti@2.7.0)):
+  vue-eslint-parser@10.4.1(eslint@10.12.0(jiti@2.7.0)):
     dependencies:
       debug: 4.4.3
-      eslint: 10.11.0(jiti@2.7.0)
+      eslint: 10.12.0(jiti@2.7.0)
       eslint-scope: 9.1.2
       eslint-visitor-keys: 5.0.1
       espree: 11.2.0
