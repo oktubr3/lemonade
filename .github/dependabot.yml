@@ -1,0 +1,53 @@
+# Dependabot para los dos manifiestos del proyecto.
+# La raiz usa pnpm y functions/ usa npm; el ecosistema "npm" cubre ambos.
+version: 2
+
+updates:
+  # App (Quasar/Vue) — pnpm-lock.yaml es la fuente de verdad
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+    groups:
+      # Los majors de este grupo estan acoplados entre si: app-vite 3 exige
+      # vue-router >= 5, que exige pinia ^4 y vite ^8. Agrupados para que no
+      # lleguen en PRs sueltos que no pueden mergearse por separado.
+      quasar-toolchain:
+        patterns:
+          - "quasar"
+          - "@quasar/*"
+          - "vite"
+          - "pinia"
+          - "vue-router"
+      linting:
+        patterns:
+          - "eslint*"
+          - "prettier"
+          - "@eslint/*"
+          - "vue-eslint-parser"
+    ignore:
+      # @quasar/extras esta pineado en v1 A PROPOSITO. La v2 movio las fuentes a
+      # exports/ y app-vite 3 no las resuelve: el @font-face de Material Icons
+      # sale sin `src` y TODOS los iconos se ven como su texto ligatura.
+      # Rompio produccion el 2026-08-27. No subir sin verificar con captura.
+      - dependency-name: "@quasar/extras"
+        update-types: ["version-update:semver-major"]
+
+  # Cloud Functions — tiene su propio package-lock.json
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "functions"]
+
+  # Acciones del CI
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels: ["dependencies", "ci"]

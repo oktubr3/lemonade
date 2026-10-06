@@ -2,6 +2,12 @@
  * Search utilities - multi-word search with accent normalization and relevance scoring
  */
 
+// The search term is user input and ends up inside a RegExp for the whole-word
+// bonus below. Without escaping, a term like "c++" builds /\bc++\b/, which is
+// not a valid expression: it throws, and since the scoring runs inside the
+// computed that renders the list, the list breaks instead of just not matching.
+const escapeRegExp = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 export const normalizeText = (text) => {
     if (!text) return ''
     return text
@@ -86,7 +92,7 @@ export const calculateSearchScore = (itemText, searchText) => {
 
     let allWholeWords = true
     for (const word of searchWords) {
-        const regex = new RegExp(`\\b${word}\\b`)
+        const regex = new RegExp(`\\b${escapeRegExp(word)}\\b`)
         if (!regex.test(normalizedItem)) {
             allWholeWords = false
             break

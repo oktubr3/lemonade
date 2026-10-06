@@ -29,6 +29,9 @@ const CACHE_DURATION = 30000; // 30 seconds
 // Active save toast reference (prevent duplicates)
 let activeSaveToast = null;
 
+// Time each injected UI host was last shown or moved (clickjacking guard)
+const uiShownAt = new WeakMap();
+
 // Track last known input values (handles frameworks that clear .value on submit)
 const trackedValues = new WeakMap();
 
@@ -230,6 +233,56 @@ function isVisible(element) {
 }
 
 /**
+ * Pin the visual-integrity styles of an injected host with inline !important,
+ * which beats page stylesheet !important rules on the element itself
+ */
+function lockHostStyles(host) {
+    const props = {
+        opacity: '1',
+        visibility: 'visible',
+        display: 'block',
+        transform: 'none',
+        filter: 'none',
+        'clip-path': 'none'
+    };
+    for (const [prop, value] of Object.entries(props)) {
+        host.style.setProperty(prop, value, 'important');
+    }
+}
+
+/**
+ * Record when an injected UI host was shown or repositioned
+ */
+function markUiShown(host) {
+    uiShownAt.set(host, Date.now());
+}
+
+/**
+ * Accept a click on injected UI only if it is a real user click on a visible,
+ * unobscured host that has been stable for at least 500ms (anti-clickjacking)
+ */
+function isTrustedUiClick(event, host) {
+    if (!event || !event.isTrusted || !host || !host.isConnected) return false;
+
+    const shownAt = uiShownAt.get(host);
+    if (!shownAt || Date.now() - shownAt < 500) return false;
+
+    // Keyboard activation has no pointer coordinates: skip only the hit test
+    const isKeyboard = event.clientX === 0 && event.clientY === 0 && event.detail === 0;
+    if (!isKeyboard && document.elementFromPoint(event.clientX, event.clientY) !== host) {
+        return false;
+    }
+
+    for (let el = host; el; el = el.parentElement) {
+        const style = getComputedStyle(el);
+        if (style.opacity !== '1' || style.visibility === 'hidden' || style.display === 'none') {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Inject the floating lemon button near a password field
  */
 function injectLemonButton(passwordField) {
@@ -237,6 +290,7 @@ function injectLemonButton(passwordField) {
     const shadowHost = document.createElement('div');
     shadowHost.className = 'lemonade-shadow-host';
     shadowHost.style.cssText = 'position: absolute; z-index: 2147483647; pointer-events: none;';
+    lockHostStyles(shadowHost);
 
     const shadow = shadowHost.attachShadow({ mode: 'closed' });
 
@@ -491,6 +545,7 @@ function injectLemonButton(passwordField) {
     button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!isTrustedUiClick(e, shadowHost)) return;
         toggleDropdown(context);
     });
 
@@ -526,8 +581,9 @@ function positionLemonButton(shadowHost, field) {
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
 
-    shadowHost.style.left = `${rect.right + scrollX - 52}px`;
-    shadowHost.style.top = `${rect.top + scrollY + (rect.height - 48) / 2}px`;
+    shadowHost.style.setProperty('left', `${rect.right + scrollX - 52}px`, 'important');
+    shadowHost.style.setProperty('top', `${rect.top + scrollY + (rect.height - 48) / 2}px`, 'important');
+    markUiShown(shadowHost);
 }
 
 /**
@@ -558,6 +614,7 @@ async function openDropdown(context) {
 
     context.shadow.appendChild(dropdown);
     context.dropdown = dropdown;
+    markUiShown(context.shadowHost);
 
     // Request credentials from background
     try {
@@ -610,10 +667,12 @@ function renderCredentials(context, credentials) {
         <div class="lemonade-dropdown-header">Select credential</div>
         ${itemsHtml}
     `;
+    markUiShown(context.shadowHost);
 
     // Add click handlers
     dropdown.querySelectorAll('.lemonade-dropdown-item').forEach(item => {
-        item.addEventListener('click', async () => {
+        item.addEventListener('click', async (e) => {
+            if (!isTrustedUiClick(e, context.shadowHost)) return;
             const index = parseInt(item.dataset.index);
             const cred = credentials[index];
 
@@ -836,6 +895,8 @@ function setupFormSubmitInterception() {
  * Handle traditional form submit events
  */
 function handleFormSubmit(event) {
+    // Ignore synthetic events: a page could otherwise probe guessed passwords
+    if (!event.isTrusted) return;
     const form = event.target;
     if (!form || form.tagName !== 'FORM') return;
 
@@ -852,6 +913,8 @@ function handleFormSubmit(event) {
  * Handle click events on submit-like buttons (for SPAs without <form> tags)
  */
 function handleButtonClick(event) {
+    // Ignore synthetic events: a page could otherwise probe guessed passwords
+    if (!event.isTrusted) return;
     const target = event.target.closest('button, input[type="submit"], a[role="button"], div[role="button"]');
     if (!target) return;
 
@@ -1023,6 +1086,7 @@ function showSaveToast(capturedData, existingEntry) {
     // Create shadow host
     const shadowHost = document.createElement('div');
     shadowHost.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 2147483647;';
+    lockHostStyles(shadowHost);
     const shadow = shadowHost.attachShadow({ mode: 'closed' });
     shadowHost._lemonadeShadow = shadow;
 
@@ -1310,6 +1374,7 @@ function showSaveToast(capturedData, existingEntry) {
     // Add to page
     document.body.appendChild(shadowHost);
     activeSaveToast = shadowHost;
+    markUiShown(shadowHost);
 
     // -- Auto-dismiss timer --
     let autoDismissTimer = setTimeout(() => dismissToast(shadowHost), 15000);
@@ -1324,17 +1389,20 @@ function showSaveToast(capturedData, existingEntry) {
     toast.addEventListener('focus', resetTimer, true);
 
     // -- Event handlers --
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener('click', (e) => {
+        if (!isTrustedUiClick(e, shadowHost)) return;
         clearTimeout(autoDismissTimer);
         dismissToast(shadowHost);
     });
 
-    dismissBtn.addEventListener('click', () => {
+    dismissBtn.addEventListener('click', (e) => {
+        if (!isTrustedUiClick(e, shadowHost)) return;
         clearTimeout(autoDismissTimer);
         dismissToast(shadowHost);
     });
 
-    neverBtn.addEventListener('click', async () => {
+    neverBtn.addEventListener('click', async (e) => {
+        if (!isTrustedUiClick(e, shadowHost)) return;
         clearTimeout(autoDismissTimer);
         try {
             const { dismissedDomains = [] } = await chrome.storage.local.get('dismissedDomains');
@@ -1348,7 +1416,8 @@ function showSaveToast(capturedData, existingEntry) {
         dismissToast(shadowHost);
     });
 
-    saveBtn.addEventListener('click', async () => {
+    saveBtn.addEventListener('click', async (e) => {
+        if (!isTrustedUiClick(e, shadowHost)) return;
         // Disable buttons, show spinner via DOM (no innerHTML)
         saveBtn.disabled = true;
         dismissBtn.disabled = true;

@@ -12,15 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
+      # Sin `version:` a proposito: la version sale de `packageManager` en
+      # package.json, que es la unica fuente de verdad. Declararla en los dos
+      # lugares hace fallar la action con "Multiple versions of pnpm specified".
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
@@ -30,6 +31,11 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+
+      # Unit tests only. The Firestore rules suite (`test:rules`) needs the
+      # emulator and Java, so it stays a local script for now.
+      - name: Unit tests
+        run: pnpm run test
 
       - name: Build (no version bump)
         run: pnpm run build:manual
@@ -46,10 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm

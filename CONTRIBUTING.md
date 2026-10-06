@@ -14,11 +14,46 @@ Lemonade is a Quasar/Vue 3 PWA with a Firebase backend (Cloud Functions, Firesto
 
 To run a local development copy you need:
 
-- Node.js 18, 20, or 22
-- pnpm (root and `lemonade-*-extension/`)
-- npm (only inside `functions/`)
-- Firebase CLI
-- Your own Firebase project (free tier is enough)
+- **Node.js 22.22+** (or 24/26/28/30). `@quasar/app-vite` 3 dropped Node 18 and 20 —
+  the repo ships an `.nvmrc`, so `nvm use` picks a supported version.
+- **pnpm 9** at the root and in `lemonade-*-extension/`. Pinned via `packageManager`
+  in `package.json`; `corepack enable` will honour it.
+- **npm** inside `functions/` only — it has its own `package-lock.json`.
+- **Firebase CLI**, and your own Firebase project (free tier is enough).
+
+### From a clean clone
+
+```bash
+nvm use                 # reads .nvmrc
+corepack enable         # pnpm at the pinned version
+pnpm install
+(cd functions && npm install)
+
+cp .env.example .env.local        # fill in your Firebase web config
+cp functions/.env.example functions/.env   # ADMIN_EMAILS
+
+pnpm run lint
+pnpm run build:manual   # build without bumping the version
+```
+
+`.env.local` and `functions/.env` are git-ignored and **must be recreated on every
+machine** — they are the only things a clone cannot give you. Everything else
+(including Cloud Functions secrets, which live in Firebase Secret Manager) is
+covered in [`dev-docs/SELF_HOSTING.md`](dev-docs/SELF_HOSTING.md).
+
+### Toolchain gotchas that cost time
+
+- **The two emulators need different CLI versions.** The Functions emulator requires
+  `firebase-tools@latest`; with `@13` every function dies at load with a misleading
+  `functions.config() has been removed` warning. The Firestore rules tests
+  (`pnpm run test:rules`) are pinned to `@13` because newer CLIs need JDK 21.
+- **Client env vars use the `VITE_` prefix**, declared explicitly in
+  `quasar.config.js` → `build.env.clientPrefix`. app-vite 3 defaults to `QCLI_`;
+  removing that line makes Firebase initialize without an API key and the app stops
+  booting. See `CLAUDE.md` for the full list of build constants renamed in
+  app-vite 3.
+- **Verifying a deploy needs a hard reload.** The service worker will happily serve
+  the previous bundle and make a broken deploy look healthy.
 
 The full setup walkthrough — creating a Firebase project, enabling Auth providers, configuring Functions secrets, and deploying — is in [`dev-docs/SELF_HOSTING.md`](dev-docs/SELF_HOSTING.md). The same guide is what self-hosters use, so following it as a contributor is a useful pass-through review.
 

@@ -1,5 +1,160 @@
 # Changelog
 
+## v2.2.23 — A test suite that can actually fail (2026-10-06)
+
+### Fixed
+- **Searching for `c++` (or any regex metacharacter) broke the list.** The
+  relevance scorer interpolated the raw search term into a `RegExp` for its
+  whole-word bonus, so a term like `c++` built `/\bc++\b/` — not a valid
+  expression. It threw instead of returning a score, and because the scoring
+  runs inside the computed that renders the list, the list broke rather than
+  simply not matching. It only triggered when the term also appeared in an
+  entry, which is what kept it hidden. The term is now escaped. Reachable from
+  the search box on Passwords, Env Vault and Notes.
+
+### Testing
+- **`npm test` no longer reports a false green.** It was
+  `echo "No test specified" && exit 0`: it passed whatever the state of the
+  code, which made a green CI meaningless. It now runs Vitest — 44 unit tests
+  over `safeUrl` and `searchUtils`, including the metacharacter regression
+  above and the `javascript:` / `data:` / `file:` rejections that keep a stored
+  URL from becoming script execution.
+- **Unit tests run in CI** on every pull request and push to `main`, between
+  lint and build. The Firestore rules suite still needs the emulator and Java,
+  so it stays on `test:rules` for now.
+
+## v2.2.22 — The password list no longer comes up empty (2026-10-05)
+
+### Fixed
+- **Empty list after signing in.** `IndexPage` fetched the entries on mount
+  with `fetchEntries(auth.currentUser.uid)`. The store takes no argument, so
+  that `.uid` read did nothing except throw if `currentUser` was null — and the
+  `catch` was empty, so the list stayed empty with nothing in the console.
+  Leaving the page and coming back remounted the component and refilled it,
+  which is why it looked intermittent. The empty `catch` also destroyed the
+  evidence, so the exact throw is not recoverable: the likeliest candidate is
+  the first Firestore read racing a freshly minted ID token. The load now waits
+  for `auth.authStateReady()`, retries once, and reports a real error with a
+  Retry action if it still fails — so a next occurrence is diagnosable.
+- **One failed load no longer takes the rest of the page with it.** The entries
+  fetch was the first `await` of a single `try`, so its failure also skipped
+  the user settings, the three `window` listeners, the share registration and
+  the pending shared passwords. The listeners are now registered before any
+  `await`, and the independent loads run under `Promise.allSettled` so each one
+  fails on its own and gets logged.
+
+## v2.2.21 — Fix the role listener broken in 2.2.19 (2026-09-22)
+
+### Fixed
+- **`ReferenceError: fetchUserRole is not defined` on every sign-in.** The
+  dedupe in v2.2.19 pointed the module-level auth-state listener at
+  `fetchUserRole`, which lives inside `useAdmin()`. The listener threw instead
+  of refreshing the role, so after a user switch the admin menu only appeared
+  after a remount. The role helpers now live at module scope, where the
+  listener can reach them.
+- **No more `Error fetching user role: User not authenticated` while signed
+  out.** With no session there is nothing to ask for: `fetchUserRole()` returns
+  the default role instead of throwing, so the login screen's console stays
+  clean.
+
+## v2.2.20 — Last of the startup round trips (2026-09-22)
+
+### Performance
+- **`getOpenTicketsCountHttp` is requested once.** `MainLayout` asked for it in
+  `onMounted` right after resolving the role, and an `isAdmin` watcher asked
+  again when that same resolution flipped the flag. The watcher is now the only
+  caller, with `immediate: true` so a remount with a known role still updates
+  the badge.
+- **Warmer at 17 targets:** added `getPendingSharedPasswordsHttp` and
+  `getOpenTicketsCountHttp`, the last two calls of the first screen that could
+  still hit a cold container.
+
+## v2.2.19 — One role fetch per load (2026-09-22)
+
+### Performance
+- **`getUserRoleHttp` is called once per app load instead of twice.** Verified
+  in the browser right after the v2.2.18 deploy: `MainLayout.fetchUserRole()`
+  and the `useAdmin` auth-state listener each fired their own request as soon
+  as the session resolved. `fetchUserRole()` is now the single entry point; it
+  joins the in-flight request and skips the call when the role for the current
+  uid is already loaded. Removed the now-dead `refetchRoleForCurrentUser`.
+
+## v2.2.18 — Cold starts and duplicate calls on the way in (2026-09-22)
+
+Measured from production logs during a real passkey registration and sign-in.
+No errors: the delay was cold starts and redundant requests.
+
+### Performance
+- **The passkey path is kept warm.** `webauthnVerifyAuthenticationHttp` — the
+  call that mints the session on every passkey sign-in — was not in the
+  scheduled warmer and ran ~10s cold. The registration pair (~11s + ~15s) was
+  missing too. The client-side warmup cannot help: it runs after login, these
+  run before it.
+- **The app startup path is kept warm.** `getUserRoleHttp` (every app load) and
+  `registerUserHttp` (login) were also missing. The warmer went from 10 to 15
+  targets.
+- **`registerUserHttp` is called once per session instead of six times.** The
+  login page called it on sign-in and again from its auth-state listener, and
+  the index page called it on every mount; each call was a Firestore write on
+  the critical path. `src/utils/registerUser.js` now caches the result per uid,
+  collapses concurrent calls, and clears itself on sign-out.
+
+### Infrastructure (no code change)
+- `maxInstances: 20` on the two unauthenticated WebAuthn endpoints.
+- Firestore TTL policy on `webauthn_challenges.expiresAt`.
+
+## v2.2.17 — Security audit fixes (2026-09-22)
+
+Result of a full source audit (sandboxed, source-and-local only). All server
+fixes take effect on deploy; no client update is needed for them.
+
+### Security
+- **Identity is no longer resolved from `users.email`.** That profile field was
+  client-writable and was used to pick emergency-access trustees, share
+  recipients, admin roles and the Polar billing fallback. People are now
+  resolved through Firebase Auth with a verified email, `email` is no longer a
+  client-writable key in the rules, and emergency-access authorization requires
+  a verified email that matches the grant and its bound uid (which also voids
+  any binding made the old way).
+- **Email-based admin gates require `email_verified`.** `migrateUserRolesHttp`
+  derives admin from the Auth record and keeps paid and founder roles instead of
+  resetting them. The primary-admin guard reads the Auth record too, and now
+  also refuses disabling or locking the primary admin.
+- **Emergency-access transitions are atomic.** Request, approve, deny, revoke
+  and the hourly auto-approve run in Firestore transactions, so a revoke or
+  deny can no longer be overwritten by a concurrent transition. A request
+  without `requestedAt` is never auto-approved.
+- **Suspend, disable and lock are enforced.** `adminUpdateUserHttp` disables the
+  Firebase Auth user and revokes its refresh tokens (and re-enables it when the
+  resulting state is clear).
+- **Support tickets:** the admin view, replying as Support and closing other
+  users' tickets are limited to role `admin`; `founder` no longer grants them.
+- **Polar webhook:** no fallback to the buyer-supplied customer email when
+  `metadata.user_id` is missing, and billing events never overwrite the `admin`,
+  `founder` or `suspended` roles.
+- **Firestore rules:** removed the unrestricted admin `update` on `users/*` (all
+  admin writes go through `adminUpdateUserHttp`), and no new plaintext
+  `contentPreview` can be written to `env_context_files`.
+- **Env Vault is zero-knowledge again for AI context files.** The first 150
+  characters of files such as `.mcp.json` were stored in plaintext as a
+  preview. The preview is now decrypted locally after unlock, and existing
+  plaintext previews are removed on the next unlock.
+- **URLs:** stored entry URLs must be `http(s)` (server) and only `http(s)` URLs
+  are opened from the vault (client), since entries are shared between users.
+- **WebAuthn:** unauthenticated `userId` is type- and size-checked, the origin is
+  validated before any rate-limit write, and verify adds a per-IP bucket that
+  cannot be bypassed by varying `userId`. `purgeEphemeralDocs` drains its
+  backlog instead of stopping at 2000 documents.
+- **Browser extensions (Chrome 1.1.4, Firefox 1.1.5):** save/update capture
+  ignores script-dispatched events, and the injected autofill and save UI
+  ignores clicks unless it is genuinely visible, unobscured and has been shown
+  for 500 ms.
+
+### Added
+- Rules tests for `users/{uid}` (server-owned email, no direct admin writes) and
+  for the `contentPreview` restriction. The suite now honours
+  `FIRESTORE_EMULATOR_HOST`, so it runs when port 8080 is taken.
+
 ## v2.2.16 — Env Vault write fix (2026-07-16)
 
 ### Fixed

@@ -75,3 +75,6 @@ serviceAccount*.json
 firestore-debug.log
 firebase-debug.log
 ui-debug.log
+
+# Firebase deploy cache — artefactos de build, se ensucian en cada deploy
+.firebase/

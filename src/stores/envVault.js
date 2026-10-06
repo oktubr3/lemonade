@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { getAuth } from "firebase/auth";
-import { collection, getDocs, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, deleteField } from "firebase/firestore";
 import { db } from "boot/firebase";
 import { deriveVaultSecrets, deriveVaultSecretsRaw, derivePasswordVerifier, deriveAesKeyRaw } from "src/utils/cryptoWorker";
 import { onAppResume } from "src/utils/appResumeListeners";
@@ -13,6 +13,9 @@ export const useEnvVaultStore = defineStore("envVault", () => {
     const vaultSettings = ref(null);
     const isUnlocked = ref(false);
     const derivedKey = ref(null); // Key derived from the master password (in memory)
+    // Decrypted previews of AI context files, keyed by doc id + IV.
+    // Memory only: never persisted, cleared on lock.
+    const contextPreviewCache = new Map();
     const lastActivity = ref(Date.now());
 
     // Auto-lock options (in minutes, 0 = never)
@@ -289,6 +292,9 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                 await upgradeKdfIterations(password, key);
             }
 
+            // Best effort, not awaited: must never block or fail the unlock
+            void purgeLegacyContextPreviews(auth.currentUser.uid);
+
             return true;
         } catch (error) {
             console.error('Error unlocking vault:', error);
@@ -443,6 +449,7 @@ export const useEnvVaultStore = defineStore("envVault", () => {
     function lockVault() {
         isUnlocked.value = false;
         derivedKey.value = null;
+        contextPreviewCache.clear();
         projects.value = [];
         variables.value = [];
         clearSession();
@@ -606,10 +613,12 @@ export const useEnvVaultStore = defineStore("envVault", () => {
             );
             const querySnapshot = await getDocs(q);
 
-            const contextFiles = querySnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const contextFiles = querySnapshot.docs.map((doc) => {
+                const file = { id: doc.id, ...doc.data() };
+                // Legacy plaintext preview: never surface it, the UI decrypts its own
+                delete file.contentPreview;
+                return file;
+            });
 
             updateActivity();
             return contextFiles;
@@ -641,6 +650,50 @@ export const useEnvVaultStore = defineStore("envVault", () => {
         } catch (error) {
             console.error('Error decrypting context content:', error);
             throw error;
+        }
+    }
+
+    // Preview (first 150 chars) of an AI context file, decrypted locally.
+    // Returns '' when locked or undecryptable. Cached in memory only.
+    async function getContextFilePreview(file) {
+        if (!isUnlocked.value || !derivedKey.value || !file?.encryptedContent?.iv) return '';
+
+        const cacheKey = `${file.id}:${file.encryptedContent.iv}`;
+        if (contextPreviewCache.has(cacheKey)) return contextPreviewCache.get(cacheKey);
+
+        const key = derivedKey.value;
+        try {
+            const content = await decryptValue(file.encryptedContent, key);
+            const preview = content.substring(0, 150).replace(/\n/g, ' ').trim();
+            // Skip caching if the vault was locked while decrypting
+            if (derivedKey.value === key) contextPreviewCache.set(cacheKey, preview);
+            return preview;
+        } catch {
+            return '';
+        }
+    }
+
+    // One-time cleanup: older builds stored a plaintext contentPreview next to
+    // the encrypted content. Best effort, errors are only logged.
+    async function purgeLegacyContextPreviews(uid) {
+        try {
+            const contextCollection = collection(db, "env_context_files");
+            const q = query(contextCollection, where("userId", "==", uid));
+            const snapshot = await getDocs(q);
+            const legacyDocs = snapshot.docs.filter((docSnap) => {
+                const preview = docSnap.data().contentPreview;
+                return typeof preview === 'string' ? preview.length > 0 : preview != null;
+            });
+
+            const results = await Promise.allSettled(
+                legacyDocs.map((docSnap) => updateDoc(docSnap.ref, { contentPreview: deleteField() }))
+            );
+            const failed = results.filter(r => r.status === 'rejected');
+            if (failed.length > 0) {
+                console.warn(`Could not remove ${failed.length} legacy context preview(s):`, failed[0].reason);
+            }
+        } catch (error) {
+            console.warn('Error removing legacy context previews:', error);
         }
     }
 
@@ -740,7 +793,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                             aiTool: aiFile.aiTool,
                             encryptedContent: await encryptValue(aiFile.content, derivedKey.value),
                             fileSize: aiFile.size || 0,
-                            contentPreview: aiFile.preview || '',
                             icon: aiFile.icon || '📄',
                             label: aiFile.label || 'AI Context',
                             createdAt: new Date(),
@@ -874,7 +926,8 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                         batch.update(existing.ref, {
                             encryptedContent: op.encryptedContent,
                             fileSize: op.aiFile.size || 0,
-                            contentPreview: op.aiFile.preview || '',
+                            // Drop any legacy plaintext preview on re-import
+                            contentPreview: deleteField(),
                             aiTool: op.aiFile.aiTool,
                             icon: op.aiFile.icon || '📄',
                             label: op.aiFile.label || 'AI Context',
@@ -891,7 +944,6 @@ export const useEnvVaultStore = defineStore("envVault", () => {
                             aiTool: op.aiFile.aiTool,
                             encryptedContent: op.encryptedContent,
                             fileSize: op.aiFile.size || 0,
-                            contentPreview: op.aiFile.preview || '',
                             icon: op.aiFile.icon || '📄',
                             label: op.aiFile.label || 'AI Context',
                             createdAt: new Date()
@@ -1334,6 +1386,7 @@ export const useEnvVaultStore = defineStore("envVault", () => {
         deleteAiContextFile,
         getDecryptedValue,
         getDecryptedContextContent,
+        getContextFilePreview,
         exportProjectAsEnv,
         findExistingProject,
         mergeProject,
