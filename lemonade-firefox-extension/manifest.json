@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Lemonade Password Manager",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Autofill companion for Lemonade Password Manager. Requires a free Lemonade account at lemonadepass.app",
 
   "browser_specific_settings": {

@@ -6,6 +6,7 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db, functions } from "boot/firebase";
 import passwordSecurityService from "src/services/passwordSecurityService";
 import { FUNCTIONS_URL } from "../config/functions";
+import { ensureUserRegistered } from "../utils/registerUser";
 import { onAppResume } from "src/utils/appResumeListeners";
 
 export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
@@ -926,30 +927,11 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
         }
     }
 
-    // Register current user in the users collection (to enable sharing)
+    // Register current user in the users collection (to enable sharing).
+    // Delegates to the shared helper so repeated mounts do not re-POST.
     async function registerCurrentUser() {
-        try {
-            const token = await getCachedAuthToken();
-            const response = await fetch(`${FUNCTIONS_URL}/registerUserHttp`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({})
-            });
-
-            if (!response.ok) {
-                console.warn('Could not register user:', response.status);
-                return false;
-            }
-
-            const result = await response.json();
-            return result.success;
-        } catch (error) {
-            console.warn('Error registering user:', error);
-            return false;
-        }
+        const { success } = await ensureUserRegistered();
+        return success;
     }
 
     // Get system users (search or recent)

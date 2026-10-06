@@ -227,6 +227,90 @@ Se eliminaron. Si hace falta tocar `font-display`, hacelo en la declaración com
 v2 reorganizó las fuentes a `exports/` y app-vite 3 no las resuelve: el `@font-face` sale sin
 `src`. **No subas a v2** sin verificar con una captura que los iconos siguen renderizando.
 
+## Polar (cobros): versionado de API y firma de webhooks — NO TOCAR A CIEGAS
+
+El cobro pasa por Polar: `createCheckoutUrl`, `getCustomerPortalUrl` y `handlePolarWebhook`.
+Dos mecanismos distintos, los dos silenciosos si se rompen: nadie ve un error, simplemente
+alguien paga y no recibe su rol.
+
+### 1. Versión de la API: pineada a mano
+
+Polar versiona por fecha (`YYYY-MM`) y **una request sin header sigue a "Current", que cambia
+cada trimestre**. El SDK instalado (`@polar-sh/sdk@0.49.0`) fue generado contra `2026-04`
+(`SDK_METADATA.openapiDocVersion`) pero **no manda el header**. Por eso `getPolarConfig`
+inyecta un `HTTPClient` con un hook `beforeRequest`:
+
+```js
+polarHttpClient.addHook('beforeRequest', (request) => {
+    request.headers.set('Polar-Version', POLAR_API_VERSION);  // '2026-04'
+    return request;
+});
+```
+
+**No saques ese hook.** Sin él, el contrato cambia solo en cada release trimestral de Polar,
+sin un cambio de código de tu lado y sin fallar el build — la misma familia de bug que la
+caída por el prefijo de variables de entorno.
+
+Los **webhooks se versionan aparte**, por endpoint, en el dashboard de Polar. Los dos endpoints
+actuales están en `2026-04` (verificado 2026-09-11). El header de arriba **no** los cubre.
+
+> **Fecha límite: release de enero de 2027.** Ahí Polar elimina `2026-04`. Hay que migrar a
+> `2026-10` antes: probar, y recién entonces cambiar `POLAR_API_VERSION` y la versión del
+> endpoint de webhooks.
+
+### 2. Firma de webhooks: NO regeneres el secreto sin tocar el código
+
+Polar cambió el esquema de firma el **8 de septiembre de 2026**:
+
+| Secreto emitido | Clave HMAC |
+|---|---|
+| Antes del 2026-09-08 (*legacy*) | base64 del string `whsec_...` completo |
+| Desde el 2026-09-08 (*Standard Webhooks*) | el cuerpo del secreto decodificado |
+
+`validateEvent` del SDK 0.49.0 **solo prueba la legacy** (únicamente la línea `1.0.0-alpha.19+`
+prueba las dos). Por eso `handlePolarWebhook` usa el wrapper `validatePolarEvent`, que ante un
+`WebhookVerificationError` reintenta con la clave Standard Webhooks pasada como `Buffer`.
+
+Por qué `Buffer` y no una verificación propia: `validateEvent` **también parsea** el payload
+(`current_period_end` → `currentPeriodEnd`, fechas a `Date`). Todo el handler lee camelCase, así
+que verificar la firma a mano y saltear el parseo rompe cada rama del `switch` en silencio.
+
+**La trampa operativa:** resetear el secreto en el dashboard, o borrar y recrear el endpoint,
+te devuelve un secreto del esquema nuevo. Con el wrapper esto ya está cubierto; sin él, todas
+las entregas responden **403**. Si algún día sacás el wrapper (por ejemplo al subir a la
+1.0.0 del SDK), verificá antes con un evento de prueba.
+
+Para probar sin tocar producción: firmá un payload con `standardwebhooks` usando cada una de
+las dos derivaciones de clave y pasáselas al wrapper. Un secreto **distinto** tiene que seguir
+dando `FIRMA RECHAZADA` — eso es lo que prueba que el fallback no afloja la verificación.
+
+## Identidad: NUNCA por `users/{uid}.email` (AUDITORÍA 2026-09-22)
+
+`users.email` lo escribía el propio cliente y el servidor lo usaba como identidad
+para elegir el trustee de acceso de emergencia, el destinatario de un compartido,
+el rol de admin y el fallback del webhook de Polar. Cualquier usuario podía
+ponerse el email de otro y recibir, por ejemplo, **el vault completo descifrado**
+de quien lo agregara como contacto de emergencia.
+
+Reglas vigentes:
+
+- Para resolver una persona por email: `resolveVerifiedUidByEmail(email)` (Firebase
+  Auth + `emailVerified`). Nunca `db.collection('users').where('email', '==', x)`.
+- Para "¿este uid es tal email?": `getVerifiedAuthEmail(uid)` (registro de Auth).
+- Compuertas de admin por email: `isVerifiedAdminToken(decodedToken)` (exige
+  `email_verified`). Nunca `isAdminEmail(decodedToken.email)` a secas.
+- Trustee de emergencia: `isEmergencyTrustee(data, decodedToken)` (email
+  verificado igual a `trusteeEmail` **y** uid vinculado).
+- `email` no está en `userPublicKeys()` de `firestore.rules` y no hay `update` de
+  admin directo sobre `users/*`: toda escritura de admin va por `adminUpdateUserHttp`.
+- Transiciones de `emergency_access`: siempre por `transitionEmergencyAccess`
+  (transacción). Un `get()` + `update()` suelto permite que una transición pise
+  un revoke.
+- Un evento de billing nunca pisa `admin`, `founder` ni `suspended` (`billingRole`).
+
+El reporte completo (hallazgos, verificaciones y pistas pendientes de validar)
+está en `~/security-audit-skill/lemonade-pass-manager/run-1/` (fuera del repo).
+
 ## Sistema de Versionado Automático
 
 ### Scripts disponibles:

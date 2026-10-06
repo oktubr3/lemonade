@@ -40,6 +40,7 @@ const aiContextFiles = ref([]);
 const isLoadingAiContext = ref(false);
 const expandedAiContext = ref(false);
 const visibleAiContent = ref({}); // { fileId: decryptedContent }
+const aiPreviews = ref({}); // { fileId: preview } decrypted locally, never persisted
 
 // Available icons (100 options)
 const availableIcons = [
@@ -96,8 +97,17 @@ watch(() => props.show, async (newVal) => {
         visibleValues.value = {};
         aiContextFiles.value = [];
         visibleAiContent.value = {};
+        aiPreviews.value = {};
     }
 }, { immediate: true });
+
+// Drop decrypted previews and content as soon as the vault locks
+watch(() => envVaultStore.isUnlocked, (unlocked) => {
+    if (!unlocked) {
+        aiPreviews.value = {};
+        visibleAiContent.value = {};
+    }
+});
 
 // Sync local icon when project prop changes
 watch(() => props.project?.icon, (newIcon) => {
@@ -178,6 +188,18 @@ async function loadAiContextFiles() {
     } finally {
         isLoadingAiContext.value = false;
     }
+    await loadAiPreviews();
+}
+
+// Previews are decrypted client-side: Firestore only holds the encrypted content
+async function loadAiPreviews() {
+    const files = aiContextFiles.value;
+    const entries = await Promise.all(
+        files.map(async (file) => [file.id, await envVaultStore.getContextFilePreview(file)])
+    );
+    // Ignore the result if the list changed or the vault locked meanwhile
+    if (aiContextFiles.value !== files || !envVaultStore.isUnlocked) return;
+    aiPreviews.value = Object.fromEntries(entries);
 }
 
 async function toggleAiContentVisibility(file) {
@@ -770,7 +792,7 @@ async function changeIcon(newIcon) {
                                     <pre>{{ visibleAiContent[file.id] }}</pre>
                                 </div>
                                 <div v-else class="ai-content-preview">
-                                    <code>{{ file.contentPreview }}{{ file.fileSize > 150 ? '...' : '' }}</code>
+                                    <code v-if="aiPreviews[file.id]">{{ aiPreviews[file.id] }}{{ file.fileSize > 150 ? '...' : '' }}</code>
                                 </div>
                             </div>
 

@@ -25,7 +25,16 @@ let tokenCache = {
 let _authListenerInitialized = false;
 let _lastUid = null;
 
+// getUserRoleHttp had two independent callers on every app load: MainLayout's
+// fetchUserRole() and the auth-state listener below, which fires as soon as
+// the session resolves. Both hit the network. These two share the in-flight
+// request and the already-loaded result for the current uid instead.
+let _roleRequest = null;
+let _roleUid = null;
+
 function wipeAdminState() {
+  _roleRequest = null;
+  _roleUid = null;
   userRole.value = null;
   roleLoaded.value = false;
   isAdmin.value = false;
@@ -36,13 +45,31 @@ function wipeAdminState() {
   tokenCache.expires = 0;
 }
 
-// Module-level fetcher so the auth listener can refresh the role after a
-// user switch without needing a component to re-mount.
-async function refetchRoleForCurrentUser() {
+// Get token with cache
+async function getAuthToken() {
   const auth = getAuth();
-  if (!auth.currentUser) return;
+  if (!auth.currentUser) {
+    throw new Error('User not authenticated');
+  }
+
+  const now = Date.now();
+  if (tokenCache.token && tokenCache.expires > now + 60000) {
+    return tokenCache.token;
+  }
+
+  const token = await auth.currentUser.getIdToken(false);
+  tokenCache.token = token;
+  tokenCache.expires = now + (50 * 60 * 1000);
+  return token;
+}
+
+// Get current user's role
+async function requestUserRole() {
   try {
-    const token = await auth.currentUser.getIdToken(false);
+    loading.value = true;
+    error.value = null;
+
+    const token = await getAuthToken();
     const response = await fetch(`${FUNCTIONS_URL}/getUserRoleHttp`, {
       method: 'POST',
       headers: {
@@ -50,14 +77,51 @@ async function refetchRoleForCurrentUser() {
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) return;
+
+    if (!response.ok) {
+      throw new Error('Error getting user role');
+    }
+
     const data = await response.json();
     userRole.value = data.role;
     isAdmin.value = data.isAdmin;
     roleLoaded.value = true;
+
+    return data;
   } catch (err) {
-    console.warn('useAdmin: post-login role refetch failed', err);
+    console.error('Error fetching user role:', err);
+    error.value = err.message;
+    userRole.value = 'user';
+    isAdmin.value = false;
+    throw err;
+  } finally {
+    loading.value = false;
   }
+}
+// Shared entry point: joins the in-flight request and skips the call when
+// the role for this uid is already loaded.
+async function fetchUserRole({ force = false } = {}) {
+  const uid = getAuth().currentUser?.uid || null;
+
+  // No session: there is nothing to ask for. Returning the default instead of
+  // throwing keeps the console clean on the login screen, where MainLayout
+  // still mounts and asks.
+  if (!uid) {
+    userRole.value = 'user';
+    isAdmin.value = false;
+    return { role: 'user', isAdmin: false };
+  }
+
+  if (!force && roleLoaded.value && _roleUid === uid) {
+    return { role: userRole.value, isAdmin: isAdmin.value };
+  }
+  if (_roleRequest) return _roleRequest;
+
+  _roleRequest = requestUserRole()
+    .then((data) => { _roleUid = uid; return data; })
+    .finally(() => { _roleRequest = null; });
+
+  return _roleRequest;
 }
 
 function setupAuthListener() {
@@ -71,8 +135,9 @@ function setupAuthListener() {
         _lastUid = newUid;
         if (user) {
           // Fetch the new user's role so admin UI updates without waiting
-          // for a component re-mount.
-          refetchRoleForCurrentUser();
+          // for a component re-mount. Shares the request with any component
+          // that is asking for it at the same time.
+          fetchUserRole().catch(() => {});
         }
       }
     });
@@ -85,60 +150,6 @@ function setupAuthListener() {
 
 export function useAdmin() {
   setupAuthListener();
-  // Get token with cache
-  async function getAuthToken() {
-    const auth = getAuth();
-    if (!auth.currentUser) {
-      throw new Error('User not authenticated');
-    }
-
-    const now = Date.now();
-    if (tokenCache.token && tokenCache.expires > now + 60000) {
-      return tokenCache.token;
-    }
-
-    const token = await auth.currentUser.getIdToken(false);
-    tokenCache.token = token;
-    tokenCache.expires = now + (50 * 60 * 1000);
-    return token;
-  }
-
-  // Get current user's role
-  async function fetchUserRole() {
-    try {
-      loading.value = true;
-      error.value = null;
-
-      const token = await getAuthToken();
-      const response = await fetch(`${FUNCTIONS_URL}/getUserRoleHttp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Error getting user role');
-      }
-
-      const data = await response.json();
-      userRole.value = data.role;
-      isAdmin.value = data.isAdmin;
-      roleLoaded.value = true;
-
-      return data;
-    } catch (err) {
-      console.error('Error fetching user role:', err);
-      error.value = err.message;
-      userRole.value = 'user';
-      isAdmin.value = false;
-      throw err;
-    } finally {
-      loading.value = false;
-    }
-  }
-
   // Get list of users (admin only)
   async function fetchUsers() {
     if (!isAdmin.value) {

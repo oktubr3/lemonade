@@ -1,4 +1,4 @@
-// Firestore rules tests for the Env Vault collections.
+// Firestore rules tests for the Env Vault collections and users/{uid}.
 //
 // Run with: pnpm run test:rules
 //
@@ -19,7 +19,7 @@ import {
     assertSucceeds,
     assertFails,
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, deleteField } from 'firebase/firestore';
 
 const RULES_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'firestore.rules');
 
@@ -27,9 +27,13 @@ const UID = 'user1';
 // Same shape encryptValue() produces: hex ciphertext + hex IV.
 const BLOB = { encrypted: 'ada13090113372add02e6613d822ba231023f3', iv: '441aaba943606b1b7906fe82' };
 
+// emulators:exec exports FIRESTORE_EMULATOR_HOST; honour it so the suite also
+// runs when 8080 is taken and the emulator was started on another port.
+const [EMU_HOST, EMU_PORT] = (process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080').split(':');
+
 const testEnv = await initializeTestEnvironment({
     projectId: 'passmanager-test',
-    firestore: { rules: readFileSync(RULES_PATH, 'utf8'), host: '127.0.0.1', port: 8080 },
+    firestore: { rules: readFileSync(RULES_PATH, 'utf8'), host: EMU_HOST, port: Number(EMU_PORT) },
 });
 
 await testEnv.withSecurityRulesDisabled(async (ctx) => {
@@ -51,11 +55,24 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
         passwordHash: 'd96d300b', salt: '51266a3176ccfabad78bc951a4690e3e',
         kdfIterations: 600000, verifierVersion: 2, createdAt: new Date(),
     });
+    // Legacy doc written before contentPreview stopped being stored in plaintext.
+    await setDoc(doc(db, 'env_context_files/c2'), {
+        userId: UID, projectId: 'p1', fileName: '.mcp.json',
+        encryptedContent: BLOB, contentPreview: '{"mcpServers":{}}', createdAt: new Date(),
+    });
+    await setDoc(doc(db, `users/${UID}`), {
+        uid: UID, email: 'user1@example.test', displayName: 'User One', role: 'user', createdAt: new Date(),
+    });
+    await setDoc(doc(db, 'users/admin1'), {
+        uid: 'admin1', email: 'admin@example.test', role: 'admin', createdAt: new Date(),
+    });
 });
 
 const db = testEnv.authenticatedContext(UID).firestore();
 const attackerDb = testEnv.authenticatedContext('attacker').firestore();
 const anonDb = testEnv.unauthenticatedContext().firestore();
+const adminDb = testEnv.authenticatedContext('admin1').firestore();
+const newUserDb = testEnv.authenticatedContext('newuser').firestore();
 
 const results = [];
 const check = async (name, promise) => {
@@ -116,6 +133,41 @@ await check('reject: unauthenticated write', assertFails(
     setDoc(doc(anonDb, 'env_variables/v3'), {
         userId: UID, projectId: 'p1', variableName: 'X', encryptedValue: BLOB, createdAt: new Date(),
     })));
+
+// --- users/{uid}: email is server-owned (it was used as identity), no direct admin writes ---
+await check('users: owner updates displayName', assertSucceeds(
+    updateDoc(doc(db, `users/${UID}`), { displayName: 'New Name', updatedAt: new Date() })));
+
+await check('users: owner creates doc without email', assertSucceeds(
+    setDoc(doc(newUserDb, 'users/newuser'), { uid: 'newuser', displayName: 'N', createdAt: new Date() })));
+
+await check('reject: owner rewrites own users.email', assertFails(
+    updateDoc(doc(db, `users/${UID}`), { email: 'victim@example.test' })));
+
+await check('reject: owner creates users doc with an email', assertFails(
+    setDoc(doc(attackerDb, 'users/attacker'), { uid: 'attacker', email: 'victim@example.test', createdAt: new Date() })));
+
+await check("reject: admin writes another user's role directly", assertFails(
+    updateDoc(doc(adminDb, `users/${UID}`), { role: 'lifetime_hosted' })));
+
+await check('reject: owner sets own role', assertFails(
+    updateDoc(doc(db, `users/${UID}`), { role: 'admin' })));
+
+// --- env_context_files: no new plaintext contentPreview ---
+await check('reject: create context file with plaintext preview', assertFails(
+    setDoc(doc(db, 'env_context_files/c3'), {
+        userId: UID, projectId: 'p1', fileName: '.mcp.json',
+        encryptedContent: BLOB, contentPreview: '{"env":{"KEY":"sk-x"}}', createdAt: new Date(),
+    })));
+
+await check('legacy doc: update other field keeping old preview', assertSucceeds(
+    updateDoc(doc(db, 'env_context_files/c2'), { label: 'mcp', updatedAt: new Date() })));
+
+await check('reject: legacy doc gets a new plaintext preview', assertFails(
+    updateDoc(doc(db, 'env_context_files/c2'), { contentPreview: '{"env":{"KEY":"sk-y"}}' })));
+
+await check('legacy doc: cleanup deletes the preview', assertSucceeds(
+    updateDoc(doc(db, 'env_context_files/c2'), { contentPreview: deleteField(), updatedAt: new Date() })));
 
 for (const r of results) {
     console.log(`${r.ok ? '✓' : '✗'} ${r.name}${r.err ? `\n    ${r.err}` : ''}`);

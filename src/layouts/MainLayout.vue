@@ -157,7 +157,11 @@ const WARMUP_TARGETS = [
 
 const warmupCloudFunctions = () => {
     for (const fn of WARMUP_TARGETS) {
-        fetch(`${FUNCTIONS_URL}/${fn}`, { method: 'GET' }).catch(() => {});
+        // OPTIONS: the CORS middleware answers 204 inside the function, so the
+        // container still cold-boots (which is all a warmup needs) but the
+        // browser console stays clean. A GET here logged 401/405 network
+        // errors on every app load even though the .catch() swallowed them.
+        fetch(`${FUNCTIONS_URL}/${fn}`, { method: 'OPTIONS' }).catch(() => {});
     }
 };
 
@@ -367,13 +371,11 @@ onMounted(async () => {
     // Detect reload to avoid triggering lock-on-exit
     window.addEventListener('beforeunload', () => { isPageReloading = true; });
 
-    // Check if user is admin (silently, for menu visibility)
+    // Check if user is admin (silently, for menu visibility). The open-tickets
+    // count is left to the isAdmin watcher below: asking here as well fired it
+    // twice on every load, because resolving the role flips isAdmin.
     try {
         await fetchUserRole();
-        // If admin, fetch open tickets count
-        if (isAdmin.value) {
-            fetchOpenTicketsCount().catch(() => {});
-        }
     } catch {
         // Silently fail for non-authenticated users
     }
@@ -385,12 +387,13 @@ onUnmounted(() => {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
-// Watch for isAdmin changes (e.g., after login)
+// Watch for isAdmin changes (e.g., after login). `immediate` covers the remount
+// case, where the role is already known and the value never changes.
 watch(isAdmin, (newVal) => {
     if (newVal) {
         fetchOpenTicketsCount().catch(() => {});
     }
-});
+}, { immediate: true });
 
 // Function to update theme-color meta tag
 const updateThemeColorMeta = () => {

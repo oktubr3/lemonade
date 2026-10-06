@@ -10,6 +10,7 @@ const { defineSecret } = require('firebase-functions/params');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { Polar } = require('@polar-sh/sdk');
 const { validateEvent, WebhookVerificationError } = require('@polar-sh/sdk/webhooks');
+const { HTTPClient } = require('@polar-sh/sdk/lib/http');
 const {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -101,18 +102,36 @@ if (isEmulator()) {
   console.log('🍋 Running in PRODUCTION mode - Using Polar PRODUCTION');
 }
 
+// Polar moved to date-based API versioning. The installed SDK (0.49.0) was
+// generated against the 2026-04 spec -- see SDK_METADATA.openapiDocVersion --
+// but it does not send the `Polar-Version` header, so requests fall back to
+// whatever Polar calls "Current". On 2026-10-01 Current becomes 2026-10 and
+// these calls would silently switch contracts with no code change on our side.
+// Pinning the header keeps the contract the SDK was built for; migrating to
+// 2026-10 is a separate, deliberate change (deadline: the January release,
+// when 2026-04 is removed).
+const POLAR_API_VERSION = '2026-04';
+
+const polarHttpClient = new HTTPClient();
+polarHttpClient.addHook('beforeRequest', (request) => {
+  request.headers.set('Polar-Version', POLAR_API_VERSION);
+  return request;
+});
+
 // Helper: Get Polar configuration based on environment
 const getPolarConfig = (accessTokenSecret) => {
   if (isEmulator()) {
     // In emulators: use SANDBOX variables from .env.local
     return {
       accessToken: process.env.POLAR_SANDBOX_ACCESS_TOKEN?.trim(),
-      server: 'sandbox'
+      server: 'sandbox',
+      httpClient: polarHttpClient
     };
   }
   // In production: use Firebase Secrets + production
   return {
-    accessToken: accessTokenSecret.value()?.trim()
+    accessToken: accessTokenSecret.value()?.trim(),
+    httpClient: polarHttpClient
   };
 };
 
@@ -130,6 +149,42 @@ const getPolarWebhookSecret = (webhookSecretSecret) => {
     return process.env.POLAR_SANDBOX_WEBHOOK_SECRET?.trim();
   }
   return webhookSecretSecret.value()?.trim();
+};
+
+// Polar changed its webhook signing scheme on 2026-09-08. Secrets issued before
+// that date are "legacy": the HMAC key is the base64 of the whole `whsec_...`
+// string, which is exactly what the SDK's validateEvent builds. Secrets issued
+// from that date on follow Standard Webhooks, where the key is the decoded body
+// of the secret instead. The installed SDK (0.49.0) only ever tries the legacy
+// form -- only the 1.0.0-alpha line tries both -- so the day this endpoint's
+// secret is reset or the endpoint is recreated, every delivery would fail
+// verification and this function would answer 403. A customer would pay and
+// never get their role, and nothing on our side would look broken.
+//
+// Passing the decoded key as a Buffer makes validateEvent use those exact bytes
+// (Buffer.from ignores the encoding argument when the input is already a
+// Buffer). That gets us the Standard Webhooks key while keeping the SDK's
+// payload parsing, which remaps snake_case to camelCase and coerces dates --
+// the whole handler below reads `productId` and `currentPeriodEnd`, so
+// verifying the signature by hand instead would silently break every branch.
+const WEBHOOK_SECRET_PREFIX = 'whsec_';
+
+const validatePolarEvent = (rawBody, headers, secret) => {
+  try {
+    return validateEvent(rawBody, headers, secret);
+  } catch (error) {
+    if (!(error instanceof WebhookVerificationError)) {
+      throw error;
+    }
+    const body = secret?.startsWith(WEBHOOK_SECRET_PREFIX)
+      ? secret.slice(WEBHOOK_SECRET_PREFIX.length)
+      : secret;
+    // Throws WebhookVerificationError again if this scheme does not match
+    // either, which the caller turns into the same 403 as before.
+    const event = validateEvent(rawBody, headers, Buffer.from(body ?? '', 'base64'));
+    console.warn('Polar webhook verified with the Standard Webhooks key - the SDK is due an upgrade');
+    return event;
+  }
 };
 
 const ALGORITHM = 'aes-256-gcm';
@@ -206,13 +261,17 @@ function sanitizeInput(input) {
   return current.trim();
 }
 
-// Function to validate URL
+// Function to validate URL. Only http(s) is accepted: the value is copied to
+// other users through sharing and ends up in window.open on their device, so
+// 'javascript://%0a...' (which used to pass once 'https://' was prepended for
+// the parse test) must be rejected here, not just syntax-checked.
 function isValidUrl(url) {
   if (!url) return true; // URL is optional
+  if (typeof url !== 'string') return false;
   try {
-    const urlToTest = url.match(/^https?:\/\//) ? url : `https://${url}`;
-    new URL(urlToTest);
-    return true;
+    const urlToTest = url.includes('://') ? url : `https://${url}`;
+    const parsed = new URL(urlToTest);
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') && !!parsed.hostname;
   } catch {
     return false;
   }
@@ -338,7 +397,7 @@ async function requireAdminEmailFromRequest(req, res) {
   }
 
   const decodedToken = await getAuth().verifyIdToken(token);
-  if (!isAdminEmail(decodedToken.email)) {
+  if (!isVerifiedAdminToken(decodedToken)) {
     res.status(403).json({ error: 'Admin access required' });
     return null;
   }
@@ -1290,7 +1349,7 @@ exports.migrateAddStatusFieldHttp = functions.https.onRequest(
         }
 
         const decodedToken = await getAuth().verifyIdToken(token);
-        if (!isAdminEmail(decodedToken.email)) {
+        if (!isVerifiedAdminToken(decodedToken)) {
           return res.status(403).json({ error: 'Admin access required' });
         }
         const userId = decodedToken.uid;
@@ -1801,10 +1860,9 @@ exports.migratePasswordEntriesHttp = functions.https.onRequest(async (req, res) 
       // Verify the token
       const decodedToken = await getAuth().verifyIdToken(authToken);
       const userEmail = decodedToken.email;
-      
-      // Check admin permissions
-      const adminEmails = ['mauroh@gmail.com']; // Add your admin emails here
-      if (!adminEmails.includes(userEmail)) {
+
+      // Check admin permissions (verified ADMIN_EMAILS identity, like every other admin gate)
+      if (!isVerifiedAdminToken(decodedToken)) {
         return res.status(403).json({ error: 'Only administrators can run migration' });
       }
 
@@ -1899,7 +1957,7 @@ exports.migratePasswordEntryNotes = functions.https.onRequest(
         if (!authToken) return res.status(401).json({ error: 'No authentication token provided' });
 
         const decodedToken = await getAuth().verifyIdToken(authToken);
-        if (!isAdminEmail(decodedToken.email)) {
+        if (!isVerifiedAdminToken(decodedToken)) {
           return res.status(403).json({ error: 'Admin access required' });
         }
 
@@ -1972,7 +2030,7 @@ exports.migrateAllUsersHttp = functions.https.onRequest({ secrets: [] }, (req, r
       // Verify that the authenticated user is bootstrap admin
       const token = authHeader.split('Bearer ')[1];
       const decodedToken = await getAuth().verifyIdToken(token);
-      if (!isAdminEmail(decodedToken.email)) {
+      if (!isVerifiedAdminToken(decodedToken)) {
         res.status(403).json({ error: 'Admin access required' });
         return;
       }
@@ -2176,25 +2234,26 @@ exports.getSystemUsersHttp = functions.https.onRequest({ secrets: [] }, (req, re
       const { searchQuery } = req.body;
 
       if (searchQuery && searchQuery.length >= 5) {
-        // Search mode: exact email match only (prevents user enumeration)
+        // Search mode: exact email match only (prevents user enumeration).
+        // Resolved through Firebase Auth (verified email), never through
+        // users.email: any user can write someone else's address there and
+        // would receive the shares meant for that person.
         const search = searchQuery.toLowerCase().trim();
-        const usersSnapshot = await db.collection('users')
-          .where('email', '==', search)
-          .limit(1)
-          .get();
         const users = [];
+        const matchUid = await resolveVerifiedUidByEmail(search);
 
-        usersSnapshot.forEach(doc => {
-          if (doc.id === userId) return;
-          if (blockedByMe.has(doc.id)) return;
-          const userData = doc.data();
-          users.push({
-            uid: doc.id,
-            email: userData.email,
-            displayName: userData.displayName,
-            photoURL: userData.photoURL
-          });
-        });
+        if (matchUid && matchUid !== userId && !blockedByMe.has(matchUid)) {
+          const matchDoc = await db.collection('users').doc(matchUid).get();
+          if (matchDoc.exists) {
+            const userData = matchDoc.data();
+            users.push({
+              uid: matchUid,
+              email: search,
+              displayName: userData.displayName,
+              photoURL: userData.photoURL
+            });
+          }
+        }
 
         res.json({ success: true, users, mode: 'search' });
 
@@ -3020,6 +3079,39 @@ function isAdminEmail(email) {
   return ADMIN_EMAILS.includes(email?.toLowerCase());
 }
 
+// Admin-by-email must come from a VERIFIED identity. decodedToken.email is only
+// trustworthy together with email_verified, and users/{uid}.email is
+// client-writable (firestore.rules userPublicKeys), so it is never an identity
+// source for authorization.
+function isVerifiedAdminToken(decodedToken) {
+  return decodedToken?.email_verified === true && isAdminEmail(decodedToken.email);
+}
+
+// Verified email of a uid, read from the Firebase Auth record (not Firestore).
+async function getVerifiedAuthEmail(uid) {
+  try {
+    const record = await getAuth().getUser(uid);
+    return record.emailVerified && record.email ? record.email.toLowerCase() : null;
+  } catch (error) {
+    if (error.code === 'auth/user-not-found') return null;
+    throw error;
+  }
+}
+
+// uid of the account that verifiably owns `email`, or null. This replaces
+// users.where('email', '==', x): that field is written by the client, so any
+// user could claim someone else's address and receive what was meant for them.
+async function resolveVerifiedUidByEmail(email) {
+  if (typeof email !== 'string' || !email.trim()) return null;
+  try {
+    const record = await getAuth().getUserByEmail(email.trim().toLowerCase());
+    return record.emailVerified ? record.uid : null;
+  } catch (error) {
+    if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-email') return null;
+    throw error;
+  }
+}
+
 // Helper to check if a user is admin based on their document
 async function isUserAdmin(userId) {
   try {
@@ -3057,7 +3149,7 @@ exports.migrateUserRolesHttp = functions.https.onRequest({ secrets: [] }, (req, 
       const callerEmail = decodedToken.email;
 
       // Only admin can run migration
-      if (!isAdminEmail(callerEmail)) {
+      if (!isVerifiedAdminToken(decodedToken)) {
         res.status(403).json({ error: 'Only administrators can run this migration' });
         return;
       }
@@ -3069,10 +3161,15 @@ exports.migrateUserRolesHttp = functions.https.onRequest({ secrets: [] }, (req, 
       let migratedCount = 0;
       let adminCount = 0;
 
-      usersSnapshot.forEach(doc => {
-        const userData = doc.data();
-        const userEmail = userData.email?.toLowerCase();
-        const newRole = isAdminEmail(userEmail) ? 'admin' : 'user';
+      for (const doc of usersSnapshot.docs) {
+        // Admin comes from the Auth record's verified email, never from
+        // users.email: a user can write any address into their own doc.
+        const verifiedEmail = await getVerifiedAuthEmail(doc.id);
+        const currentRole = doc.data().role;
+        // Only 'admin' is decided here; paid and entitlement roles are kept.
+        const newRole = isAdminEmail(verifiedEmail)
+          ? 'admin'
+          : (currentRole && currentRole !== 'admin' ? currentRole : 'user');
 
         if (newRole === 'admin') adminCount++;
 
@@ -3081,7 +3178,7 @@ exports.migrateUserRolesHttp = functions.https.onRequest({ secrets: [] }, (req, 
           roleUpdatedAt: serverTimestamp()
         });
         migratedCount++;
-      });
+      }
 
       await batch.commit();
 
@@ -3140,13 +3237,14 @@ exports.getUserRoleHttp = functions.https.onRequest({ secrets: [] }, (req, res) 
       let role = 'user';
       if (userDoc.exists && userDoc.data().role) {
         role = userDoc.data().role;
-      } else if (isAdminEmail(userEmail)) {
-        // If they have no role but are admin by email, assign it
+      } else if (isVerifiedAdminToken(decodedToken)) {
+        // If they have no role but are admin by verified email, assign it
         role = 'admin';
-        await db.collection('users').doc(userId).update({
+        // set+merge: the users doc may not exist yet (update() would throw)
+        await db.collection('users').doc(userId).set({
           role: 'admin',
           roleUpdatedAt: serverTimestamp()
-        });
+        }, { merge: true });
       }
 
       res.json({
@@ -3310,6 +3408,10 @@ exports.adminUpdateUserHttp = functions.https.onRequest({ secrets: [] }, (req, r
         res.status(400).json({ error: 'Target user ID is required' });
         return;
       }
+      if (!updates || typeof updates !== 'object') {
+        res.status(400).json({ error: 'Updates object is required' });
+        return;
+      }
 
       // Verify that the target user exists
       const targetUserDoc = await db.collection('users').doc(targetUserId).get();
@@ -3320,8 +3422,14 @@ exports.adminUpdateUserHttp = functions.https.onRequest({ secrets: [] }, (req, r
 
       const targetUserData = targetUserDoc.data();
 
-      // Do not allow changing the role of the primary admin
-      if (isAdminEmail(targetUserData.email) && updates.role && updates.role !== 'admin') {
+      // Do not allow demoting, disabling or locking the primary admin. It is
+      // identified by the Auth record: targetUserData.email is client-writable.
+      const targetIsPrimaryAdmin = isAdminEmail(await getVerifiedAuthEmail(targetUserId));
+      if (targetIsPrimaryAdmin && (
+        (updates.role && updates.role !== 'admin') ||
+        updates.isDisabled === true ||
+        updates.accountLocked === true
+      )) {
         res.status(403).json({ error: 'Cannot change role of primary admin' });
         return;
       }
@@ -3368,6 +3476,27 @@ exports.adminUpdateUserHttp = functions.https.onRequest({ secrets: [] }, (req, r
 
       if (hasLockUpdates) {
         await db.collection('user_settings').doc(targetUserId).set(lockSettingsUpdate, { merge: true });
+      }
+
+      // Moderation has to bite server-side: nothing else checks role
+      // 'suspended', isDisabled or accountLocked, so disable the Auth user and
+      // revoke its refresh tokens. Derive the resulting state rather than the
+      // delta, because the admin UI only sends accountLocked when it changed.
+      // Already-issued ID tokens stay valid until they expire (<= 1h); handlers
+      // do not use checkRevoked to avoid an extra Auth round trip per request.
+      const settingsSnap = await db.collection('user_settings').doc(targetUserId).get();
+      const settings = settingsSnap.exists ? settingsSnap.data() : {};
+      const effectiveRole = allowedUpdates.role !== undefined ? allowedUpdates.role : targetUserData.role;
+      const effectiveDisabled = allowedUpdates.isDisabled !== undefined
+        ? allowedUpdates.isDisabled
+        : targetUserData.isDisabled === true;
+      const effectiveLocked = settings.accountLocked === true && settings.accountUnlocked !== true;
+      const shouldBlock = effectiveRole === 'suspended' || effectiveDisabled || effectiveLocked;
+      try {
+        await getAuth().updateUser(targetUserId, { disabled: shouldBlock });
+        if (shouldBlock) await getAuth().revokeRefreshTokens(targetUserId);
+      } catch (error) {
+        if (error.code !== 'auth/user-not-found') throw error;
       }
 
       // Create audit log
@@ -3632,6 +3761,17 @@ exports.getCustomerPortalUrl = functions.https.onRequest({
   });
 });
 
+// Billing only owns entitlement roles. A billing event must never overwrite an
+// authority or moderation role: a refund or a stray subscription event would
+// otherwise demote an admin or lift a suspension.
+const BILLING_PROTECTED_ROLES = ['admin', 'founder', 'suspended'];
+
+async function billingRole(userId, desiredRole) {
+  const snap = await db.collection('users').doc(userId).get();
+  const current = snap.exists ? snap.data().role : undefined;
+  return BILLING_PROTECTED_ROLES.includes(current) ? current : desiredRole;
+}
+
 // Handle Polar webhooks
 exports.handlePolarWebhook = functions.https.onRequest({
   secrets: [polarWebhookSecret]
@@ -3653,7 +3793,7 @@ exports.handlePolarWebhook = functions.https.onRequest({
       event = JSON.parse(rawBody.toString());
     } else {
       try {
-        event = validateEvent(
+        event = validatePolarEvent(
           rawBody,
           req.headers,
           getPolarWebhookSecret(polarWebhookSecret)
@@ -3682,35 +3822,16 @@ exports.handlePolarWebhook = functions.https.onRequest({
       case 'subscription.updated':
       case 'subscription.active': {
         if (!userId) {
-          console.log('No user_id in metadata, checking by customer email');
-          // Try to find user by email if no user_id
-          if (data.customer?.email) {
-            const usersSnapshot = await db.collection('users')
-              .where('email', '==', data.customer.email)
-              .limit(1)
-              .get();
-            if (!usersSnapshot.empty) {
-              const userDoc = usersSnapshot.docs[0];
-              await userDoc.ref.update({
-                role: 'premium',
-                subscription: {
-                  id: data.id,
-                  status: data.status,
-                  provider: 'polar',
-                  customerId: data.customer?.id,
-                  productId: data.productId,
-                  currentPeriodEnd: data.currentPeriodEnd,
-                  updatedAt: serverTimestamp()
-                }
-              });
-              console.log(`User ${userDoc.id} upgraded to premium (by email)`);
-            }
-          }
+          // No email fallback: customer.email is buyer-supplied and unverified,
+          // and users.email is client-writable, so matching on it let a buyer
+          // credit (or demote) someone else's account. createCheckoutUrl always
+          // sets metadata.user_id; a missing one means a checkout outside the app.
+          console.error(`Subscription ${data.id} has no user_id in metadata - ignored`);
           break;
         }
 
         await db.collection('users').doc(userId).update({
-          role: 'premium',
+          role: await billingRole(userId, 'premium'),
           subscription: {
             id: data.id,
             status: data.status,
@@ -3733,7 +3854,7 @@ exports.handlePolarWebhook = functions.https.onRequest({
         }
 
         await db.collection('users').doc(userId).update({
-          role: 'premium',
+          role: await billingRole(userId, 'premium'),
           subscription: {
             id: data.id,
             status: 'canceled',
@@ -3756,7 +3877,7 @@ exports.handlePolarWebhook = functions.https.onRequest({
         }
 
         await db.collection('users').doc(userId).update({
-          role: 'user',
+          role: await billingRole(userId, 'user'),
           subscription: {
             id: data.id,
             status: 'revoked',
@@ -3791,7 +3912,6 @@ exports.handlePolarWebhook = functions.https.onRequest({
         }
 
         const targetUserId = userId || null;
-        const targetEmail = data.customer?.email || null;
 
         const orderRecord = {
           id: data.id,
@@ -3808,27 +3928,13 @@ exports.handlePolarWebhook = functions.https.onRequest({
 
         if (targetUserId) {
           await db.collection('users').doc(targetUserId).set({
-            role: 'lifetime_hosted',
+            role: await billingRole(targetUserId, 'lifetime_hosted'),
             subscription: orderRecord
           }, { merge: true });
           console.log(`User ${targetUserId} upgraded to lifetime_hosted (order ${data.id})`);
-        } else if (targetEmail) {
-          const usersSnapshot = await db.collection('users')
-            .where('email', '==', targetEmail)
-            .limit(1)
-            .get();
-          if (!usersSnapshot.empty) {
-            const userDoc = usersSnapshot.docs[0];
-            await userDoc.ref.set({
-              role: 'lifetime_hosted',
-              subscription: orderRecord
-            }, { merge: true });
-            console.log(`User ${userDoc.id} upgraded to lifetime_hosted by email (order ${data.id})`);
-          } else {
-            console.warn(`order.paid received for unknown user (email ${targetEmail}, order ${data.id})`);
-          }
         } else {
-          console.error(`order.paid received with no user_id or customer email (order ${data.id})`);
+          // Same reason as above: no fallback to the unverified customer email.
+          console.error(`order.paid received with no user_id in metadata - ignored (order ${data.id})`);
         }
         break;
       }
@@ -3840,7 +3946,7 @@ exports.handlePolarWebhook = functions.https.onRequest({
           break;
         }
         await db.collection('users').doc(userId).set({
-          role: 'user',
+          role: await billingRole(userId, 'user'),
           subscription: {
             id: data.id,
             status: 'refunded',
@@ -4090,10 +4196,9 @@ exports.addTicketMessageHttp = functions.https.onRequest(async (req, res) => {
 
     const ticket = ticketSnap.data();
 
-    // Check if admin
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data() || {};
-    const isAdmin = ['admin', 'founder'].includes(userData.role);
+    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+    // 'founder' is a beta-tester entitlement, not an authority role)
+    const isAdmin = await isUserAdmin(userId);
 
     // User can only message their own tickets
     if (ticket.userId !== userId && !isAdmin) {
@@ -4179,10 +4284,9 @@ exports.closeTicketHttp = functions.https.onRequest(async (req, res) => {
 
     const ticket = ticketSnap.data();
 
-    // Check if admin
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data() || {};
-    const isAdmin = ['admin', 'founder'].includes(userData.role);
+    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+    // 'founder' is a beta-tester entitlement, not an authority role)
+    const isAdmin = await isUserAdmin(userId);
 
     // User can only close their own tickets
     if (ticket.userId !== userId && !isAdmin) {
@@ -4231,10 +4335,9 @@ exports.adminGetTicketsHttp = functions.https.onRequest(async (req, res) => {
     const decodedToken = await getAuth().verifyIdToken(token);
     const userId = decodedToken.uid;
 
-    // Check if admin
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data() || {};
-    const isAdmin = ['admin', 'founder'].includes(userData.role);
+    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+    // 'founder' is a beta-tester entitlement, not an authority role)
+    const isAdmin = await isUserAdmin(userId);
 
     if (!isAdmin) {
       res.status(403).json({ error: 'Acceso denegado' });
@@ -4277,10 +4380,9 @@ exports.getOpenTicketsCountHttp = functions.https.onRequest(async (req, res) => 
     const decodedToken = await getAuth().verifyIdToken(token);
     const userId = decodedToken.uid;
 
-    // Check if admin
-    const userDoc = await db.collection('users').doc(userId).get();
-    const userData = userDoc.data() || {};
-    const isAdmin = ['admin', 'founder'].includes(userData.role);
+    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+    // 'founder' is a beta-tester entitlement, not an authority role)
+    const isAdmin = await isUserAdmin(userId);
 
     if (!isAdmin) {
       res.status(403).json({ error: 'Acceso denegado' });
@@ -4474,8 +4576,18 @@ exports.webauthnVerifyRegistrationHttp = functions.https.onRequest(async (req, r
   });
 });
 
+// userId reaches these two endpoints unauthenticated and is stored in
+// webauthn_challenges, so bound its type and size (Firebase uids are short
+// [A-Za-z0-9_-] strings) instead of persisting whatever the caller sends.
+function isValidWebAuthnUserId(userId) {
+  return typeof userId === 'string' && /^[A-Za-z0-9_-]{1,128}$/.test(userId);
+}
+
 // 3) Generate authentication options (NO auth required - user is locked out)
-exports.webauthnGetAuthenticationOptionsHttp = functions.https.onRequest(async (req, res) => {
+// maxInstances caps the blast radius of the only two endpoints that accept
+// unauthenticated traffic: each admitted request costs Firestore writes, and
+// nothing else bounds concurrency. 20 is far above real passkey login volume.
+exports.webauthnGetAuthenticationOptionsHttp = functions.https.onRequest({ maxInstances: 20 }, async (req, res) => {
   corsHandler(req, res, async () => {
     try {
       if (req.method !== 'POST') {
@@ -4484,19 +4596,21 @@ exports.webauthnGetAuthenticationOptionsHttp = functions.https.onRequest(async (
       }
 
       const { userId } = req.body;
-      if (!userId) {
+      if (!isValidWebAuthnUserId(userId)) {
         res.status(400).json({ error: 'userId is required' });
         return;
       }
 
-      if (!await checkRateLimitPersistent(req.ip || req.headers['x-forwarded-for'] || 'unknown', 'webauthnOptions', 20, 60000)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
-
+      // Origin first: a request that cannot succeed must not cost a Firestore
+      // write in the rate limiter.
       const config = resolveWebAuthnConfig(req.headers.origin);
       if (!config) {
         res.status(400).json({ error: 'Invalid origin' });
+        return;
+      }
+
+      if (!await checkRateLimitPersistent(req.ip || 'unknown', 'webauthnOptions', 20, 60000)) {
+        res.status(429).json({ error: 'Rate limit exceeded' });
         return;
       }
 
@@ -4525,7 +4639,10 @@ exports.webauthnGetAuthenticationOptionsHttp = functions.https.onRequest(async (
 });
 
 // 4) Verify authentication response (NO auth required - returns custom token)
-exports.webauthnVerifyAuthenticationHttp = functions.https.onRequest(async (req, res) => {
+// maxInstances caps the blast radius of the only two endpoints that accept
+// unauthenticated traffic: each admitted request costs Firestore writes, and
+// nothing else bounds concurrency. 20 is far above real passkey login volume.
+exports.webauthnVerifyAuthenticationHttp = functions.https.onRequest({ maxInstances: 20 }, async (req, res) => {
   corsHandler(req, res, async () => {
     try {
       if (req.method !== 'POST') {
@@ -4534,20 +4651,24 @@ exports.webauthnVerifyAuthenticationHttp = functions.https.onRequest(async (req,
       }
 
       const { body, userId } = req.body;
-      if (!body || !userId) {
+      if (!body || !isValidWebAuthnUserId(userId)) {
         res.status(400).json({ error: 'body and userId are required' });
-        return;
-      }
-
-      const rateSubject = `${req.ip || req.headers['x-forwarded-for'] || 'unknown'}:${userId}`;
-      if (!await checkRateLimitPersistent(rateSubject, 'webauthnVerify', 10, 60000)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
         return;
       }
 
       const config = resolveWebAuthnConfig(req.headers.origin);
       if (!config) {
         res.status(400).json({ error: 'Invalid origin' });
+        return;
+      }
+
+      // Two buckets. The per-IP one is keyed only on the caller's address: the
+      // ip:userId bucket alone was bypassed by changing userId on each request
+      // (a fresh bucket, and a fresh rate_limits doc, every time).
+      const clientIp = req.ip || 'unknown';
+      if (!await checkRateLimitPersistent(clientIp, 'webauthnVerifyIp', 30, 60000) ||
+          !await checkRateLimitPersistent(`${clientIp}:${userId}`, 'webauthnVerify', 10, 60000)) {
+        res.status(429).json({ error: 'Rate limit exceeded' });
         return;
       }
 
@@ -4809,8 +4930,11 @@ exports.getPasswordHistoryHttp = functions.https.onRequest(
 
 // ==================== REUSED PASSWORD DETECTION ====================
 
+// No `cors: true` here: the platform would answer the preflight itself with
+// a method list that excludes OPTIONS, blocking the client warmup ping. The
+// corsHandler below handles CORS (and allows OPTIONS) like its siblings.
 exports.checkReusedPasswordsHttp = functions.https.onRequest(
-  { secrets: [encryptionKey], cors: true },
+  { secrets: [encryptionKey] },
   (req, res) => {
     return corsHandler(req, res, async () => {
       try {
@@ -5716,16 +5840,12 @@ exports.addEmergencyContactHttp = functions.https.onRequest(
           return res.status(409).json({ error: 'This contact already exists' });
         }
 
-        // Look up trustee in users collection
-        let trusteeId = null;
-        const usersSnapshot = await db.collection('users')
-          .where('email', '==', trusteeEmail.trim().toLowerCase())
-          .limit(1)
-          .get();
-
-        if (!usersSnapshot.empty) {
-          trusteeId = usersSnapshot.docs[0].id;
-        }
+        // Resolve the trustee through Firebase Auth (verified email). Never
+        // through users.email: it is client-writable, so an attacker could
+        // claim this address, become the trustee and, after the wait period,
+        // receive the grantor's whole decrypted vault. Unmatched stays
+        // 'invited' until someone signs in with a verified token for it.
+        const trusteeId = await resolveVerifiedUidByEmail(trusteeEmail);
 
         const status = trusteeId ? 'active' : 'invited';
 
@@ -5828,6 +5948,37 @@ exports.getEmergencyContactsHttp = functions.https.onRequest(
   }
 );
 
+// The caller is the trustee of an emergency_access doc only when its VERIFIED
+// token email equals trusteeEmail and, once the doc is bound, its uid is the
+// bound one. The email half re-validates bindings made before trustees were
+// resolved through Firebase Auth (a spoofed users.email could have bound an
+// attacker's uid); the uid half stops a second account carrying the same email
+// from riding on someone else's grant.
+function isEmergencyTrustee(data, decodedToken) {
+  const email = decodedToken.email_verified === true
+    ? (decodedToken.email || '').toLowerCase()
+    : '';
+  if (!email || data.trusteeEmail !== email) return false;
+  return !data.trusteeId || data.trusteeId === decodedToken.uid;
+}
+
+// Emergency-access transitions must be atomic. With a plain get() + update(),
+// a revoke or deny committed between another transition's read and write was
+// overwritten (last writer wins) and a revoked trustee could still end up
+// approved with the whole vault. `check` runs on the current doc inside the
+// transaction and returns { error: [httpStatus, message] } or { update }.
+async function transitionEmergencyAccess(docRef, check) {
+  return db.runTransaction(async (tx) => {
+    const snap = await tx.get(docRef);
+    if (!snap.exists) return { error: [404, 'Emergency access document not found'] };
+    const data = snap.data();
+    const result = check(data);
+    if (result.error) return result;
+    tx.update(docRef, result.update);
+    return { data };
+  });
+}
+
 /**
  * Get emergency grantors (trustee lists who granted them access)
  */
@@ -5863,8 +6014,9 @@ exports.getEmergencyGrantorsHttp = functions.https.onRequest(
           .where('trusteeId', '==', userId)
           .get();
 
-        // Query by trusteeEmail (for contacts added before trustee had an account)
-        const byEmailSnapshot = userEmail
+        // Query by trusteeEmail (for contacts added before trustee had an account).
+        // Only a verified email may claim an invite.
+        const byEmailSnapshot = userEmail && decodedToken.email_verified === true
           ? await db.collection('emergency_access')
               .where('trusteeEmail', '==', userEmail)
               .get()
@@ -5875,7 +6027,7 @@ exports.getEmergencyGrantorsHttp = functions.https.onRequest(
         const allDocs = [];
 
         for (const doc of [...byIdSnapshot.docs, ...byEmailSnapshot.docs]) {
-          if (!seen.has(doc.id) && doc.data().status !== 'revoked') {
+          if (!seen.has(doc.id) && doc.data().status !== 'revoked' && isEmergencyTrustee(doc.data(), decodedToken)) {
             seen.add(doc.id);
             allDocs.push(doc);
           }
@@ -5908,6 +6060,7 @@ exports.getEmergencyGrantorsHttp = functions.https.onRequest(
         // Update trusteeId on any docs matched only by email
         for (const doc of byEmailSnapshot.docs) {
           const data = doc.data();
+          if (!isEmergencyTrustee(data, decodedToken)) continue;
           if (!data.trusteeId && data.status === 'invited') {
             await doc.ref.update({
               trusteeId: userId,
@@ -5968,28 +6121,16 @@ exports.requestEmergencyAccessHttp = functions.https.onRequest(
         }
 
         const docRef = db.collection('emergency_access').doc(accessId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-          return res.status(404).json({ error: 'Emergency access document not found' });
-        }
-
-        const data = doc.data();
-
-        // Verify trustee identity
-        if (data.trusteeId !== userId && data.trusteeEmail !== userEmail) {
-          return res.status(403).json({ error: 'Access denied' });
-        }
-
-        if (data.status !== 'active') {
-          return res.status(400).json({ error: `Cannot request access: current status is '${data.status}'` });
-        }
-
-        await docRef.update({
-          status: 'requesting',
-          requestedAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
+        const result = await transitionEmergencyAccess(docRef, (current) => {
+          // Verify trustee identity
+          if (!isEmergencyTrustee(current, decodedToken)) return { error: [403, 'Access denied'] };
+          if (current.status !== 'active') {
+            return { error: [400, `Cannot request access: current status is '${current.status}'`] };
+          }
+          return { update: { status: 'requesting', requestedAt: serverTimestamp(), updatedAt: serverTimestamp() } };
         });
+        if (result.error) return res.status(result.error[0]).json({ error: result.error[1] });
+        const data = result.data;
 
         await createAuditLog(userId, 'REQUEST_EMERGENCY_ACCESS', {
           accessId,
@@ -6044,32 +6185,24 @@ exports.approveEmergencyAccessHttp = functions.https.onRequest(
           return res.status(400).json({ error: 'accessId is required' });
         }
 
-        const docRef = db.collection('emergency_access').doc(accessId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-          return res.status(404).json({ error: 'Emergency access document not found' });
-        }
-
-        const data = doc.data();
-
-        if (data.grantorId !== userId) {
-          return res.status(403).json({ error: 'Access denied' });
-        }
-
-        if (data.status !== 'requesting') {
-          return res.status(400).json({ error: `Cannot approve: current status is '${data.status}'` });
-        }
-
         const now = new Date();
         const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
-        await docRef.update({
-          status: 'approved',
-          approvedAt: serverTimestamp(),
-          accessExpiresAt: timestampFromDate(expiresAt),
-          updatedAt: serverTimestamp()
+        const docRef = db.collection('emergency_access').doc(accessId);
+        const result = await transitionEmergencyAccess(docRef, (current) => {
+          if (current.grantorId !== userId) return { error: [403, 'Access denied'] };
+          if (current.status !== 'requesting') {
+            return { error: [400, `Cannot approve: current status is '${current.status}'`] };
+          }
+          return { update: {
+            status: 'approved',
+            approvedAt: serverTimestamp(),
+            accessExpiresAt: timestampFromDate(expiresAt),
+            updatedAt: serverTimestamp()
+          } };
         });
+        if (result.error) return res.status(result.error[0]).json({ error: result.error[1] });
+        const data = result.data;
 
         await createAuditLog(userId, 'APPROVE_EMERGENCY_ACCESS', {
           accessId,
@@ -6125,27 +6258,15 @@ exports.denyEmergencyAccessHttp = functions.https.onRequest(
         }
 
         const docRef = db.collection('emergency_access').doc(accessId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-          return res.status(404).json({ error: 'Emergency access document not found' });
-        }
-
-        const data = doc.data();
-
-        if (data.grantorId !== userId) {
-          return res.status(403).json({ error: 'Access denied' });
-        }
-
-        if (data.status !== 'requesting') {
-          return res.status(400).json({ error: `Cannot deny: current status is '${data.status}'` });
-        }
-
-        await docRef.update({
-          status: 'active',
-          requestedAt: null,
-          updatedAt: serverTimestamp()
+        const result = await transitionEmergencyAccess(docRef, (current) => {
+          if (current.grantorId !== userId) return { error: [403, 'Access denied'] };
+          if (current.status !== 'requesting') {
+            return { error: [400, `Cannot deny: current status is '${current.status}'`] };
+          }
+          return { update: { status: 'active', requestedAt: null, updatedAt: serverTimestamp() } };
         });
+        if (result.error) return res.status(result.error[0]).json({ error: result.error[1] });
+        const data = result.data;
 
         await createAuditLog(userId, 'DENY_EMERGENCY_ACCESS', {
           accessId,
@@ -6201,22 +6322,12 @@ exports.revokeEmergencyContactHttp = functions.https.onRequest(
         }
 
         const docRef = db.collection('emergency_access').doc(accessId);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-          return res.status(404).json({ error: 'Emergency access document not found' });
-        }
-
-        const data = doc.data();
-
-        if (data.grantorId !== userId) {
-          return res.status(403).json({ error: 'Access denied' });
-        }
-
-        await docRef.update({
-          status: 'revoked',
-          updatedAt: serverTimestamp()
+        const result = await transitionEmergencyAccess(docRef, (current) => {
+          if (current.grantorId !== userId) return { error: [403, 'Access denied'] };
+          return { update: { status: 'revoked', updatedAt: serverTimestamp() } };
         });
+        if (result.error) return res.status(result.error[0]).json({ error: result.error[1] });
+        const data = result.data;
 
         await createAuditLog(userId, 'REVOKE_EMERGENCY_CONTACT', {
           accessId,
@@ -6282,7 +6393,7 @@ exports.getEmergencyPasswordsHttp = functions.https.onRequest(
         const data = doc.data();
 
         // Verify trustee identity
-        if (data.trusteeId !== userId && data.trusteeEmail !== userEmail) {
+        if (!isEmergencyTrustee(data, decodedToken)) {
           return res.status(403).json({ error: 'Access denied' });
         }
 
@@ -6374,23 +6485,31 @@ exports.autoApproveEmergencyAccess = onSchedule('every 1 hours', async () => {
   let autoApproved = 0;
 
   for (const doc of snapshot.docs) {
-    const data = doc.data();
-    const requestedAt = data.requestedAt?.toDate ? data.requestedAt.toDate() : new Date(data.requestedAt);
-    const waitMs = data.waitPeriodDays * 24 * 60 * 60 * 1000;
-    const approveAfter = new Date(requestedAt.getTime() + waitMs);
+    // Re-read inside a transaction: a deny or revoke committed after the query
+    // snapshot above must win over this approval. A missing requestedAt fails
+    // closed (new Date(null) would have meant 1970, i.e. approve immediately).
+    const approved = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(doc.ref);
+      if (!snap.exists) return false;
+      const data = snap.data();
+      if (data.status !== 'requesting' || !data.requestedAt?.toDate) return false;
 
-    if (now >= approveAfter) {
+      const waitMs = data.waitPeriodDays * 24 * 60 * 60 * 1000;
+      if (now.getTime() < data.requestedAt.toDate().getTime() + waitMs) return false;
+
       const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-      await doc.ref.update({
+      tx.update(doc.ref, {
         status: 'approved',
         approvedAt: timestampFromDate(now),
         accessExpiresAt: timestampFromDate(expiresAt),
         updatedAt: timestampFromDate(now)
       });
+      return true;
+    });
 
+    if (approved) {
       autoApproved++;
-      console.log(`Auto-approved emergency access ${doc.id} for trustee ${data.trusteeEmail}`);
+      console.log(`Auto-approved emergency access ${doc.id} for trustee ${doc.data().trusteeEmail}`);
     }
   }
 
@@ -6410,35 +6529,40 @@ exports.autoApproveEmergencyAccess = onSchedule('every 1 hours', async () => {
  * that exact authentication is completed, so every abandoned or spammed attempt
  * used to stay forever. rate_limits has the same shape once its window closes.
  */
-exports.purgeEphemeralDocs = onSchedule('every 24 hours', async () => {
+exports.purgeEphemeralDocs = onSchedule({ schedule: 'every 24 hours', timeoutSeconds: 540 }, async () => {
   const now = new Date();
-  let removed = { challenges: 0, rateLimits: 0 };
-
-  // Challenges carry an explicit expiresAt (5 minutes). Anything past it is dead
-  // weight whether the flow succeeded or was abandoned.
-  const staleChallenges = await db.collection('webauthn_challenges')
-    .where('expiresAt', '<', now)
-    .limit(2000)
-    .get();
-
   // Rate limit counters are meaningless once their window has reset. Keep a day
   // of slack so an in-flight window is never cleared out from under a request.
   const cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-  const staleLimits = await db.collection('rate_limits')
-    .where('resetTime', '<', cutoff.getTime())
-    .limit(2000)
-    .get();
 
-  const docs = [...staleChallenges.docs, ...staleLimits.docs];
-  removed.challenges = staleChallenges.size;
-  removed.rateLimits = staleLimits.size;
+  // Drain page by page instead of one fixed 2000-doc pass: a single IP may
+  // create ~28k challenges a day within its rate limit, so the old single pass
+  // fell behind and the backlog was never reclaimed. MAX_ROUNDS keeps one run
+  // inside the timeout; anything left is picked up by the next run.
+  const PAGE = 2000;
+  const MAX_ROUNDS = 25;
+  const drain = async (query) => {
+    let total = 0;
+    for (let round = 0; round < MAX_ROUNDS; round++) {
+      const snap = await query.limit(PAGE).get();
+      // Firestore caps a batch at 500 writes.
+      for (let i = 0; i < snap.docs.length; i += 450) {
+        const batch = db.batch();
+        for (const doc of snap.docs.slice(i, i + 450)) batch.delete(doc.ref);
+        await batch.commit();
+      }
+      total += snap.size;
+      if (snap.size < PAGE) break;
+    }
+    return total;
+  };
 
-  // Firestore caps a batch at 500 writes.
-  for (let i = 0; i < docs.length; i += 450) {
-    const batch = db.batch();
-    for (const doc of docs.slice(i, i + 450)) batch.delete(doc.ref);
-    await batch.commit();
-  }
+  // Challenges carry an explicit expiresAt (5 minutes). Anything past it is dead
+  // weight whether the flow succeeded or was abandoned.
+  const removed = {
+    challenges: await drain(db.collection('webauthn_challenges').where('expiresAt', '<', now)),
+    rateLimits: await drain(db.collection('rate_limits').where('resetTime', '<', cutoff.getTime()))
+  };
 
   console.log(
     `purgeEphemeralDocs: removed ${removed.challenges} challenges, ${removed.rateLimits} rate limits`
@@ -6464,14 +6588,30 @@ const WARM_TARGETS = [
   'getSecureNotesHttp',
   'getTotpCodeHttp',
   'checkReusedPasswordsHttp',
+  // The passkey login path. Options was already here, but verify was not, so
+  // every passkey sign-in paid a ~10s cold start on the call that actually
+  // mints the session (measured in the logs on 2026-09-22). The registration
+  // pair is here too: it only runs once per device, but it ran ~11s + ~15s
+  // cold, and an idle warm instance costs nothing between pings.
   'webauthnGetAuthenticationOptionsHttp',
+  'webauthnVerifyAuthenticationHttp',
+  'webauthnGetRegistrationOptionsHttp',
+  'webauthnVerifyRegistrationHttp',
+  // App startup: MainLayout asks for the role on every load and the login
+  // path registers/updates the user. Both ran cold on 2026-09-22.
+  'getUserRoleHttp',
+  'registerUserHttp',
   // Secondary read paths. Cheap to include: CPU is only billed while a request
   // is being handled, so an idle warm instance costs nothing between pings.
   'getPasswordHistoryHttp',
   'getTrashEntriesHttp',
   'getEmergencyContactsHttp',
   'getEmergencyGrantorsHttp',
-  'getEmergencyPasswordsHttp'
+  'getEmergencyPasswordsHttp',
+  // Also on the first screen: the pending-shares list, and the ticket badge
+  // for admins.
+  'getPendingSharedPasswordsHttp',
+  'getOpenTicketsCountHttp'
 ];
 
 exports.keepWarm = onSchedule('every 5 minutes', async () => {
@@ -6480,9 +6620,15 @@ exports.keepWarm = onSchedule('every 5 minutes', async () => {
 
   const results = await Promise.all(WARM_TARGETS.map(async (fn) => {
     try {
-      // GET boots the container and is rejected by the method guard before any
-      // auth check, secret access or Firestore read happens.
-      const res = await fetch(`${base}/${fn}`, { method: 'GET' });
+      // OPTIONS boots the container just like GET, but the CORS layer answers
+      // 204 instead of the method guard answering 405, so a warm ping no longer
+      // writes a warning line per function per cycle (~4.9k/day at 17 targets).
+      // Verified against production on 2026-09-22: an OPTIONS to two cold
+      // functions took 11.2s and 8.6s (container boot) and 0.24s once warm,
+      // including one with platform `cors: true`. The August incident where an
+      // OPTIONS warmup "failed" was a browser CORS block on the client side;
+      // a server-side fetch has no such enforcement.
+      const res = await fetch(`${base}/${fn}`, { method: 'OPTIONS' });
       return `${fn}:${res.status}`;
     } catch (error) {
       return `${fn}:ERR(${error.message})`;

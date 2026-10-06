@@ -35,6 +35,7 @@ import { usePasswordTrash } from "../composables/usePasswordTrash";
 import vFocus from "../directives/vFocus";
 import { useI18n } from "vue-i18n";
 import { matchesNormalized, splitSearchWords, normalizeText, sortByRelevance } from "src/utils/searchUtils";
+import { toSafeHttpUrl } from "src/utils/safeUrl";
 import LemonadeLoader from "../components/LemonadeLoader.vue";
 
 // Extracted components
@@ -329,42 +330,99 @@ const refreshUserSettings = async () => {
 const props = defineProps({ showSearch: Boolean });
 
 // Lifecycle hooks
-onMounted(async () => {
+
+// The list is loaded on its own, apart from the rest of the mount work. It used
+// to be the first await inside a single try/catch whose catch was empty: any
+// failure here left the list silently empty AND skipped the settings, the
+// window listeners and the shared-password load with it.
+const loadEntries = async () => {
+    // Wait until Firebase has restored the session. Mounting before that
+    // resolved made fetchEntries() throw, which is why the list came up empty
+    // after login and only filled in on a remount (leaving the page and
+    // coming back).
+    await auth.authStateReady();
+    await passwordEntriesStore.fetchEntries();
+};
+
+const logRejections = (results) => {
+    results.forEach((result) => {
+        if (result.status === 'rejected') {
+            console.error('[IndexPage] Mount task failed:', result.reason);
+        }
+    });
+};
+
+const notifyEntriesLoadFailed = () => {
+    $q.notify({
+        color: 'negative',
+        position: 'top',
+        message: t('passwords.messages.errorLoading'),
+        icon: 'report_problem',
+        timeout: 0,
+        actions: [
+            {
+                label: t('common.retry'),
+                color: 'white',
+                handler: () => { reloadEntries(); },
+            },
+        ],
+    });
+};
+
+const reloadEntries = async () => {
     isLoading.value = true;
     try {
-        await passwordEntriesStore.fetchEntries(auth.currentUser.uid);
-        await loadUserSettings();
-
-        // Listen for storage changes from settings page
-        window.addEventListener('storage', handleStorageChange);
-
-        // Listen for custom settings change events
-        window.addEventListener('userSettingsChanged', handleSettingsChange);
-
-        // Listen for focus events to refresh settings when returning to this page
-        window.addEventListener('focus', refreshUserSettings);
-
-        // Load user preferences for privacy controls
-        await loadPreferences();
-        listenToSettingsChanges();
-
-        // Register user to be able to share passwords
-        await passwordEntriesStore.registerCurrentUser();
-
-        // Load pending shared passwords
-        await passwordEntriesStore.fetchPendingSharedPasswords();
-
-        // Fetch emergency contacts for pending requests badge
-        fetchMyContacts().catch(() => {});
-
+        await loadEntries();
     } catch (error) {
-        // Error fetching documents
+        console.error('[IndexPage] Error loading password entries:', error);
+        notifyEntriesLoadFailed();
     } finally {
         isLoading.value = false;
         nextTick(() => recalcScrollHeight());
     }
+};
 
+onMounted(async () => {
+    // Registered before the first await so they stay active even if a load below
+    // fails.
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userSettingsChanged', handleSettingsChange);
+    window.addEventListener('focus', refreshUserSettings);
     window.addEventListener('resize', recalcScrollHeight);
+
+    isLoading.value = true;
+    try {
+        await loadEntries();
+    } catch (error) {
+        // One silent retry: the common cause is a token that was not propagated
+        // yet. If it fails twice it is a real error and the user gets told.
+        console.warn('[IndexPage] Retrying password entries load:', error);
+        try {
+            await loadEntries();
+        } catch (retryError) {
+            console.error('[IndexPage] Error loading password entries:', retryError);
+            notifyEntriesLoadFailed();
+        }
+    }
+
+    // Settings decide the column count, so they are awaited before the list is
+    // revealed to keep the grid from repainting.
+    logRejections(await Promise.allSettled([loadUserSettings(), loadPreferences()]));
+    listenToSettingsChanges();
+
+    isLoading.value = false;
+    nextTick(() => recalcScrollHeight());
+
+    // Not needed for the first paint.
+    Promise.allSettled([
+        passwordEntriesStore.registerCurrentUser(),
+        passwordEntriesStore.fetchPendingSharedPasswords(),
+    ]).then(logRejections);
+
+    // Only feeds the pending-requests badge, and it throws on any non-OK
+    // response. Kept deliberately silent, as it was before, so a hiccup here
+    // does not put an error in the console.
+    fetchMyContacts().catch(() => {});
 });
 
 
@@ -688,8 +746,10 @@ const openDialogForNewEntry = () => {
 };
 
 const openUrl = () => {
-    if (typeof window !== "undefined" && previewEntry.value.url) {
-        window.open(previewEntry.value.url, '_blank', 'noopener,noreferrer');
+    // Only http(s) may navigate: a shared entry can carry a javascript: URL
+    const safeUrl = toSafeHttpUrl(previewEntry.value.url);
+    if (typeof window !== "undefined" && safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
     } else {
         $q.notify({
             color: "negative",
@@ -701,8 +761,17 @@ const openUrl = () => {
 };
 
 const openEntryUrl = (entry) => {
-    if (typeof window !== "undefined" && entry.url) {
-        window.open(entry.url, '_blank', 'noopener,noreferrer');
+    if (typeof window === "undefined" || !entry.url) return;
+    const safeUrl = toSafeHttpUrl(entry.url);
+    if (safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
+    } else {
+        $q.notify({
+            color: "negative",
+            position: "top",
+            message: t('passwords.messages.invalidUrl'),
+            icon: "error",
+        });
     }
 };
 

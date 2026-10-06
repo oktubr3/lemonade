@@ -4,7 +4,7 @@ import { useQuasar } from "quasar";
 import { auth, db } from "boot/firebase";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { FUNCTIONS_URL } from "../config/functions";
+import { ensureUserRegistered, resetUserRegistrationCache } from "../utils/registerUser";
 import { useThemeStore } from "stores/theme";
 import { useI18n } from "vue-i18n";
 import { ref, onMounted, onUnmounted } from "vue";
@@ -55,25 +55,12 @@ const syncLanguageFromFirestore = async (uid) => {
     }
 };
 
+// registerUserHttp both syncs users/{uid} and reports the inactivity lock.
+// ensureUserRegistered dedupes it: sign-in and the auth-state listener below
+// used to fire it twice within a second, and IndexPage once more on mount.
 const checkAccountLock = async (user) => {
-    try {
-        const token = await user.getIdToken();
-        const response = await fetch(`${FUNCTIONS_URL}/registerUserHttp`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({})
-        });
-        if (response.ok) {
-            const result = await response.json();
-            return result.locked === true;
-        }
-    } catch (error) {
-        console.warn('Error checking account lock:', error);
-    }
-    return false;
+    const { locked } = await ensureUserRegistered(user);
+    return locked;
 };
 
 const signInWithGoogle = async () => {
@@ -145,6 +132,7 @@ onMounted(() => {
             if (isLocked) {
                 lockedEmail.value = user.email || '';
                 await signOut(auth);
+                resetUserRegistrationCache();
                 localStorage.removeItem(SESSION_LOGIN_KEY);
                 accountLocked.value = true;
                 isLoading.value = false;
