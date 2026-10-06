@@ -66,8 +66,8 @@ importers:
         specifier: ^10.11.1
         version: 10.11.1(eslint@10.11.0(jiti@2.7.0))(vue-eslint-parser@10.4.1(eslint@10.11.0(jiti@2.7.0)))
       globals:
-        specifier: ^17.12.0
-        version: 17.12.0
+        specifier: ^17.13.0
+        version: 17.13.0
       postcss:
         specifier: ^8.5.28
         version: 8.5.28
@@ -2446,8 +2446,8 @@ packages:
     deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
-  globals@17.12.0:
-    resolution: {integrity: sha512-cezEd/DTyyht9cvSSURyygXPfy04GtWO/5e6ZPvH7fCtjKz9PYOmuawphw1Ctd1f6C+5JypXfGD7ahNMXvevBA==}
+  globals@17.13.0:
+    resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
     engines: {node: '>=18'}
 
   globalthis@1.0.4:
@@ -3131,8 +3131,8 @@ packages:
   regjsgen@0.8.0:
     resolution: {integrity: sha512-RvwtGe3d7LvWiDQXeQw8p5asZUmfU1G/l6WbUXeHta7Y2PEIvBTwH6E2EfmYUK8pxcxEdEmaomqyp0vZZ7C+3Q==}
 
-  regjsparser@0.13.3:
-    resolution: {integrity: sha512-ycwFAS14Jw4mppvmK4GR/J6u3WpWpjkEApehuHtLc/8VpPNpDMbQ4WjqwplXifGeyKOzHSFLmSPqzksDQE2Sfg==}
+  regjsparser@0.13.4:
+    resolution: {integrity: sha512-EWV80YgFaVgFrjGCAsV7oybp4GOxbls5RzBg8OB0nKEVXsBJR1JlV8Di1JhCROg3MzTfe1RI8yitIm1eOs68iA==}
     hasBin: true
 
   relateurl@0.2.7:
@@ -6706,7 +6706,7 @@ snapshots:
       path-scurry: 2.0.2
     optional: true
 
-  globals@17.12.0: {}
+  globals@17.13.0: {}
 
   globalthis@1.0.4:
     dependencies:
@@ -7404,7 +7404,7 @@ snapshots:
       regenerate: 1.5.0
       regenerate-unicode-properties: 10.3.0
       regjsgen: 0.8.0
-      regjsparser: 0.13.3
+      regjsparser: 0.13.4
       unicode-match-property-ecmascript: 2.0.0
       unicode-match-property-value-ecmascript: 2.2.1
     optional: true
@@ -7412,7 +7412,7 @@ snapshots:
   regjsgen@0.8.0:
     optional: true
 
-  regjsparser@0.13.3:
+  regjsparser@0.13.4:
     dependencies:
       jsesc: 3.1.0
     optional: true
