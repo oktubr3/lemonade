@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+# Ningun job escribe en el repo: el token solo necesita leer el codigo.
+permissions:
+  contents: read
+
 jobs:
   pwa:
     name: Lint and build PWA

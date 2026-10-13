@@ -3436,7 +3436,7 @@ exports.adminGetUsersHttp = functions.https.onRequest({ secrets: [] }, (req, res
         .get();
 
       // Everything at once: the request takes as long as the slowest read.
-      const [usersSnapshot, settingsSnapshot, authFacts, extra, passwords] = await Promise.all([
+      const [usersSnapshot, settingsSnapshot, authFacts, extra, entryCounts] = await Promise.all([
         usersQuery,
         db.collection('user_settings')
           .select('accountLocked', 'accountUnlocked', 'accountLockedAt', 'accountUnlockedAt')
@@ -3471,7 +3471,7 @@ exports.adminGetUsersHttp = functions.https.onRequest({ secrets: [] }, (req, res
           updatedAt: userData.updatedAt,
           lastLoginAt: facts.lastSeenAt || userData.lastLoginAt || null,
           emailVerified: facts.emailVerified === true,
-          passwordCount: passwords.byUser[doc.id] || 0,
+          passwordCount: entryCounts.byUser[doc.id] || 0,
           isDisabled: userData.isDisabled || false,
           // Without this the edit dialog always opened with empty notes and
           // saving any change wiped the stored ones.
@@ -3504,11 +3504,11 @@ exports.adminGetUsersHttp = functions.https.onRequest({ secrets: [] }, (req, res
       }
       const stats = {
         users: { total: users.length, byRole, disabled },
-        passwords: { total: passwords.total },
+        passwords: { total: entryCounts.total },
         ...extra
       };
 
-      console.log(`[admin] getUsers users=${users.length} entries=${passwords.total} ms=${Date.now() - started}`);
+      console.log(`[admin] getUsers users=${users.length} entries=${entryCounts.total} ms=${Date.now() - started}`);
 
       res.json({
         success: true,
