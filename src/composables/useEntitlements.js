@@ -92,7 +92,8 @@ export function useEntitlements() {
   // unsubscribe function on unmount.
   const subscribeToUserDoc = () => {
     if (!currentUser.value) return () => {};
-    const userRef = doc(db, 'users', currentUser.value.uid);
+    const uid = currentUser.value.uid;
+    const userRef = doc(db, 'users', uid);
     return onSnapshot(
       userRef,
       (snapshot) => {
@@ -102,6 +103,10 @@ export function useEntitlements() {
         subscriptionInfo.value = data.subscription || null;
       },
       (error) => {
+        // Signing out or switching account cancels this listener with
+        // permission-denied: the rules stop that user's document from being
+        // read by whoever is signed in now. That is the rules working.
+        if (auth.currentUser?.uid !== uid) return;
         console.error('Error subscribing to user doc:', error);
       }
     );

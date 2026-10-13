@@ -78,3 +78,9 @@ ui-debug.log
 
 # Firebase deploy cache — artefactos de build, se ensucian en cada deploy
 .firebase/
+
+# Playwright (e2e)
+e2e/.auth/
+test-results/
+playwright-report/
+.firebase.e2e.json

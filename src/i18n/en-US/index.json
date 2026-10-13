@@ -805,7 +805,8 @@
       "badge": {
         "disabled": "Disabled",
         "locked": "Locked",
-        "lockedTooltip": "Locked for inactivity on {date}"
+        "lockedTooltip": "Locked for inactivity on {date}",
+        "you": "You"
       },
       "editDialog": {
         "title": "Edit user",
@@ -817,14 +818,39 @@
         "lockedSinceBanner": "Locked on {date} for inactivity (no passwords or projects for +90 days).",
         "notesLabel": "Admin notes",
         "registered": "Registered: {date}",
-        "passwords": "Passwords: {count}"
+        "passwords": "Passwords: {count}",
+        "selfBanner": "This is your own account. Role, disabling and locking are off so you cannot lock yourself out.",
+        "subscription": "Subscription: {status}",
+        "copyUid": "Copy UID"
       },
       "notifications": {
         "accessDenied": "Access denied. Admins only.",
         "loadPanelError": "Error loading admin panel",
         "accountUnlocked": "Account unlocked successfully",
         "userUpdated": "User updated successfully",
-        "updateError": "Error updating user"
+        "updateError": "Error updating user",
+        "uidCopied": "UID copied"
+      },
+      "refresh": "Refresh",
+      "sortBy": "Sort by",
+      "sort": {
+        "email": "Email",
+        "lastLogin": "Last sign-in",
+        "created": "Newest account",
+        "passwords": "Most passwords"
+      },
+      "lastLogin": "Last sign-in: {when}",
+      "never": "never",
+      "showMore": "Show {count} more ({total} left)",
+      "confirm": {
+        "title": "Confirm changes",
+        "intro": "You are about to change {user}:",
+        "grantAdmin": "Grant ADMIN access: full control of every user and ticket.",
+        "revokeAdmin": "Remove admin access.",
+        "suspend": "Suspend the account: the user is signed out and cannot sign in.",
+        "disable": "Disable the account: the user is signed out and cannot sign in.",
+        "lock": "Lock the account: the user is signed out and cannot sign in.",
+        "proceed": "Apply"
       }
     }
   },
@@ -874,7 +900,10 @@
       "noOpenTickets": "No open tickets",
       "searchPlaceholder": "Search by email or subject...",
       "lastMessage": "Last message",
-      "responses": "{n} response | {n} responses"
+      "responses": "{n} response | {n} responses",
+      "needsReply": "Awaiting reply",
+      "reopen": "Reopen",
+      "noTickets": "No tickets"
     },
     "messages": {
       "created": "Ticket created successfully",
@@ -883,7 +912,9 @@
       "errorCreating": "Error creating ticket",
       "errorLoading": "Error loading tickets",
       "errorSending": "Error sending message",
-      "errorClosing": "Error closing ticket"
+      "errorClosing": "Error closing ticket",
+      "reopened": "Ticket reopened",
+      "errorReopening": "Error reopening ticket"
     }
   },
   "session": {

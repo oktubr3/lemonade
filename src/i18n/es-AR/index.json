@@ -805,7 +805,8 @@
       "badge": {
         "disabled": "Deshabilitado",
         "locked": "Bloqueado",
-        "lockedTooltip": "Bloqueado por inactividad el {date}"
+        "lockedTooltip": "Bloqueado por inactividad el {date}",
+        "you": "Vos"
       },
       "editDialog": {
         "title": "Editar usuario",
@@ -817,14 +818,39 @@
         "lockedSinceBanner": "Bloqueada el {date} por inactividad (sin passwords ni proyectos +90 días).",
         "notesLabel": "Notas de admin",
         "registered": "Registrado: {date}",
-        "passwords": "Passwords: {count}"
+        "passwords": "Passwords: {count}",
+        "selfBanner": "Esta es tu propia cuenta. Rol, deshabilitar y bloquear están desactivados para que no te quedes afuera.",
+        "subscription": "Suscripción: {status}",
+        "copyUid": "Copiar UID"
       },
       "notifications": {
         "accessDenied": "Acceso denegado. Solo administradores.",
         "loadPanelError": "Error cargando panel de administración",
         "accountUnlocked": "Cuenta desbloqueada correctamente",
         "userUpdated": "Usuario actualizado correctamente",
-        "updateError": "Error actualizando usuario"
+        "updateError": "Error actualizando usuario",
+        "uidCopied": "UID copiado"
+      },
+      "refresh": "Actualizar",
+      "sortBy": "Ordenar por",
+      "sort": {
+        "email": "Email",
+        "lastLogin": "Último ingreso",
+        "created": "Cuenta más nueva",
+        "passwords": "Más contraseñas"
+      },
+      "lastLogin": "Último ingreso: {when}",
+      "never": "nunca",
+      "showMore": "Mostrar {count} más (quedan {total})",
+      "confirm": {
+        "title": "Confirmar cambios",
+        "intro": "Vas a cambiar a {user}:",
+        "grantAdmin": "Dar acceso de ADMIN: control total de todos los usuarios y tickets.",
+        "revokeAdmin": "Quitar el acceso de admin.",
+        "suspend": "Suspender la cuenta: se le cierra la sesión y no puede volver a entrar.",
+        "disable": "Deshabilitar la cuenta: se le cierra la sesión y no puede volver a entrar.",
+        "lock": "Bloquear la cuenta: se le cierra la sesión y no puede volver a entrar.",
+        "proceed": "Aplicar"
       }
     }
   },
@@ -874,7 +900,10 @@
       "noOpenTickets": "No hay tickets abiertos",
       "searchPlaceholder": "Buscar por email o asunto...",
       "lastMessage": "Último mensaje",
-      "responses": "{n} respuesta | {n} respuestas"
+      "responses": "{n} respuesta | {n} respuestas",
+      "needsReply": "Esperan respuesta",
+      "reopen": "Reabrir",
+      "noTickets": "No hay tickets"
     },
     "messages": {
       "created": "Ticket creado exitosamente",
@@ -883,7 +912,9 @@
       "errorCreating": "Error al crear el ticket",
       "errorLoading": "Error al cargar tickets",
       "errorSending": "Error al enviar mensaje",
-      "errorClosing": "Error al cerrar el ticket"
+      "errorClosing": "Error al cerrar el ticket",
+      "reopened": "Ticket reabierto",
+      "errorReopening": "Error al reabrir el ticket"
     }
   },
   "session": {

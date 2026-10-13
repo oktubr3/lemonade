@@ -1,3 +1,6 @@
+// Seconds Node had been running before this file started loading. Logged at
+// the bottom to tell container start from module load on a cold start.
+const BOOT_STARTED_AT = process.uptime();
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 // firebase-admin v14 removed the namespaced API (admin.firestore / admin.auth).
@@ -8,9 +11,13 @@ const crypto = require('crypto');
 const cors = require('cors');
 const { defineSecret } = require('firebase-functions/params');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
-const { Polar } = require('@polar-sh/sdk');
-const { validateEvent, WebhookVerificationError } = require('@polar-sh/sdk/webhooks');
-const { HTTPClient } = require('@polar-sh/sdk/lib/http');
+// El import path ES el pin de version de la API: @polar-sh/sdk 1.x publica un
+// modulo por version fechada (/2026-04, /2026-10, /2027-01) en vez del header
+// `Polar-Version`. Cambiar esta ruta cambia el contrato, asi que migrar a
+// 2026-10 es este renglon MAS la version del endpoint de webhooks en el
+// dashboard de Polar (fecha limite: release de enero de 2027, cuando Polar
+// elimina 2026-04).
+const { createPolar, webhooks } = require('@polar-sh/sdk/2026-10');
 const {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -102,36 +109,19 @@ if (isEmulator()) {
   console.log('🍋 Running in PRODUCTION mode - Using Polar PRODUCTION');
 }
 
-// Polar moved to date-based API versioning. The installed SDK (0.49.0) was
-// generated against the 2026-04 spec -- see SDK_METADATA.openapiDocVersion --
-// but it does not send the `Polar-Version` header, so requests fall back to
-// whatever Polar calls "Current". On 2026-10-01 Current becomes 2026-10 and
-// these calls would silently switch contracts with no code change on our side.
-// Pinning the header keeps the contract the SDK was built for; migrating to
-// 2026-10 is a separate, deliberate change (deadline: the January release,
-// when 2026-04 is removed).
-const POLAR_API_VERSION = '2026-04';
-
-const polarHttpClient = new HTTPClient();
-polarHttpClient.addHook('beforeRequest', (request) => {
-  request.headers.set('Polar-Version', POLAR_API_VERSION);
-  return request;
-});
-
-// Helper: Get Polar configuration based on environment
+// Helper: Get Polar configuration based on environment.
+// La version de la API ya no va aca: la fija el import path de arriba.
 const getPolarConfig = (accessTokenSecret) => {
   if (isEmulator()) {
     // In emulators: use SANDBOX variables from .env.local
     return {
       accessToken: process.env.POLAR_SANDBOX_ACCESS_TOKEN?.trim(),
-      server: 'sandbox',
-      httpClient: polarHttpClient
+      environment: 'sandbox'
     };
   }
-  // In production: use Firebase Secrets + production
+  // In production: use Firebase Secrets + production (el default del SDK)
   return {
-    accessToken: accessTokenSecret.value()?.trim(),
-    httpClient: polarHttpClient
+    accessToken: accessTokenSecret.value()?.trim()
   };
 };
 
@@ -155,37 +145,38 @@ const getPolarWebhookSecret = (webhookSecretSecret) => {
 // that date are "legacy": the HMAC key is the base64 of the whole `whsec_...`
 // string, which is exactly what the SDK's validateEvent builds. Secrets issued
 // from that date on follow Standard Webhooks, where the key is the decoded body
-// of the secret instead. The installed SDK (0.49.0) only ever tries the legacy
-// form -- only the 1.0.0-alpha line tries both -- so the day this endpoint's
-// secret is reset or the endpoint is recreated, every delivery would fail
-// verification and this function would answer 403. A customer would pay and
-// never get their role, and nothing on our side would look broken.
+// of the secret instead. SDK 0.49 solo probaba la legacy, asi que este wrapper
+// reintentaba a mano con la otra derivacion: sin eso, resetear el secreto o
+// recrear el endpoint hacia que toda entrega respondiera 403 y el cliente
+// pagara sin recibir su rol, sin que nada se viera roto.
 //
-// Passing the decoded key as a Buffer makes validateEvent use those exact bytes
-// (Buffer.from ignores the encoding argument when the input is already a
-// Buffer). That gets us the Standard Webhooks key while keeping the SDK's
-// payload parsing, which remaps snake_case to camelCase and coerces dates --
-// the whole handler below reads `productId` and `currentPeriodEnd`, so
-// verifying the signature by hand instead would silently break every branch.
-const WEBHOOK_SECRET_PREFIX = 'whsec_';
-
-const validatePolarEvent = (rawBody, headers, secret) => {
-  try {
-    return validateEvent(rawBody, headers, secret);
-  } catch (error) {
-    if (!(error instanceof WebhookVerificationError)) {
-      throw error;
-    }
-    const body = secret?.startsWith(WEBHOOK_SECRET_PREFIX)
-      ? secret.slice(WEBHOOK_SECRET_PREFIX.length)
-      : secret;
-    // Throws WebhookVerificationError again if this scheme does not match
-    // either, which the caller turns into the same 403 as before.
-    const event = validateEvent(rawBody, headers, Buffer.from(body ?? '', 'base64'));
-    console.warn('Polar webhook verified with the Standard Webhooks key - the SDK is due an upgrade');
-    return event;
-  }
-};
+// SDK 1.x prueba las dos derivaciones de un secreto `whsec_...` por si mismo,
+// PERO el secreto real de este proyecto tiene el prefijo nuevo `polar_whs_`, y
+// ahi la 1.x es mas estricta que la 0.49. Medido en `test/polar-webhook.test.cjs`,
+// firmando con cada derivacion y verificando con cada SDK:
+//
+//   firma generada con      | 0.49 + wrapper | 1.x sola
+//   base64(cuerpo)          | RECHAZA        | RECHAZA
+//   utf8(secreto completo)  | acepta         | acepta
+//   base64(secreto completo)| acepta         | RECHAZA   <-- la que falta
+//   secreto distinto        | RECHAZA        | RECHAZA
+//
+// Ese "extra" de la 0.49 NO se puede portar, y conviene que no se intente: el
+// wrapper viejo lo conseguia pasandole un `Buffer` a validateEvent, y la 1.x
+// **rechaza un Buffer con TypeError**. Un reintento asi no daria 403 sino 500,
+// porque el TypeError no es un PolarWebhookVerificationError y sale por el
+// `throw` del handler. Se probo y el test lo atrapo.
+//
+// Por que la verificacion nativa alcanza: con un secreto `polar_whs_` la clave
+// es el UTF-8 del string completo, y eso lo define el SDK **del propio Polar**,
+// que es quien emite el secreto y firma la entrega. La derivacion que la 0.49
+// aceptaba de mas era un artefacto de los Buffers, no un formato de Polar.
+//
+// `validateEvent` ahora es async, y ya NO remapea a camelCase ni convierte
+// fechas: entrega el JSON tal cual lo manda Polar. Por eso el handler de abajo
+// lee `product_id` y `current_period_end`, no sus variantes camelCase.
+const validatePolarEvent = async (rawBody, headers, secret) =>
+  webhooks.validateEvent(rawBody, headers, secret);
 
 const ALGORITHM = 'aes-256-gcm';
 const AUTH_TAG_LENGTH = 16;
@@ -309,15 +300,35 @@ function validatePasswordEntryHttp(data) {
   return true;
 }
 
+// Copy of `value` without undefined properties, at any depth. Only plain
+// objects and arrays are walked: Firestore sentinels (serverTimestamp),
+// Timestamps and Dates are kept as they are.
+function withoutUndefined(value) {
+  if (Array.isArray(value)) return value.filter(item => item !== undefined).map(withoutUndefined);
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, item]) => item !== undefined)
+        .map(([key, item]) => [key, withoutUndefined(item)])
+    );
+  }
+  return value;
+}
+
 // Function to create audit logs
 async function createAuditLog(userId, action, details) {
   try {
+    // Firestore rejects a document with an undefined anywhere in it, and the
+    // catch below only logs: one missing detail (an ip the platform did not
+    // provide, an optional field of the request) and the whole audit record
+    // was lost without anyone noticing. Seen in the production logs.
+    const safeDetails = withoutUndefined(details || {});
     await db.collection('audit_logs').add({
       userId: userId,
       action: action,
-      details: details,
+      details: safeDetails,
       timestamp: serverTimestamp(),
-      ip: details.ip || 'unknown'
+      ip: safeDetails.ip || 'unknown'
     });
   } catch (error) {
     console.error('Error creating audit log:', error);
@@ -3124,6 +3135,144 @@ async function isUserAdmin(userId) {
   }
 }
 
+// Shared gate for the admin endpoints. Responds and returns null when the
+// caller may not proceed; otherwise returns the decoded token.
+//   - The token is checked against revocation (second argument): suspending an
+//     admin revokes its refresh tokens, and without this its current ID token
+//     kept full admin powers for up to an hour. One Auth round trip per call is
+//     fine here; the regular handlers skip it because they are on the hot path.
+//   - ONE rate-limit bucket per action. adminGetUsers and adminGetStats used to
+//     call the limiter twice with the same key, so every request counted double
+//     and the panel hit 429 after half the advertised number of refreshes.
+async function requireAdmin(req, res, action, maxPerMinute) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return null;
+  }
+
+  let decodedToken;
+  try {
+    decodedToken = await getAuth().verifyIdToken(authHeader.split('Bearer ')[1], true);
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
+    return null;
+  }
+
+  if (!await isUserAdmin(decodedToken.uid)) {
+    res.status(403).json({ error: 'Admin access required' });
+    return null;
+  }
+
+  if (!await checkRateLimitPersistent(decodedToken.uid, action, maxPerMinute, 60000)) {
+    res.status(429).json({ error: 'Rate limit exceeded' });
+    return null;
+  }
+
+  return decodedToken;
+}
+
+// Runs `task` over `items` with at most `limit` in flight.
+async function mapWithLimit(items, limit, task) {
+  const results = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await task(items[index], index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+const countOf = async (query) => (await query.count().get()).data().count;
+
+// Sign-in facts of every account, by uid, straight from Firebase Auth (one call
+// per 1000 users). users/{uid} never stored when someone last signed in, and
+// only some old accounts have a createdAt, so the panel had nothing to show.
+async function authFactsByUid() {
+  const facts = new Map();
+  const toIso = (value) => {
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.toISOString() : null;
+  };
+  let pageToken;
+  do {
+    const page = await getAuth().listUsers(1000, pageToken);
+    for (const record of page.users) {
+      facts.set(record.uid, {
+        createdAt: toIso(record.metadata.creationTime),
+        // The last token refresh is the closest thing to "last seen": a session
+        // that stays signed in for weeks still refreshes its token every hour.
+        lastSeenAt: toIso(record.metadata.lastRefreshTime) || toIso(record.metadata.lastSignInTime),
+        emailVerified: record.emailVerified === true
+      });
+    }
+    pageToken = page.pageToken;
+  } while (pageToken);
+  return facts;
+}
+
+// Up to this many entries the per-user counts come from ONE query that reads
+// only the owner of each entry. Above it, one count() per user: a count bills a
+// read per 1000 entries instead of one per entry, but it is a round trip per
+// user, which only pays off once the vaults are large.
+const PASSWORD_SCAN_LIMIT = 20000;
+
+// { total, byUser } of password entries. The panel used to download every entry
+// in full, encrypted payload included, only to count them -- and did it twice
+// per load, once for the list and once for the stats.
+async function passwordCounts(getUids) {
+  const entries = db.collection('password_entries');
+  const total = await countOf(entries);
+  const byUser = {};
+
+  if (total <= PASSWORD_SCAN_LIMIT) {
+    const snapshot = await entries.select('userId').get();
+    snapshot.forEach((doc) => {
+      const owner = doc.get('userId');
+      byUser[owner] = (byUser[owner] || 0) + 1;
+    });
+  } else {
+    const uids = await getUids();
+    const counts = await mapWithLimit(uids, 25, (uid) => countOf(entries.where('userId', '==', uid)));
+    uids.forEach((uid, index) => { byUser[uid] = counts[index]; });
+  }
+
+  return { total, byUser };
+}
+
+// Shares and recent activity, as aggregations: no document is downloaded. The
+// week's activity used to be counted over the last 100 audit logs only, so it
+// could never show more than 100.
+async function sharesAndActivity() {
+  const shares = db.collection('shared_passwords');
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [totalShares, pending, accepted, rejected, recentActions] = await Promise.all([
+    countOf(shares),
+    countOf(shares.where('status', '==', 'pending')),
+    countOf(shares.where('status', '==', 'accepted')),
+    countOf(shares.where('status', '==', 'rejected')),
+    countOf(db.collection('audit_logs').where('timestamp', '>=', timestampFromDate(sevenDaysAgo)))
+  ]);
+  return {
+    shares: {
+      total: totalShares,
+      byStatus: {
+        // A share without a status used to be counted as pending.
+        pending: pending + Math.max(0, totalShares - pending - accepted - rejected),
+        accepted,
+        rejected
+      }
+    },
+    activity: { recentActions, period: '7 days' }
+  };
+}
+
+const ADMIN_ASSIGNABLE_ROLES = ['admin', 'user', 'founder', 'premium', 'trial', 'suspended'];
+const ADMIN_NOTES_MAX_LENGTH = 2000;
+
 // HTTP function to migrate existing users with role field
 exports.migrateUserRolesHttp = functions.https.onRequest({ secrets: [] }, (req, res) => {
   corsHandler(req, res, async () => {
@@ -3275,48 +3424,28 @@ exports.adminGetUsersHttp = functions.https.onRequest({ secrets: [] }, (req, res
     }
 
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
+      if (!await requireAdmin(req, res, 'adminGetUsers', 60)) return;
 
-      const token = authHeader.split('Bearer ')[1];
-      const decodedToken = await getAuth().verifyIdToken(token);
-      const userId = decodedToken.uid;
+      const started = Date.now();
 
-      // Verify admin
-      const isAdmin = await isUserAdmin(userId);
-      if (!isAdmin) {
-        res.status(403).json({ error: 'Admin access required' });
-        return;
-      }
+      // Only the fields the panel shows. One document per account.
+      const usersQuery = db.collection('users')
+        .select('email', 'displayName', 'photoURL', 'role', 'createdAt', 'updatedAt',
+          'lastLoginAt', 'isDisabled', 'adminNotes', 'subscription.status',
+          'subscription.currentPeriodEnd')
+        .get();
 
-      if (!await checkRateLimitPersistent(userId, 'adminGetUsers', 60, 60000)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
+      // Everything at once: the request takes as long as the slowest read.
+      const [usersSnapshot, settingsSnapshot, authFacts, extra, entryCounts] = await Promise.all([
+        usersQuery,
+        db.collection('user_settings')
+          .select('accountLocked', 'accountUnlocked', 'accountLockedAt', 'accountUnlockedAt')
+          .get(),
+        authFactsByUid(),
+        sharesAndActivity(),
+        passwordCounts(async () => (await usersQuery).docs.map(doc => doc.id))
+      ]);
 
-      // Rate limiting
-      if (!await checkRateLimitPersistent(userId, 'adminGetUsers', 30)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
-
-      // Get all users
-      const usersSnapshot = await db.collection('users').get();
-      const users = [];
-
-      // Get password count per user
-      const passwordsSnapshot = await db.collection('password_entries').get();
-      const passwordCountByUser = {};
-      passwordsSnapshot.forEach(doc => {
-        const data = doc.data();
-        passwordCountByUser[data.userId] = (passwordCountByUser[data.userId] || 0) + 1;
-      });
-
-      // Get lock state from user_settings
-      const settingsSnapshot = await db.collection('user_settings').get();
       const lockStateByUser = {};
       settingsSnapshot.forEach(doc => {
         const data = doc.data();
@@ -3328,34 +3457,64 @@ exports.adminGetUsersHttp = functions.https.onRequest({ secrets: [] }, (req, res
         };
       });
 
-      for (const doc of usersSnapshot.docs) {
+      const users = usersSnapshot.docs.map((doc) => {
         const userData = doc.data();
         const lockState = lockStateByUser[doc.id] || {};
-        users.push({
+        const facts = authFacts.get(doc.id) || {};
+        return {
           uid: doc.id,
           email: userData.email || '',
           displayName: userData.displayName || '',
           photoURL: userData.photoURL || '',
           role: userData.role || 'user',
-          createdAt: userData.createdAt,
+          createdAt: userData.createdAt || facts.createdAt || null,
           updatedAt: userData.updatedAt,
-          lastLoginAt: userData.lastLoginAt || null,
-          passwordCount: passwordCountByUser[doc.id] || 0,
+          lastLoginAt: facts.lastSeenAt || userData.lastLoginAt || null,
+          emailVerified: facts.emailVerified === true,
+          passwordCount: entryCounts.byUser[doc.id] || 0,
           isDisabled: userData.isDisabled || false,
+          // Without this the edit dialog always opened with empty notes and
+          // saving any change wiped the stored ones.
+          adminNotes: userData.adminNotes || '',
+          subscription: userData.subscription
+            ? {
+              status: userData.subscription.status || null,
+              currentPeriodEnd: userData.subscription.currentPeriodEnd || null
+            }
+            : null,
           accountLocked: lockState.accountLocked || false,
           accountUnlocked: lockState.accountUnlocked || false,
           accountLockedAt: lockState.accountLockedAt || null,
           accountUnlockedAt: lockState.accountUnlockedAt || null
-        });
-      }
+        };
+      });
 
       // Sort by email
       users.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
 
+      // The stats travel with the list. They used to be a second function, and
+      // every function is its own container: opening the panel after a quiet
+      // while meant waiting for three cold starts (measured in production on
+      // 2026-10-13: 14 s for the container to boot, 1.3 s for the request).
+      const byRole = { admin: 0, user: 0, founder: 0, premium: 0, trial: 0, suspended: 0 };
+      let disabled = 0;
+      for (const user of users) {
+        byRole[user.role] = (byRole[user.role] || 0) + 1;
+        if (user.isDisabled) disabled++;
+      }
+      const stats = {
+        users: { total: users.length, byRole, disabled },
+        passwords: { total: entryCounts.total },
+        ...extra
+      };
+
+      console.log(`[admin] getUsers users=${users.length} entries=${entryCounts.total} ms=${Date.now() - started}`);
+
       res.json({
         success: true,
         users,
-        totalUsers: users.length
+        totalUsers: users.length,
+        stats
       });
 
     } catch (error) {
@@ -3379,37 +3538,47 @@ exports.adminUpdateUserHttp = functions.https.onRequest({ secrets: [] }, (req, r
     }
 
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
-
-      const token = authHeader.split('Bearer ')[1];
-      const decodedToken = await getAuth().verifyIdToken(token);
+      const decodedToken = await requireAdmin(req, res, 'adminUpdateUser', 30);
+      if (!decodedToken) return;
       const adminUserId = decodedToken.uid;
       const adminEmail = decodedToken.email;
 
-      // Verify admin
-      const isAdmin = await isUserAdmin(adminUserId);
-      if (!isAdmin) {
-        res.status(403).json({ error: 'Admin access required' });
-        return;
-      }
+      const { targetUserId, updates } = req.body || {};
 
-      if (!await checkRateLimitPersistent(adminUserId, 'adminUpdateUser', 30, 60000)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
-
-      const { targetUserId, updates } = req.body;
-
-      if (!targetUserId) {
+      if (typeof targetUserId !== 'string' || !targetUserId || targetUserId.length > 128 || targetUserId.includes('/')) {
         res.status(400).json({ error: 'Target user ID is required' });
         return;
       }
-      if (!updates || typeof updates !== 'object') {
+      if (!updates || typeof updates !== 'object' || Array.isArray(updates)) {
         res.status(400).json({ error: 'Updates object is required' });
+        return;
+      }
+      // An unknown role used to be dropped in silence and the call still
+      // answered "updated". Reject it, so a typo is not mistaken for a change.
+      if (updates.role !== undefined && !ADMIN_ASSIGNABLE_ROLES.includes(updates.role)) {
+        res.status(400).json({ error: 'Invalid role' });
+        return;
+      }
+      if (updates.notes !== undefined
+        && (typeof updates.notes !== 'string' || updates.notes.length > ADMIN_NOTES_MAX_LENGTH)) {
+        res.status(400).json({ error: `Notes must be text of at most ${ADMIN_NOTES_MAX_LENGTH} characters` });
+        return;
+      }
+      for (const flag of ['isDisabled', 'accountLocked']) {
+        if (updates[flag] !== undefined && typeof updates[flag] !== 'boolean') {
+          res.status(400).json({ error: `${flag} must be true or false` });
+          return;
+        }
+      }
+
+      // An admin cannot take its own access away: one wrong click on your own
+      // row would lock you out of the only screen that can undo it.
+      if (targetUserId === adminUserId && (
+        (updates.role !== undefined && updates.role !== 'admin') ||
+        updates.isDisabled === true ||
+        updates.accountLocked === true
+      )) {
+        res.status(403).json({ error: 'You cannot remove your own admin access' });
         return;
       }
 
@@ -3434,13 +3603,24 @@ exports.adminUpdateUserHttp = functions.https.onRequest({ secrets: [] }, (req, r
         return;
       }
 
+      // Making someone an admin, or taking it away, is reserved to the primary
+      // admins (verified email in ADMIN_EMAILS). Any admin could do it before,
+      // so one compromised or careless admin account could mint more admins.
+      const currentRole = targetUserData.role || 'user';
+      const changesAdminRole = updates.role !== undefined && updates.role !== currentRole
+        && (updates.role === 'admin' || currentRole === 'admin');
+      if (changesAdminRole && !isVerifiedAdminToken(decodedToken)) {
+        res.status(403).json({ error: 'Only a primary admin can grant or revoke the admin role' });
+        return;
+      }
+
       // Allowed fields to update in users collection
       const allowedUpdates = {};
-      if (updates.role !== undefined && ['admin', 'user', 'founder', 'premium', 'trial', 'suspended'].includes(updates.role)) {
+      if (updates.role !== undefined) {
         allowedUpdates.role = updates.role;
       }
       if (updates.isDisabled !== undefined) {
-        allowedUpdates.isDisabled = !!updates.isDisabled;
+        allowedUpdates.isDisabled = updates.isDisabled;
       }
       if (updates.notes !== undefined) {
         allowedUpdates.adminNotes = sanitizeInput(updates.notes);
@@ -3537,89 +3717,41 @@ exports.adminGetStatsHttp = functions.https.onRequest({ secrets: [] }, (req, res
     }
 
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ error: 'Unauthorized' });
-        return;
-      }
+      if (!await requireAdmin(req, res, 'adminGetStats', 60)) return;
 
-      const token = authHeader.split('Bearer ')[1];
-      const decodedToken = await getAuth().verifyIdToken(token);
-      const userId = decodedToken.uid;
+      const started = Date.now();
+      const users = db.collection('users');
 
-      // Verify admin
-      const isAdmin = await isUserAdmin(userId);
-      if (!isAdmin) {
-        res.status(403).json({ error: 'Admin access required' });
-        return;
-      }
+      // Kept for app versions that still ask for the stats on their own; the
+      // panel now gets them with the user list. Every figure is an aggregation.
+      const [totalUsers, admins, founders, premium, trial, suspended, disabled, totalPasswords, extra] =
+        await Promise.all([
+          countOf(users),
+          countOf(users.where('role', '==', 'admin')),
+          countOf(users.where('role', '==', 'founder')),
+          countOf(users.where('role', '==', 'premium')),
+          countOf(users.where('role', '==', 'trial')),
+          countOf(users.where('role', '==', 'suspended')),
+          countOf(users.where('isDisabled', '==', true)),
+          countOf(db.collection('password_entries')),
+          sharesAndActivity()
+        ]);
 
-      if (!await checkRateLimitPersistent(userId, 'adminGetStats', 40, 60000)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
+      // Accounts without a role field are plain users.
+      const plainUsers = Math.max(0, totalUsers - admins - founders - premium - trial - suspended);
 
-      // Rate limiting
-      if (!await checkRateLimitPersistent(userId, 'adminGetStats', 20)) {
-        res.status(429).json({ error: 'Rate limit exceeded' });
-        return;
-      }
-
-      // Get statistics
-      const [usersSnapshot, passwordsSnapshot, sharedSnapshot, auditSnapshot] = await Promise.all([
-        db.collection('users').get(),
-        db.collection('password_entries').get(),
-        db.collection('shared_passwords').get(),
-        db.collection('audit_logs').orderBy('timestamp', 'desc').limit(100).get()
-      ]);
-
-      // Count users by role
-      const roleCount = { admin: 0, user: 0, premium: 0, trial: 0, suspended: 0 };
-      let disabledCount = 0;
-      usersSnapshot.forEach(doc => {
-        const data = doc.data();
-        const role = data.role || 'user';
-        roleCount[role] = (roleCount[role] || 0) + 1;
-        if (data.isDisabled) disabledCount++;
-      });
-
-      // Count shares by status
-      const shareCount = { pending: 0, accepted: 0, rejected: 0 };
-      sharedSnapshot.forEach(doc => {
-        const status = doc.data().status || 'pending';
-        shareCount[status] = (shareCount[status] || 0) + 1;
-      });
-
-      // Recent activity (last 7 days)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      let recentActivityCount = 0;
-      auditSnapshot.forEach(doc => {
-        const timestamp = doc.data().timestamp?.toDate?.();
-        if (timestamp && timestamp > sevenDaysAgo) {
-          recentActivityCount++;
-        }
-      });
+      console.log(`[admin] getStats ms=${Date.now() - started}`);
 
       res.json({
         success: true,
         stats: {
           users: {
-            total: usersSnapshot.size,
-            byRole: roleCount,
-            disabled: disabledCount
+            total: totalUsers,
+            byRole: { admin: admins, user: plainUsers, founder: founders, premium, trial, suspended },
+            disabled
           },
-          passwords: {
-            total: passwordsSnapshot.size
-          },
-          shares: {
-            total: sharedSnapshot.size,
-            byStatus: shareCount
-          },
-          activity: {
-            recentActions: recentActivityCount,
-            period: '7 days'
-          }
+          passwords: { total: totalPasswords },
+          ...extra
         }
       });
 
@@ -3671,17 +3803,19 @@ exports.createCheckoutUrl = functions.https.onRequest({
       }
 
       // Initialize Polar SDK (auto-detects sandbox vs production)
-      const polar = new Polar(getPolarConfig(polarAccessToken));
+      const polar = createPolar(getPolarConfig(polarAccessToken));
 
       // Create checkout (successUrl changes based on environment)
       const successUrl = isEmulator()
         ? 'http://localhost:9000/#/settings?subscription=success'
         : 'https://app.lemonadepass.app/#/settings?subscription=success';
 
+      // snake_case: SDK 1.x manda el body tal cual. La 0.49 (generada por
+      // Speakeasy) traducia camelCase por nosotros; esta no.
       const checkout = await polar.checkouts.create({
         products: [getPolarProductId(polarProductId)],
-        customerEmail: userEmail,
-        successUrl,
+        customer_email: userEmail,
+        success_url: successUrl,
         metadata: {
           user_id: userId
         }
@@ -3739,20 +3873,23 @@ exports.getCustomerPortalUrl = functions.https.onRequest({
       }
 
       // Initialize Polar SDK (auto-detects sandbox vs production)
-      const polar = new Polar(getPolarConfig(polarAccessToken));
+      const polar = createPolar(getPolarConfig(polarAccessToken));
 
-      // Get customer portal session
+      // Get customer portal session.
+      // snake_case en el request Y en la respuesta: SDK 1.x no traduce.
+      // `userData.subscription.customerId` es nuestro campo en Firestore, no
+      // del SDK, asi que ese se queda como esta.
       const session = await polar.customerSessions.create({
-        customerId: userData.subscription.customerId
+        customer_id: userData.subscription.customerId
       });
 
-      if (!session || !session.customerPortalUrl) {
+      if (!session || !session.customer_portal_url) {
         console.error('No customer portal URL returned:', session);
         res.status(404).json({ error: 'Customer portal not available' });
         return;
       }
 
-      res.json({ success: true, customerPortalUrl: session.customerPortalUrl });
+      res.json({ success: true, customerPortalUrl: session.customer_portal_url });
 
     } catch (error) {
       console.error('Error getting customer portal URL:', error);
@@ -3793,13 +3930,16 @@ exports.handlePolarWebhook = functions.https.onRequest({
       event = JSON.parse(rawBody.toString());
     } else {
       try {
-        event = validatePolarEvent(
+        // await: validateEvent es async desde SDK 1.x. Sin el await, un rechazo
+        // de firma seria una promesa rechazada fuera del try y el endpoint
+        // seguiria procesando un evento sin verificar.
+        event = await validatePolarEvent(
           rawBody,
           req.headers,
           getPolarWebhookSecret(polarWebhookSecret)
         );
       } catch (error) {
-        if (error instanceof WebhookVerificationError) {
+        if (error instanceof webhooks.PolarWebhookVerificationError) {
           console.error('Invalid webhook signature');
           res.status(403).send('Invalid signature');
           return;
@@ -3837,8 +3977,11 @@ exports.handlePolarWebhook = functions.https.onRequest({
             status: data.status,
             provider: 'polar',
             customerId: data.customer?.id,
-            productId: data.productId,
-            currentPeriodEnd: data.currentPeriodEnd,
+            productId: data.product_id,
+            // new Date(): SDK 1.x entrega la fecha como string. La 0.49 la
+            // convertia a Date, que Firestore guardaba como Timestamp. Sin esto
+            // el campo cambia de tipo en la base sin que nada falle.
+            currentPeriodEnd: data.current_period_end ? new Date(data.current_period_end) : null,
             updatedAt: serverTimestamp()
           }
         });
@@ -3860,12 +4003,12 @@ exports.handlePolarWebhook = functions.https.onRequest({
             status: 'canceled',
             provider: 'polar',
             customerId: data.customer?.id,
-            currentPeriodEnd: data.currentPeriodEnd ? new Date(data.currentPeriodEnd) : null,
+            currentPeriodEnd: data.current_period_end ? new Date(data.current_period_end) : null,
             cancelledAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           }
         });
-        console.log(`User ${userId} subscription canceled - premium until ${data.currentPeriodEnd}`);
+        console.log(`User ${userId} subscription canceled - premium until ${data.current_period_end}`);
         break;
       }
 
@@ -3892,7 +4035,7 @@ exports.handlePolarWebhook = functions.https.onRequest({
 
       case 'checkout.created':
       case 'checkout.updated': {
-        console.log(`Checkout ${eventType} for product ${data.productId}`);
+        console.log(`Checkout ${eventType} for product ${data.product_id}`);
         break;
       }
 
@@ -3919,8 +4062,8 @@ exports.handlePolarWebhook = functions.https.onRequest({
           provider: 'polar',
           type: 'one_time',
           customerId: data.customer?.id || null,
-          productId: data.productId || data.product?.id || null,
-          amount: data.amount || data.totalAmount || null,
+          productId: data.product_id || data.product?.id || null,
+          amount: data.amount || data.total_amount || null,
           currency: data.currency || null,
           paidAt: serverTimestamp(),
           updatedAt: serverTimestamp()
@@ -4009,6 +4152,66 @@ exports.expireCanceledSubscriptions = onSchedule('every 24 hours', async () => {
 // TICKET SYSTEM - Support tickets for users
 // =============================================================================
 
+const TICKET_SUBJECT_MAX_LENGTH = 200;
+const TICKET_MESSAGE_MAX_LENGTH = 2000;
+// A ticket keeps its messages in one array on the document. Without a ceiling
+// a single conversation can grow until it hits Firestore's 1 MB document limit
+// and then every write to it fails, for the user and for support alike.
+const TICKET_MAX_MESSAGES = 200;
+
+// Text that is really a string and not empty once trimmed. sanitizeInput
+// returns non-strings untouched, and `value.length` is undefined for an
+// object, so `{ "subject": {...} }` used to pass every check and be stored.
+const isNonEmptyText = (value, maxLength) =>
+  typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
+
+// Common entry for the ticket endpoints: POST only, a valid session and one
+// rate-limit bucket. Responds and returns null when the caller may not go on.
+async function requireTicketCaller(req, res, action, maxPerMinute) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return null;
+  }
+
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'No autorizado' });
+    return null;
+  }
+
+  let decodedToken;
+  try {
+    decodedToken = await getAuth().verifyIdToken(authHeader.split('Bearer ')[1]);
+  } catch {
+    res.status(401).json({ error: 'No autorizado' });
+    return null;
+  }
+
+  if (!await checkRateLimitPersistent(decodedToken.uid, action, maxPerMinute, 60000)) {
+    res.status(429).json({ error: 'Too many requests, try again in a minute' });
+    return null;
+  }
+
+  return decodedToken;
+}
+
+// Thrown inside a ticket transaction to answer with a specific status.
+class TicketError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+  }
+}
+
+const ticketErrorResponse = (res, error, fallback) => {
+  if (error instanceof TicketError) {
+    res.status(error.status).json({ error: error.message });
+    return;
+  }
+  console.error(fallback, error);
+  res.status(500).json({ error: fallback });
+};
+
 /**
  * Create a new support ticket
  * Requires authentication
@@ -4016,83 +4219,73 @@ exports.expireCanceledSubscriptions = onSchedule('every 24 hours', async () => {
 exports.createTicketHttp = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+      const decodedToken = await requireTicketCaller(req, res, 'createTicket', 5);
+      if (!decodedToken) return;
+      const userId = decodedToken.uid;
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+      const { subject, message } = req.body || {};
 
-    const { subject, message } = req.body;
-
-    if (!subject || !message) {
-      res.status(400).json({ error: 'Subject y message son requeridos' });
-      return;
-    }
-
-    if (subject.length > 200) {
-      res.status(400).json({ error: 'Subject muy largo (max 200 caracteres)' });
-      return;
-    }
-
-    if (message.length > 2000) {
-      res.status(400).json({ error: 'Mensaje muy largo (max 2000 caracteres)' });
-      return;
-    }
-
-    // Rate limiting: max 10 tickets per day per user
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const recentTickets = await db.collection('tickets')
-      .where('userId', '==', userId)
-      .where('createdAt', '>=', timestampFromDate(today))
-      .get();
-
-    if (recentTickets.size >= 10) {
-      res.status(429).json({ error: 'Daily limit reached (10 tickets/day)' });
-      return;
-    }
-
-    // Get user info
-    const userRecord = await getAuth().getUser(userId);
-    const userName = userRecord.displayName || userRecord.email?.split('@')[0] || 'User';
-
-    const now = serverTimestamp();
-    const messageId = 'msg-' + Date.now();
-    const ticketData = {
-      userId,
-      userEmail: userRecord.email || '',
-      userName: userName,
-      subject: sanitizeInput(subject),
-      status: 'open',
-      createdAt: now,
-      updatedAt: now,
-      closedAt: null,
-      messages: [{
-        id: messageId,
-        content: sanitizeInput(message),
-        senderId: userId,
-        senderName: userName,
-        isAdmin: false,
-        createdAt: new Date().toISOString()
-      }]
-    };
-
-    const docRef = await db.collection('tickets').add(ticketData);
-
-    res.status(200).json({
-      success: true,
-      ticket: {
-        id: docRef.id,
-        ...ticketData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+      if (!isNonEmptyText(subject, TICKET_SUBJECT_MAX_LENGTH)) {
+        res.status(400).json({ error: `Subject is required (max ${TICKET_SUBJECT_MAX_LENGTH} characters)` });
+        return;
       }
-    });
+
+      if (!isNonEmptyText(message, TICKET_MESSAGE_MAX_LENGTH)) {
+        res.status(400).json({ error: `Message is required (max ${TICKET_MESSAGE_MAX_LENGTH} characters)` });
+        return;
+      }
+
+      // Max 10 tickets per day per user
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const recentTickets = await db.collection('tickets')
+        .where('userId', '==', userId)
+        .where('createdAt', '>=', timestampFromDate(today))
+        .count()
+        .get();
+
+      if (recentTickets.data().count >= 10) {
+        res.status(429).json({ error: 'Daily limit reached (10 tickets/day)' });
+        return;
+      }
+
+      // Get user info
+      const userRecord = await getAuth().getUser(userId);
+      const userName = userRecord.displayName || userRecord.email?.split('@')[0] || 'User';
+
+      const now = serverTimestamp();
+      const messageId = 'msg-' + Date.now();
+      const ticketData = {
+        userId,
+        userEmail: userRecord.email || '',
+        userName: userName,
+        subject: sanitizeInput(subject),
+        status: 'open',
+        createdAt: now,
+        updatedAt: now,
+        closedAt: null,
+        messages: [{
+          id: messageId,
+          content: sanitizeInput(message),
+          senderId: userId,
+          senderName: userName,
+          isAdmin: false,
+          createdAt: new Date().toISOString()
+        }]
+      };
+
+      const docRef = await db.collection('tickets').add(ticketData);
+
+      res.status(200).json({
+        success: true,
+        ticket: {
+          id: docRef.id,
+          ...ticketData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      });
 
     } catch (error) {
       console.error('Error creating ticket:', error);
@@ -4108,46 +4301,39 @@ exports.createTicketHttp = functions.https.onRequest(async (req, res) => {
 exports.getMyTicketsHttp = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+      const decodedToken = await requireTicketCaller(req, res, 'getMyTickets', 60);
+      if (!decodedToken) return;
+      const userId = decodedToken.uid;
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+      let ticketsSnap;
+      try {
+        // Try with orderBy (requires composite index)
+        ticketsSnap = await db.collection('tickets')
+          .where('userId', '==', userId)
+          .orderBy('updatedAt', 'desc')
+          .limit(50)
+          .get();
+      } catch (indexError) {
+        // Fallback without orderBy if index doesn't exist yet
+        console.warn('Index not ready, fetching without order:', indexError.message);
+        ticketsSnap = await db.collection('tickets')
+          .where('userId', '==', userId)
+          .limit(50)
+          .get();
+      }
 
-    let ticketsSnap;
-    try {
-      // Try with orderBy (requires composite index)
-      ticketsSnap = await db.collection('tickets')
-        .where('userId', '==', userId)
-        .orderBy('updatedAt', 'desc')
-        .limit(50)
-        .get();
-    } catch (indexError) {
-      // Fallback without orderBy if index doesn't exist yet
-      console.warn('Index not ready, fetching without order:', indexError.message);
-      ticketsSnap = await db.collection('tickets')
-        .where('userId', '==', userId)
-        .limit(50)
-        .get();
-    }
+      const tickets = ticketsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-    const tickets = ticketsSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+      // Sort in memory if we fell back to unordered query. updatedAt is a
+      // Firestore Timestamp here: `new Date(timestamp)` is an invalid date and
+      // made this comparison a no-op.
+      const millis = (value) => value?.toMillis?.() ?? (value ? new Date(value).getTime() : 0);
+      tickets.sort((a, b) => millis(b.updatedAt) - millis(a.updatedAt));
 
-    // Sort in memory if we fell back to unordered query
-    tickets.sort((a, b) => {
-      const dateA = a.updatedAt ? new Date(a.updatedAt) : new Date(0);
-      const dateB = b.updatedAt ? new Date(b.updatedAt) : new Date(0);
-      return dateB - dateA;
-    });
-
-    res.status(200).json({ tickets });
+      res.status(200).json({ tickets });
 
     } catch (error) {
       console.error('Error fetching tickets:', error);
@@ -4163,160 +4349,134 @@ exports.getMyTicketsHttp = functions.https.onRequest(async (req, res) => {
 exports.addTicketMessageHttp = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+      const decodedToken = await requireTicketCaller(req, res, 'addTicketMessage', 20);
+      if (!decodedToken) return;
+      const userId = decodedToken.uid;
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+      const { ticketId, content } = req.body || {};
 
-    const { ticketId, content } = req.body;
-
-    if (!ticketId || !content) {
-      res.status(400).json({ error: 'ticketId y content son requeridos' });
-      return;
-    }
-
-    if (content.length > 2000) {
-      res.status(400).json({ error: 'Mensaje muy largo (max 2000 caracteres)' });
-      return;
-    }
-
-    // Get ticket
-    const ticketRef = db.collection('tickets').doc(ticketId);
-    const ticketSnap = await ticketRef.get();
-
-    if (!ticketSnap.exists) {
-      res.status(404).json({ error: 'Ticket no encontrado' });
-      return;
-    }
-
-    const ticket = ticketSnap.data();
-
-    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
-    // 'founder' is a beta-tester entitlement, not an authority role)
-    const isAdmin = await isUserAdmin(userId);
-
-    // User can only message their own tickets
-    if (ticket.userId !== userId && !isAdmin) {
-      res.status(403).json({ error: 'No autorizado para este ticket' });
-      return;
-    }
-
-    // Check if ticket is closed
-    if (ticket.status === 'closed') {
-      res.status(400).json({ error: 'Cannot reply to a closed ticket' });
-      return;
-    }
-
-    // Get sender info
-    const userRecord = await getAuth().getUser(userId);
-    const senderName = isAdmin ? 'Support' : (userRecord.displayName || userRecord.email?.split('@')[0] || 'User');
-    const messageId = 'msg-' + Date.now();
-
-    const newMessage = {
-      id: messageId,
-      content: sanitizeInput(content),
-      senderId: userId,
-      senderName: senderName,
-      isAdmin,
-      createdAt: new Date().toISOString()
-    };
-
-    await ticketRef.update({
-      messages: arrayUnion(newMessage),
-      updatedAt: serverTimestamp()
-    });
-
-    // Get updated ticket
-    const updatedSnap = await ticketRef.get();
-
-    res.status(200).json({
-      success: true,
-      ticket: {
-        id: ticketId,
-        ...updatedSnap.data()
+      if (!isNonEmptyText(ticketId, 128) || ticketId.includes('/')) {
+        res.status(400).json({ error: 'ticketId es requerido' });
+        return;
       }
-    });
+
+      if (!isNonEmptyText(content, TICKET_MESSAGE_MAX_LENGTH)) {
+        res.status(400).json({ error: `Message is required (max ${TICKET_MESSAGE_MAX_LENGTH} characters)` });
+        return;
+      }
+
+      // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+      // 'founder' is a beta-tester entitlement, not an authority role)
+      const isAdmin = await isUserAdmin(userId);
+
+      // Get sender info
+      const userRecord = await getAuth().getUser(userId);
+      const senderName = isAdmin ? 'Support' : (userRecord.displayName || userRecord.email?.split('@')[0] || 'User');
+
+      const newMessage = {
+        id: 'msg-' + Date.now(),
+        content: sanitizeInput(content),
+        senderId: userId,
+        senderName: senderName,
+        isAdmin,
+        createdAt: new Date().toISOString()
+      };
+
+      // Read and write in one transaction: with a plain get() + update() a reply
+      // could land on a ticket that was closed in between, and two messages
+      // sent at once could both pass the size check.
+      const ticketRef = db.collection('tickets').doc(ticketId);
+      const ticket = await db.runTransaction(async (tx) => {
+        const ticketSnap = await tx.get(ticketRef);
+        if (!ticketSnap.exists) throw new TicketError(404, 'Ticket no encontrado');
+
+        const current = ticketSnap.data();
+        // User can only message their own tickets
+        if (current.userId !== userId && !isAdmin) throw new TicketError(403, 'No autorizado para este ticket');
+        if (current.status === 'closed') throw new TicketError(400, 'Cannot reply to a closed ticket');
+
+        const messages = Array.isArray(current.messages) ? current.messages : [];
+        if (messages.length >= TICKET_MAX_MESSAGES) {
+          throw new TicketError(400, 'This ticket reached its message limit. Please open a new one.');
+        }
+
+        tx.update(ticketRef, {
+          messages: [...messages, newMessage],
+          updatedAt: serverTimestamp()
+        });
+        return { ...current, messages: [...messages, newMessage], updatedAt: new Date().toISOString() };
+      });
+
+      res.status(200).json({
+        success: true,
+        ticket: { id: ticketId, ...ticket }
+      });
 
     } catch (error) {
-      console.error('Error adding message:', error);
-      res.status(500).json({ error: 'Error sending message' });
+      ticketErrorResponse(res, error, 'Error sending message');
     }
   });
 });
+
+// Closes or reopens a ticket. The owner and any admin may do either.
+const setTicketStatus = (action, status) => async (req, res) => {
+  corsHandler(req, res, async () => {
+    try {
+      const decodedToken = await requireTicketCaller(req, res, action, 20);
+      if (!decodedToken) return;
+      const userId = decodedToken.uid;
+
+      const { ticketId } = req.body || {};
+
+      if (!isNonEmptyText(ticketId, 128) || ticketId.includes('/')) {
+        res.status(400).json({ error: 'ticketId es requerido' });
+        return;
+      }
+
+      // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+      // 'founder' is a beta-tester entitlement, not an authority role)
+      const isAdmin = await isUserAdmin(userId);
+
+      const ticketRef = db.collection('tickets').doc(ticketId);
+      const ticket = await db.runTransaction(async (tx) => {
+        const ticketSnap = await tx.get(ticketRef);
+        if (!ticketSnap.exists) throw new TicketError(404, 'Ticket no encontrado');
+
+        const current = ticketSnap.data();
+        if (current.userId !== userId && !isAdmin) throw new TicketError(403, 'No autorizado para este ticket');
+
+        const change = {
+          status,
+          closedAt: status === 'closed' ? serverTimestamp() : null,
+          updatedAt: serverTimestamp()
+        };
+        tx.update(ticketRef, change);
+        const nowIso = new Date().toISOString();
+        return { ...current, ...change, closedAt: status === 'closed' ? nowIso : null, updatedAt: nowIso };
+      });
+
+      res.status(200).json({
+        success: true,
+        ticket: { id: ticketId, ...ticket }
+      });
+
+    } catch (error) {
+      ticketErrorResponse(res, error, status === 'closed' ? 'Error closing ticket' : 'Error reopening ticket');
+    }
+  });
+};
 
 /**
  * Close a ticket
  * User can close their own tickets, admin can close any
  */
-exports.closeTicketHttp = functions.https.onRequest(async (req, res) => {
-  corsHandler(req, res, async () => {
-    try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+exports.closeTicketHttp = functions.https.onRequest(setTicketStatus('closeTicket', 'closed'));
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
-
-    const { ticketId } = req.body;
-
-    if (!ticketId) {
-      res.status(400).json({ error: 'ticketId es requerido' });
-      return;
-    }
-
-    // Get ticket
-    const ticketRef = db.collection('tickets').doc(ticketId);
-    const ticketSnap = await ticketRef.get();
-
-    if (!ticketSnap.exists) {
-      res.status(404).json({ error: 'Ticket no encontrado' });
-      return;
-    }
-
-    const ticket = ticketSnap.data();
-
-    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
-    // 'founder' is a beta-tester entitlement, not an authority role)
-    const isAdmin = await isUserAdmin(userId);
-
-    // User can only close their own tickets
-    if (ticket.userId !== userId && !isAdmin) {
-      res.status(403).json({ error: 'No autorizado para este ticket' });
-      return;
-    }
-
-    await ticketRef.update({
-      status: 'closed',
-      closedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-
-    // Get updated ticket
-    const updatedSnap = await ticketRef.get();
-
-    res.status(200).json({
-      success: true,
-      ticket: {
-        id: ticketId,
-        ...updatedSnap.data()
-      }
-    });
-
-    } catch (error) {
-      console.error('Error closing ticket:', error);
-      res.status(500).json({ error: 'Error closing ticket' });
-    }
-  });
-});
+/**
+ * Reopen a closed ticket
+ * Same permissions as closing
+ */
+exports.reopenTicketHttp = functions.https.onRequest(setTicketStatus('reopenTicket', 'open'));
 
 /**
  * [ADMIN] Get all tickets
@@ -4325,36 +4485,27 @@ exports.closeTicketHttp = functions.https.onRequest(async (req, res) => {
 exports.adminGetTicketsHttp = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+      const decodedToken = await requireTicketCaller(req, res, 'adminGetTickets', 60);
+      if (!decodedToken) return;
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+      // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+      // 'founder' is a beta-tester entitlement, not an authority role)
+      if (!await isUserAdmin(decodedToken.uid)) {
+        res.status(403).json({ error: 'Acceso denegado' });
+        return;
+      }
 
-    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
-    // 'founder' is a beta-tester entitlement, not an authority role)
-    const isAdmin = await isUserAdmin(userId);
+      const ticketsSnap = await db.collection('tickets')
+        .orderBy('updatedAt', 'desc')
+        .limit(200)
+        .get();
 
-    if (!isAdmin) {
-      res.status(403).json({ error: 'Acceso denegado' });
-      return;
-    }
+      const tickets = ticketsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
 
-    const ticketsSnap = await db.collection('tickets')
-      .orderBy('updatedAt', 'desc')
-      .limit(200)
-      .get();
-
-    const tickets = ticketsSnap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    res.status(200).json({ tickets });
+      res.status(200).json({ tickets });
 
     } catch (error) {
       console.error('Error fetching all tickets:', error);
@@ -4370,29 +4521,20 @@ exports.adminGetTicketsHttp = functions.https.onRequest(async (req, res) => {
 exports.getOpenTicketsCountHttp = functions.https.onRequest(async (req, res) => {
   corsHandler(req, res, async () => {
     try {
-      const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'No autorizado' });
-      return;
-    }
+      const decodedToken = await requireTicketCaller(req, res, 'getOpenTicketsCount', 60);
+      if (!decodedToken) return;
 
-    const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await getAuth().verifyIdToken(token);
-    const userId = decodedToken.uid;
+      // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
+      // 'founder' is a beta-tester entitlement, not an authority role)
+      if (!await isUserAdmin(decodedToken.uid)) {
+        res.status(403).json({ error: 'Acceso denegado' });
+        return;
+      }
 
-    // Check if admin (role 'admin' only, same as isUserAdmin everywhere else:
-    // 'founder' is a beta-tester entitlement, not an authority role)
-    const isAdmin = await isUserAdmin(userId);
-
-    if (!isAdmin) {
-      res.status(403).json({ error: 'Acceso denegado' });
-      return;
-    }
-
-    const openTicketsSnap = await db.collection('tickets')
-      .where('status', '==', 'open')
-      .count()
-      .get();
+      const openTicketsSnap = await db.collection('tickets')
+        .where('status', '==', 'open')
+        .count()
+        .get();
 
       res.status(200).json({ count: openTicketsSnap.data().count });
 
@@ -6570,48 +6712,99 @@ exports.purgeEphemeralDocs = onSchedule({ schedule: 'every 24 hours', timeoutSec
 });
 
 /**
- * Keeps the user-facing functions warm.
+ * Keeps every function the app calls warm.
  *
  * Every function is a separate Cloud Run service, so warming one does NOT warm
- * any other — pinging healthCheck leaves the decrypt path just as cold. Measured
- * cold start on this project is 7.7-9.3s against 0.24s warm, and Cloud Run
- * reclaims idle instances after a few minutes, so these are pinged on a short
- * cycle.
+ * any other. Measured cold start on this project is 8-14s against 0.24s warm,
+ * and Cloud Run reclaims idle instances after a few minutes, so these are
+ * pinged on a short cycle. It works: over three days of production logs
+ * (2026-10-13), 15 of the 17 functions then listed never booted cold, one did
+ * once and one six times.
  *
- * This keeps ONE instance of each alive. A second concurrent user still pays a
- * cold start; only minInstances removes that, at the cost of billing an idle
- * instance around the clock.
+ * The list used to hold only the first-screen paths, which left every write
+ * (save, delete, share, ticket reply) paying the full boot the first time it
+ * was used. Now it holds everything the web app and the extensions call.
+ * Cost: CPU is only billed while a request is handled, and a warm ping takes
+ * milliseconds; ~50 targets every 5 minutes is ~430k invocations a month
+ * against a free tier of 2M.
+ *
+ * Left out on purpose: the Polar webhook (called by Polar, not by a person),
+ * scheduled jobs, one-off migrations, and the three endpoints that only old
+ * cached versions of the app still call. test/warm-targets.test.cjs fails if
+ * the app starts calling a function that is in neither list.
+ *
+ * This keeps ONE instance of each alive. A second concurrent user can still
+ * pay a cold start; only minInstances removes that, at the cost of billing an
+ * idle instance around the clock.
  */
 const WARM_TARGETS = [
-  // Hit on the very first thing a user does after unlocking.
+  // First screen after unlocking, and app startup.
+  'getUserRoleHttp',
+  'registerUserHttp',
   'getPasswordEntryHttp',
   'getSecureNotesHttp',
   'getTotpCodeHttp',
   'checkReusedPasswordsHttp',
-  // The passkey login path. Options was already here, but verify was not, so
-  // every passkey sign-in paid a ~10s cold start on the call that actually
-  // mints the session (measured in the logs on 2026-09-22). The registration
-  // pair is here too: it only runs once per device, but it ran ~11s + ~15s
-  // cold, and an idle warm instance costs nothing between pings.
+  'getPendingSharedPasswordsHttp',
+  // Passkeys.
   'webauthnGetAuthenticationOptionsHttp',
   'webauthnVerifyAuthenticationHttp',
   'webauthnGetRegistrationOptionsHttp',
   'webauthnVerifyRegistrationHttp',
-  // App startup: MainLayout asks for the role on every load and the login
-  // path registers/updates the user. Both ran cold on 2026-09-22.
-  'getUserRoleHttp',
-  'registerUserHttp',
-  // Secondary read paths. Cheap to include: CPU is only billed while a request
-  // is being handled, so an idle warm instance costs nothing between pings.
+  'webauthnGetPasskeysHttp',
+  'webauthnRemovePasskeyHttp',
+  // Passwords.
+  'createPasswordEntryHttp',
+  'updatePasswordEntryHttp',
+  'deletePasswordEntryHttp',
+  'restorePasswordEntryHttp',
+  'permanentDeletePasswordEntryHttp',
   'getPasswordHistoryHttp',
   'getTrashEntriesHttp',
+  'saveTotpSecretHttp',
+  'removeTotpSecretHttp',
+  'checkPasswordSecurity',
+  'getAuditLogs',
+  // Secure notes.
+  'createSecureNoteHttp',
+  'getSecureNoteHttp',
+  'updateSecureNoteHttp',
+  'deleteSecureNoteHttp',
+  'restoreSecureNoteHttp',
+  'permanentDeleteSecureNoteHttp',
+  // Sharing.
+  'getSystemUsersHttp',
+  'sharePasswordEntryHttp',
+  'acceptSharedPasswordHttp',
+  'rejectSharedPasswordHttp',
+  'blockUserHttp',
+  // Emergency access.
   'getEmergencyContactsHttp',
   'getEmergencyGrantorsHttp',
   'getEmergencyPasswordsHttp',
-  // Also on the first screen: the pending-shares list, and the ticket badge
-  // for admins.
-  'getPendingSharedPasswordsHttp',
-  'getOpenTicketsCountHttp'
+  'addEmergencyContactHttp',
+  'requestEmergencyAccessHttp',
+  'approveEmergencyAccessHttp',
+  'denyEmergencyAccessHttp',
+  'revokeEmergencyContactHttp',
+  // Support tickets. Reads are Firestore listeners and need no function.
+  'createTicketHttp',
+  'addTicketMessageHttp',
+  'closeTicketHttp',
+  'reopenTicketHttp',
+  // Admin panel: one function for the list and the stats.
+  'adminGetUsersHttp',
+  'adminUpdateUserHttp',
+  // Billing.
+  'getCustomerPortalUrl'
+];
+
+// Called by the app but deliberately not kept warm.
+const NOT_WARMED = [
+  'healthCheck', // the client's own warm-up ping
+  'migrateAllUsersHttp', // one-off migrations
+  'migrateUserRolesHttp',
+  'adminGetStatsHttp' // fallback for a server older than the client
 ];
 
 exports.keepWarm = onSchedule('every 5 minutes', async () => {
@@ -6637,3 +6830,11 @@ exports.keepWarm = onSchedule('every 5 minutes', async () => {
 
   console.log(`keepWarm: ${results.join(' ')}`);
 });
+
+// One line per cold start. Cloud Run logs "Starting new instance" on its own,
+// so the three timestamps together split a slow boot into container start,
+// runtime start and the load of this file.
+console.log(
+  `boot: node ran ${BOOT_STARTED_AT.toFixed(2)}s before index.js, ` +
+  `index.js loaded in ${(process.uptime() - BOOT_STARTED_AT).toFixed(2)}s`
+);

@@ -6,6 +6,10 @@ on:
   push:
     branches: [main]
 
+# Ningun job escribe en el repo: el token solo necesita leer el codigo.
+permissions:
+  contents: read
+
 jobs:
   pwa:
     name: Lint and build PWA
@@ -32,8 +36,8 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-      # Unit tests only. The Firestore rules suite (`test:rules`) needs the
-      # emulator and Java, so it stays a local script for now.
+      # Unit tests only. The Firestore rules suite needs the emulator and Java,
+      # so it runs in the e2e job, which already has both.
       - name: Unit tests
         run: pnpm run test
 
@@ -48,7 +52,7 @@ jobs:
           VITE_FIREBASE_APP_ID: ci-placeholder
 
   functions:
-    name: Install Cloud Functions dependencies
+    name: Test Cloud Functions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -64,3 +68,71 @@ jobs:
       - name: Install dependencies
         working-directory: functions
         run: npm ci
+
+      # Este job solo instalaba. Un major que rompe un `require()` pasaba verde:
+      # @polar-sh/sdk 1.0 quito los subpaths /webhooks y /lib/http y habria
+      # tumbado todas las functions en el deploy sin fallar el CI. `npm test`
+      # verifica la firma de los webhooks y que index.js cargue de verdad.
+      - name: Tests
+        working-directory: functions
+        run: npm test
+        env:
+          GOOGLE_CLOUD_PROJECT: ci-placeholder
+
+  e2e:
+    name: E2E (Playwright + emuladores)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # firebase-tools 15 necesita JDK 21 para el emulador de Firestore.
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Cloud Functions dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Install firebase-tools
+        run: npm install -g firebase-tools@15
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Reglas de Firestore: que cada usuario lea solo lo suyo y que las
+      # escrituras que la app hace de verdad pasen. Mismo comando que
+      # `pnpm run test:rules`, con el firebase-tools ya instalado.
+      - name: Firestore rules
+        run: firebase emulators:exec --only firestore --project demo-lemonade-rules "node test/firestore-rules.test.mjs"
+
+      # Proyecto demo-*: los emuladores no pueden tocar la nube y no hace falta
+      # ninguna credencial ni secreto en este job.
+      - name: E2E
+        run: pnpm run test:e2e
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

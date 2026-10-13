@@ -19,7 +19,9 @@ import {
     assertSucceeds,
     assertFails,
 } from '@firebase/rules-unit-testing';
-import { doc, setDoc, updateDoc, deleteField } from 'firebase/firestore';
+import {
+    doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, deleteField, collection, query, where,
+} from 'firebase/firestore';
 
 const RULES_PATH = join(dirname(fileURLToPath(import.meta.url)), '..', 'firestore.rules');
 
@@ -66,6 +68,13 @@ await testEnv.withSecurityRulesDisabled(async (ctx) => {
     await setDoc(doc(db, 'users/admin1'), {
         uid: 'admin1', email: 'admin@example.test', role: 'admin', createdAt: new Date(),
     });
+    // Private collections, all owned by (or shared with) user1. The attacker
+    // is a signed-in user who is part of none of them.
+    await setDoc(doc(db, 'password_entries/e1'), { userId: UID, title: 'bank', password: BLOB });
+    await setDoc(doc(db, 'secure_notes/n1'), { userId: UID, title: 'note', content: BLOB });
+    await setDoc(doc(db, 'shared_passwords/s1'), { fromUserId: UID, toUserId: 'friend', status: 'pending' });
+    await setDoc(doc(db, 'emergency_access/a1'), { grantorId: UID, trusteeId: 'friend', status: 'active' });
+    await setDoc(doc(db, 'tickets/t1'), { userId: UID, subject: 'help', status: 'open', messages: [] });
 });
 
 const db = testEnv.authenticatedContext(UID).firestore();
@@ -168,6 +177,36 @@ await check('reject: legacy doc gets a new plaintext preview', assertFails(
 
 await check('legacy doc: cleanup deletes the preview', assertSucceeds(
     updateDoc(doc(db, 'env_context_files/c2'), { contentPreview: deleteField(), updatedAt: new Date() })));
+
+// --- Private collections: only the people named in the document can read ---
+const friendDb = testEnv.authenticatedContext('friend').firestore();
+const PRIVATE = [
+    // [document, the field a list query filters on, who else may read it]
+    ['password_entries/e1', 'userId', []],
+    ['secure_notes/n1', 'userId', []],
+    ['shared_passwords/s1', 'fromUserId', ['friend', 'admin']],
+    ['emergency_access/a1', 'grantorId', ['friend']],
+    ['tickets/t1', 'userId', ['admin']],
+];
+for (const [path, ownerField, alsoReads] of PRIVATE) {
+    const name = path.split('/')[0];
+    await check(`${name}: owner reads own document`, assertSucceeds(getDoc(doc(db, path))));
+    await check(`${name}: owner lists own documents`, assertSucceeds(
+        getDocs(query(collection(db, name), where(ownerField, '==', UID)))));
+    await check(`reject: ${name} read by another user`, assertFails(getDoc(doc(attackerDb, path))));
+    await check(`reject: ${name} listed by another user`, assertFails(
+        getDocs(query(collection(attackerDb, name), where(ownerField, '==', UID)))));
+    await check(`reject: ${name} listed without a filter`, assertFails(getDocs(collection(attackerDb, name))));
+    await check(`reject: ${name} read signed out`, assertFails(getDoc(doc(anonDb, path))));
+    await check(`reject: ${name} written by its owner`, assertFails(updateDoc(doc(db, path), { status: 'x' })));
+    await check(`reject: ${name} deleted by its owner`, assertFails(deleteDoc(doc(db, path))));
+    await check(`${name}: the other party ${alsoReads.includes('friend') ? 'reads' : 'cannot read'}`,
+        (alsoReads.includes('friend') ? assertSucceeds : assertFails)(getDoc(doc(friendDb, path))));
+    await check(`${name}: an admin ${alsoReads.includes('admin') ? 'reads' : 'cannot read'}`,
+        (alsoReads.includes('admin') ? assertSucceeds : assertFails)(getDoc(doc(adminDb, path))));
+}
+// The support screen lists every ticket for an admin and nothing for anyone else.
+await check('tickets: admin lists all', assertSucceeds(getDocs(collection(adminDb, 'tickets'))));
 
 for (const r of results) {
     console.log(`${r.ok ? '✓' : '✗'} ${r.name}${r.err ? `\n    ${r.err}` : ''}`);

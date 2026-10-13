@@ -8,17 +8,12 @@ export function useEmergencyAccess() {
   const isLoading = ref(false);
   const isLoadingGrantors = ref(false);
 
-  let tokenCache = { token: null, expires: 0 };
-
+  // Firebase caches the ID token and refreshes it by itself. A second, manual
+  // copy kept for 50 minutes could outlive the session it belonged to.
   async function getCachedAuthToken() {
-    const auth = getAuth();
-    if (!auth.currentUser) throw new Error('Not authenticated');
-    const now = Date.now();
-    if (tokenCache.token && tokenCache.expires > now + 60000) return tokenCache.token;
-    const token = await auth.currentUser.getIdToken(false);
-    tokenCache.token = token;
-    tokenCache.expires = now + (50 * 60 * 1000);
-    return token;
+    const user = getAuth().currentUser;
+    if (!user) throw new Error('Not authenticated');
+    return user.getIdToken();
   }
 
   async function fetchMyContacts() {

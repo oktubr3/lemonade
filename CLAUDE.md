@@ -233,30 +233,87 @@ El cobro pasa por Polar: `createCheckoutUrl`, `getCustomerPortalUrl` y `handlePo
 Dos mecanismos distintos, los dos silenciosos si se rompen: nadie ve un error, simplemente
 alguien paga y no recibe su rol.
 
-### 1. Versión de la API: pineada a mano
+### 1. Versión de la API: **es el import path** (desde SDK 1.x)
 
-Polar versiona por fecha (`YYYY-MM`) y **una request sin header sigue a "Current", que cambia
-cada trimestre**. El SDK instalado (`@polar-sh/sdk@0.49.0`) fue generado contra `2026-04`
-(`SDK_METADATA.openapiDocVersion`) pero **no manda el header**. Por eso `getPolarConfig`
-inyecta un `HTTPClient` con un hook `beforeRequest`:
+Polar versiona por fecha (`YYYY-MM`) y **una request sin versión sigue a "Current", que cambia
+cada trimestre**. Desde `@polar-sh/sdk@1.x` la versión ya no va en un header: el paquete publica
+**un módulo por versión fechada** y elegís cuál importás.
 
 ```js
-polarHttpClient.addHook('beforeRequest', (request) => {
-    request.headers.set('Polar-Version', POLAR_API_VERSION);  // '2026-04'
-    return request;
-});
+const { createPolar, webhooks } = require('@polar-sh/sdk/2026-10');
 ```
 
-**No saques ese hook.** Sin él, el contrato cambia solo en cada release trimestral de Polar,
-sin un cambio de código de tu lado y sin fallar el build — la misma familia de bug que la
-caída por el prefijo de variables de entorno.
+**Ese renglón es el pin.** Cambiarlo cambia el contrato entero. El `HTTPClient` con el hook
+`beforeRequest` que había antes ya no existe (y no puede existir: la 1.x no exporta
+`@polar-sh/sdk/lib/http`).
 
-Los **webhooks se versionan aparte**, por endpoint, en el dashboard de Polar. Los dos endpoints
-actuales están en `2026-04` (verificado 2026-09-11). El header de arriba **no** los cubre.
+Los **webhooks se versionan aparte**, por endpoint, en el dashboard de Polar. El import de arriba
+**no** los cubre.
 
-> **Fecha límite: release de enero de 2027.** Ahí Polar elimina `2026-04`. Hay que migrar a
-> `2026-10` antes: probar, y recién entonces cambiar `POLAR_API_VERSION` y la versión del
-> endpoint de webhooks.
+> **OJO: la organización de Polar tiene DOS endpoints, y uno NO es de Lemonade** (verificado
+> 2026-10-06 con `polar.webhooks.listWebhookEndpoints`):
+>
+> | id | destino | api_version |
+> |---|---|---|
+> | `1bdb07e7-9983-4945-afaf-40ae4248d8de` | `passmanager-d2b6d` — **Lemonade** | `2026-10` ✅ |
+> | `29fed206-1dae-400f-98fc-5911d796f873` | `lime-expense-log` — **otro proyecto** | `2026-04` ⚠️ |
+>
+> Al tocar versiones, **apuntá al id, nunca "los dos"**: subir el de `lime-expense-log` le manda
+> formato nuevo a un handler que no se migró.
+>
+> **Actualización 2026-10-13:** `lime-expense-log` quitó Polar y el plan premium el 2026-10-06 (hoy
+> solo tiene `processVoiceExpense`, `processReceiptScan` y `healthCheck`). Ese endpoint apunta a una
+> function que ya no existe: no hay migración pendiente ahí, y se puede borrar desde el dashboard de
+> Polar. Mientras exista, la regla de arriba sigue valiendo: **apuntar al id**.
+
+> **MIGRACIÓN COMPLETA el 2026-10-06**: código en `/2026-10`, desplegado, y el endpoint de Lemonade
+> en `api_version: 2026-10`. Nada vence en enero de 2027 para este proyecto.
+>
+> El orden que se usó, y el que corresponde la próxima vez:
+>
+> 1. **Medir** que las formas de evento coincidan entre las dos versiones
+> 2. Cambiar el import, `npm test` en `functions/`
+> 3. **Desplegar** `handlePolarWebhook`, `createCheckoutUrl`, `getCustomerPortalUrl`
+> 4. **Recién entonces** la versión del endpoint
+>
+> Al revés, Polar le manda el formato nuevo a un handler que espera el viejo. Acá dio igual porque
+> los **11 tipos de evento** parsean idéntico en las dos (medido, y el test los cubre); en la
+> próxima migración puede no dar igual, así que el paso 1 no se saltea.
+>
+> El endpoint se cambia por API, con firma posicional `(id, body)`:
+>
+> ```js
+> await polar.webhooks.updateWebhookEndpoint(
+>   '1bdb07e7-9983-4945-afaf-40ae4248d8de',   // passmanager-d2b6d, NO el de lime-expense-log
+>   { api_version: '2026-10' }
+> );
+> ```
+
+### 1-bis. Un major de una dependencia de `functions/` puede tumbar TODO el backend
+
+`@polar-sh/sdk` 1.0 reorganizó el paquete y **quitó del `exports` los subpaths**
+`/webhooks` y `/lib/http`, que `index.js` importaba. Mergear ese bump dejaba el módulo
+tirando `ERR_PACKAGE_PATH_NOT_EXPORTED` en el `require` — **las 76 functions sin bootear**
+en el próximo deploy.
+
+El CI estaba ciego: el job solo corría `npm ci`, nunca un `require`. Por eso ahora
+`functions/package.json` tiene un `test` que carga `index.js` de verdad, y el CI lo corre.
+**No saques ese chequeo.**
+
+### 1-ter. El SDK 1.x NO traduce camelCase ⟷ snake_case
+
+La 0.49 era generada por Speakeasy y remapeaba los nombres en los dos sentidos, además de
+convertir fechas a `Date`. La 1.x es a mano y **pasa el JSON tal cual**:
+
+| | 0.49 | 1.x |
+|---|---|---|
+| Evento del webhook | `data.productId`, `data.currentPeriodEnd` (`Date`) | `data.product_id`, `data.current_period_end` (`string`) |
+| Body de un request | `{ customerEmail, successUrl, customerId }` | `{ customer_email, success_url, customer_id }` |
+| Respuesta | `session.customerPortalUrl` | `session.customer_portal_url` |
+
+Esto no falla el build ni tira error: el handler lee `undefined`, el webhook devuelve 200 y
+**alguien paga sin recibir su rol**. Si volvés a tocar la versión del SDK, verificá la forma
+real con el test antes de confiar en el README.
 
 ### 2. Firma de webhooks: NO regeneres el secreto sin tocar el código
 
@@ -267,22 +324,43 @@ Polar cambió el esquema de firma el **8 de septiembre de 2026**:
 | Antes del 2026-09-08 (*legacy*) | base64 del string `whsec_...` completo |
 | Desde el 2026-09-08 (*Standard Webhooks*) | el cuerpo del secreto decodificado |
 
-`validateEvent` del SDK 0.49.0 **solo prueba la legacy** (únicamente la línea `1.0.0-alpha.19+`
-prueba las dos). Por eso `handlePolarWebhook` usa el wrapper `validatePolarEvent`, que ante un
-`WebhookVerificationError` reintenta con la clave Standard Webhooks pasada como `Buffer`.
+`validateEvent` del SDK 0.49.0 **solo probaba la legacy**, así que `handlePolarWebhook` usaba un
+wrapper que reintentaba a mano con la otra derivación.
 
-Por qué `Buffer` y no una verificación propia: `validateEvent` **también parsea** el payload
-(`current_period_end` → `currentPeriodEnd`, fechas a `Date`). Todo el handler lee camelCase, así
-que verificar la firma a mano y saltear el parseo rompe cada rama del `switch` en silencio.
+> **El secreto de este proyecto NO tiene el prefijo `whsec_`: empieza con `polar_whs_`**
+> (verificado 2026-10-06 contra Secret Manager). Eso cambia el comportamiento del SDK y es la
+> trampa principal de esta sección: casi toda la documentación habla de `whsec_`.
 
-**La trampa operativa:** resetear el secreto en el dashboard, o borrar y recrear el endpoint,
-te devuelve un secreto del esquema nuevo. Con el wrapper esto ya está cubierto; sin él, todas
-las entregas responden **403**. Si algún día sacás el wrapper (por ejemplo al subir a la
-1.0.0 del SDK), verificá antes con un evento de prueba.
+Con un secreto `polar_whs_`, el SDK 1.x deriva la clave como el **UTF-8 del string completo** y
+prueba **una sola** derivación. Medido firmando con cada una y verificando con cada SDK
+(`functions/test/polar-webhook.test.cjs`, corre en cada `npm test` y en CI):
 
-Para probar sin tocar producción: firmá un payload con `standardwebhooks` usando cada una de
-las dos derivaciones de clave y pasáselas al wrapper. Un secreto **distinto** tiene que seguir
-dando `FIRMA RECHAZADA` — eso es lo que prueba que el fallback no afloja la verificación.
+| Firma generada con | 0.49 + wrapper | 1.x |
+|---|---|---|
+| `base64(cuerpo)` | RECHAZA | RECHAZA |
+| `utf8(secreto completo)` | acepta | **acepta** |
+| `base64(secreto completo)` | acepta (*) | RECHAZA |
+| secreto **distinto** | RECHAZA | **RECHAZA** |
+
+(*) Solo porque el wrapper le pasaba un **`Buffer`** a `validateEvent`. **La 1.x rechaza un Buffer
+con `TypeError`**, así que ese reintento no se puede portar — y si se intenta, el `TypeError` no es
+un `PolarWebhookVerificationError`, sale por el `throw` del handler y la entrega responde **500 en
+vez de 403**. Se probó, el test lo atrapó, y por eso el wrapper no está.
+
+La fila que importa sigue siendo la última: un secreto distinto se rechaza. Si alguna vez pasa,
+el endpoint acepta eventos de cualquiera.
+
+**Por qué la verificación nativa alcanza:** la clave la define el SDK **del propio Polar**, que es
+quien emite el secreto y firma la entrega. Lo que la 0.49 aceptaba de más era un artefacto de los
+Buffers, no un formato que Polar use.
+
+**La trampa operativa:** resetear el secreto en el dashboard, o borrar y recrear el endpoint, te
+devuelve un secreto nuevo. Si el prefijo cambia (`polar_whs_` → otra cosa), **volvé a correr
+`npm test` en `functions/` con el formato nuevo antes de confiar**: la derivación depende del
+prefijo, y equivocarse no se ve — la gente paga y no recibe su rol.
+
+`validateEvent` es **async** desde la 1.x. Sin el `await`, un rechazo de firma sería una promesa
+rechazada fuera del `try` y el endpoint seguiría procesando un evento sin verificar.
 
 ## Identidad: NUNCA por `users/{uid}.email` (AUDITORÍA 2026-09-22)
 
@@ -310,6 +388,184 @@ Reglas vigentes:
 
 El reporte completo (hallazgos, verificaciones y pistas pendientes de validar)
 está en `~/security-audit-skill/lemonade-pass-manager/run-1/` (fuera del repo).
+
+## Repo público: es un ESPEJO, no un remoto más
+
+Hay dos repos y hacen cosas distintas:
+
+| | |
+|---|---|
+| `oktubr3/lemonade-pass-manager` | **privado**, historia completa, acá se trabaja. Remote `origin`. |
+| `oktubr3/lemonade` | **público** (AGPLv3), espejo. Remote `public`. |
+
+El público se publica **un commit squasheado por release**, que reemplaza el árbol
+entero. Es a propósito: la historia del privado no se expone nunca.
+
+### Consecuencia: nada se mergea en el público
+
+Cualquier merge ahí lo **pisa el próximo sync**. Son merges que se revierten solos.
+Las dependencias se revisan, prueban y mergean acá; llegan allá con el sync.
+
+### El sync NO debe llevar `.github/dependabot.yml` (INCIDENTE 2026-10-06)
+
+El sync a 2.2.23 lo copió por error. En horas Dependabot abrió **6 PRs de version
+update en el espejo**, incluido el bump de `@polar-sh/sdk` a 1.0.2 que acá ya
+estaba descartado por tumbar las 76 functions. Siete PRs acumulados en el único
+repo que los usuarios ven, mientras el mantenimiento real pasa en el privado.
+
+Al armar un sync, **excluir ese archivo**:
+
+```bash
+git archive HEAD | tar -x -C <clon-del-publico>
+rm -f <clon-del-publico>/.github/dependabot.yml
+```
+
+Los avisos de seguridad de GitHub siguen llegando sin el config.
+
+### Procedimiento del sync
+
+1. Clonar el público, rama `sync/publish-AAAA-MM-DD`
+2. `git rm -rq .` y después `git archive HEAD | tar -x -C` desde el privado
+3. Borrar `.github/dependabot.yml` (ver arriba)
+4. Actualizar los zips de las extensiones si cambiaron (el público los sirve en la raíz)
+5. **Escanear secretos** sobre el árbol final antes de commitear: `.env` reales,
+   service accounts, claves privadas, `whsec_`, `polar_`, `ghp_`, `AKIA`. La
+   Firebase Web API key **no** es un secreto (ver `dev-docs/SECURITY_AUDIT_PRE_FLIP.md`).
+6. Un solo commit, PR, merge. `main` del público exige PR con `enforce_admins`.
+
+## Fuentes de versión
+
+La versión está repetida. Al subirla, cambiar **todas** en el mismo commit y buscar la anterior
+con grep antes de buildear:
+
+- `package.json` (la que usa `__APP_VERSION__`)
+- `docs-site/index.html` (5 lugares) y `docs-site/script.js`
+- `docs/index.html` (banner de consola de la landing)
+- `CHANGELOG.md` (entrada nueva arriba)
+
+`pnpm run build` incrementa el patch solo; si ya la subiste a mano, usar `pnpm run build:manual`.
+
+## Panel de administración y tickets (rehecho en v2.2.27)
+
+**Por qué era lento** (medido en los registros de Cloud Run el 2026-10-13, no supuesto): cada
+function es un contenedor aparte que tarda ~14 s en arrancar en frío, y el panel llamaba a tres.
+Con 30 usuarios y 341 contraseñas, las lecturas no eran el problema. Antes de optimizar una
+pantalla lenta de este proyecto, mirar ahí:
+
+```bash
+gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="<function en minúsculas>"' \
+  --project passmanager-d2b6d --limit 20 --format='value(timestamp,textPayload,httpRequest.latency)'
+```
+
+Cómo quedó, y lo que no hay que deshacer:
+
+- **Una sola function en el camino de lectura**: `adminGetUsersHttp` devuelve la lista **y** las
+  estadísticas. `adminGetStatsHttp`, `adminGetTicketsHttp` y `getOpenTicketsCountHttp` siguen
+  existiendo solo para versiones viejas de la app todavía cacheadas por el service worker.
+- **Toda function que la app llama está en `WARM_TARGETS`** (`keepWarm`), incluida
+  `adminGetUsersHttp`. La que no está paga 8–14 s de arranque en su primer uso. Al agregar una
+  function que el cliente llama, sumarla ahí (o a `NOT_WARMED` con el motivo):
+  `functions/test/warm-targets.test.cjs` falla si no está en ninguna de las dos.
+- **Cada arranque en frío deja una línea `boot: node ran Xs before index.js, index.js loaded in Ys`.**
+  Con el `Starting new instance` de Cloud Run separa arranque del contenedor, del runtime y carga del
+  archivo. Mirarla antes de tocar `require`s "para acelerar": en local `index.js` carga en 0,2 s.
+- **Los tickets se leen en vivo desde Firestore** (`onSnapshot` en `useTickets.js`): las reglas ya
+  dejaban leer a cada usuario los suyos y al admin todos. Las escrituras siguen por functions.
+- **`MainLayout` pide la lista apenas detecta un admin**, así el panel abre con datos en memoria.
+- **Último ingreso y fecha de alta salen de Firebase Auth** (`authFactsByUid`): los documentos de
+  `users` nunca los guardaron.
+- **Conteo de contraseñas**: una consulta que lee solo el dueño de cada entrada; arriba de
+  `PASSWORD_SCAN_LIMIT` (20.000) cambia a un `count()` por usuario. En el emulador un `count()` por
+  usuario fue **10 veces más lento** que leer todo (300 usuarios: 4,5 s contra 0,35 s): no pasar a
+  esa estrategia "porque escala" sin medir.
+
+Reglas de seguridad del panel, además de las de "Identidad" de más arriba:
+
+- Toda function de admin entra por `requireAdmin()` (token revisado contra revocación, rol `admin`,
+  **un** límite por acción). Las de tickets, por `requireTicketCaller()`.
+- Dar o quitar el rol `admin` es solo para un admin principal (`isVerifiedAdminToken`).
+- Un admin no puede quitarse su propio acceso. El admin principal ya estaba protegido por otra
+  regla: para probar esta hace falta un admin que **no** esté en `ADMIN_EMAILS`.
+- Texto de tickets: validar con `isNonEmptyText`. `sanitizeInput` devuelve intacto lo que no es
+  string, y un objeto no tiene `.length`, así que pasaba todos los controles.
+- `useTickets.js` y `useAdmin.js` limpian su estado cuando cambia el usuario, y **no cachean el
+  token a mano**: `getIdToken()` ya lo cachea y refresca. Un caché propio sobrevivía a la sesión.
+
+## Tests: tres capas, y cuál corre dónde
+
+| Capa | Comando | Qué necesita |
+|---|---|---|
+| Unitarios (Vitest) | `pnpm run test` | nada |
+| Functions (firma de Polar + carga de `index.js`) | `cd functions && npm test` | nada |
+| Reglas de Firestore (también en CI, job e2e) | `pnpm run test:rules` | emulador |
+| **E2E (Playwright)** | `pnpm run test:e2e` | emuladores + JDK 21 |
+
+### E2E: corre contra emuladores con un proyecto `demo-*`
+
+`pnpm run test:e2e` levanta solo los emuladores (Auth, Firestore, Functions) y `quasar dev`, crea la
+sesión de un usuario de prueba, siembra el vault y corre los tests. `E2E_DEBUG=1` muestra la
+salida de los servidores; `pnpm run test:e2e:ui` abre el modo interactivo.
+
+No puede tocar producción **por construcción**, no por cuidado:
+
+1. El proyecto es `demo-lemonade`. Firebase nunca conecta un `demo-*` a la nube.
+2. La app solo usa emuladores si `VITE_USE_EMULATORS=true` **y** `import.meta.env.DEV`. En un build
+   de producción ese bloque no existe (verificado: 0 rastros en `dist/`).
+3. `resetEmulators()` se niega a correr si el proyecto no empieza con `demo-`.
+
+### Trampas que costaron tiempo (no las re-descubras)
+
+- **El login de los tests NO usa el popup de Google.** El popup entrega el resultado por un iframe
+  que depende de un script bajado de `apis.google.com`; si tarda, el login se cuelga sin error
+  (medido: con 4 s de demora falla siempre — así fallaba el setup en CI de a ratos). Los tests entran
+  con `window.__e2eSignIn` (`signInWithCredential`), que solo existe con emuladores. Consecuencia: el
+  click en "Sign in with Google" y el popup no están cubiertos.
+- **En el setup, la marca `lemonade_last_login` va ANTES de crear la sesión.** `MainLayout` también
+  envuelve `/login` y desloguea a un usuario autenticado sin marca; con el orden inverso, quién ganaba
+  dependía de cuán frías estuvieran las functions.
+- **app-vite convierte `"true"` en el booleano `true`** al inyectar el env. `=== 'true'` da siempre
+  false; por eso el flag se compara con `String(...)`.
+- **Puertos propios, no los default de Firebase.** Los e2e usan 9199/8180/5101 (y 9100 para la
+  app), definidos en `PORTS` de `playwright.config.js`. Con 9099/8080/5001 chocaban con los
+  emuladores de otro proyecto que estaba corriendo en la misma máquina y la suite no arrancaba. El
+  config de emuladores (`.firebase.e2e.json`, ignorado por git) se **deriva** de `firebase.json` en
+  cada corrida, así que `firebase.json` no cambia y no hay una copia que mantener.
+- **Sin reintentos, ni en CI.** La primera corrida de CI dio verde con dos tests que habían fallado
+  y pasaron al segundo intento. En cambio el timeout de `expect` es de 20s: el dev server compila a
+  demanda y cada function del emulador arranca en frío. Por lo mismo el tope por test es de 60s y el
+  del setup de 180s: con el default de 30s el setup fallaba de a ratos en CI, a mitad del login.
+- **JDK 21**: firebase-tools 15 lo exige para Firestore. El default de esta Mac es 17; el config usa
+  `/opt/homebrew/opt/openjdk@21` si existe. En CI lo pone `setup-java`.
+- **Cierre ordenado**: sin `gracefulShutdown: SIGINT`, Playwright mata al CLI y el emulador de
+  Firestore (Java) queda huérfano en el 8080; la corrida siguiente no arranca.
+- **Router en modo hash**: `waitForURL` no sirve (no hay evento `load`); se espera sobre
+  `location.hash`.
+- **La sesión de Firebase vive en IndexedDB**: `storageState({ indexedDB: true })`, si no el test
+  arranca deslogueado.
+- **El emulador de Functions contesta los preflight él mismo**, sin pasar por `corsHandler`, y no
+  permite `OPTIONS`. Por eso el warmup se saltea con emuladores (`usingEmulators`).
+- **Un test que no viste fallar no cuenta.** El de búsqueda pasaba con el bug reintroducido, porque
+  el scoring solo corre con dos o más resultados y la semilla tenía uno. Al agregar un test,
+  reintroducí el bug y miralo ponerse rojo.
+
+### Trampas de los e2e del panel (2026-10-13)
+
+- **`functions/.env` le gana a `webServer.env`.** El emulador de functions carga ese archivo, que
+  en la máquina de desarrollo existe (con el `ADMIN_EMAILS` real) y en CI no: los mismos tests
+  veían un admin principal distinto en cada lado. `playwright.config.js` escribe
+  `functions/.env.demo-lemonade`, que tiene prioridad y solo se lee para el proyecto demo.
+- **El rol `admin` se siembra** (`signInAsAdmin`): ninguna pantalla se lo da a quien no lo tiene.
+- **Después del login, ir a otra ruta necesita una recarga.** La pantalla de login navega sola al
+  inicio cuando termina de registrar la sesión, a veces después del `goto` del test.
+- **Las llamadas que esperan un 403 o un 400 salen desde Node** (`callFunction`), no desde la
+  página: el `fetch` del navegador deja un error en consola y rompe el test.
+- **Crear tickets tiene un límite de 5 por minuto por usuario**: cada test usa su propio cliente.
+
+### Lo que los e2e NO cubren
+
+El fallo intermitente de la lista vacía (v2.2.22) **no se reproduce** contra el emulador: el código
+original pasa los tests, porque sin latencia la carrera no se da. Los tests son guarda de regresión
+de que la carga funciona, no una reproducción de aquel bug.
 
 ## Sistema de Versionado Automático
 
