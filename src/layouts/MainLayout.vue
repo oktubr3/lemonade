@@ -8,7 +8,7 @@ import { useAdmin } from "src/composables/useAdmin";
 import { useTickets } from "src/composables/useTickets";
 import { usePasskeys } from "src/composables/usePasskeys";
 import BiometricLockScreen from "src/components/BiometricLockScreen.vue";
-import { auth, db } from "boot/firebase";
+import { auth, db, usingEmulators } from "boot/firebase";
 import { signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import FUNCTIONS_URL from "src/config/functions";
@@ -18,8 +18,8 @@ const $q = useQuasar();
 const route = useRoute();
 const router = useRouter();
 const themeStore = useThemeStore();
-const { isAdmin, fetchUserRole } = useAdmin();
-const { openTicketsCount, fetchOpenTicketsCount } = useTickets();
+const { isAdmin, fetchUserRole, fetchUsers } = useAdmin();
+const { ticketsAwaitingReply, watchAllTickets } = useTickets();
 const { hasRegisteredPasskey, getStoredUserId } = usePasskeys();
 const showSearchInput = ref(false);
 const showBiometricLock = ref(false);
@@ -156,6 +156,11 @@ const WARMUP_TARGETS = [
 ];
 
 const warmupCloudFunctions = () => {
+    // Un emulador local no tiene cold start que calentar. Y el de Functions
+    // contesta los preflight el mismo, sin pasar por corsHandler, con una lista
+    // de metodos que no incluye OPTIONS: el ping de abajo daria un error de CORS
+    // en consola que en produccion no existe.
+    if (usingEmulators) return;
     for (const fn of WARMUP_TARGETS) {
         // OPTIONS: the CORS middleware answers 204 inside the function, so the
         // container still cold-boots (which is all a warmup needs) but the
@@ -390,9 +395,12 @@ onUnmounted(() => {
 // Watch for isAdmin changes (e.g., after login). `immediate` covers the remount
 // case, where the role is already known and the value never changes.
 watch(isAdmin, (newVal) => {
-    if (newVal) {
-        fetchOpenTicketsCount().catch(() => {});
-    }
+    if (!newVal) return;
+    // Live: the badge moves the moment a user writes, without a refresh.
+    watchAllTickets();
+    // Bring the panel's data now, in the background. By the time the admin
+    // opens the panel it is already in memory, so it shows at once.
+    fetchUsers().catch(() => {});
 }, { immediate: true });
 
 // Function to update theme-color meta tag
@@ -438,10 +446,10 @@ themeStore.$subscribe(() => {
                         :aria-label="$t('nav.admin')"
                     >
                         <q-badge
-                            v-if="openTicketsCount > 0"
+                            v-if="ticketsAwaitingReply > 0"
                             color="red"
                             floating
-                            :label="openTicketsCount"
+                            :label="ticketsAwaitingReply"
                         />
                         <q-tooltip :delay="800">{{ $t('nav.admin') }}</q-tooltip>
                     </q-btn>

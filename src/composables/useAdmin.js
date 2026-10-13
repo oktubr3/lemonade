@@ -9,13 +9,12 @@ const isAdmin = ref(false);
 const users = ref([]);
 const stats = ref(null);
 const loading = ref(false);
+// One flag per request. They all shared `loading`, so the list blinked back to
+// a spinner whenever the role, the stats or a save were in flight.
+const usersLoading = ref(false);
+const statsLoading = ref(false);
+const saving = ref(false);
 const error = ref(null);
-
-// Cache de token
-let tokenCache = {
-  token: null,
-  expires: 0
-};
 
 // Auth state listener — wipes admin state whenever the signed-in user
 // changes (logout, login, or switch). Without this the module-level refs
@@ -41,26 +40,16 @@ function wipeAdminState() {
   users.value = [];
   stats.value = null;
   error.value = null;
-  tokenCache.token = null;
-  tokenCache.expires = 0;
 }
 
-// Get token with cache
+// Firebase caches the ID token and refreshes it on its own. This module used to
+// keep a second copy for 50 minutes; getIdToken() is simply asked every time.
 async function getAuthToken() {
-  const auth = getAuth();
-  if (!auth.currentUser) {
+  const user = getAuth().currentUser;
+  if (!user) {
     throw new Error('User not authenticated');
   }
-
-  const now = Date.now();
-  if (tokenCache.token && tokenCache.expires > now + 60000) {
-    return tokenCache.token;
-  }
-
-  const token = await auth.currentUser.getIdToken(false);
-  tokenCache.token = token;
-  tokenCache.expires = now + (50 * 60 * 1000);
-  return token;
+  return user.getIdToken();
 }
 
 // Get current user's role
@@ -150,6 +139,24 @@ function setupAuthListener() {
 
 export function useAdmin() {
   setupAuthListener();
+  async function callAdminFunction(name, body, fallbackMessage) {
+    const token = await getAuthToken();
+    const response = await fetch(`${FUNCTIONS_URL}/${name}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body || {})
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || fallbackMessage);
+    }
+    return response.json();
+  }
+
   // Get list of users (admin only)
   async function fetchUsers() {
     if (!isAdmin.value) {
@@ -157,70 +164,51 @@ export function useAdmin() {
     }
 
     try {
-      loading.value = true;
+      usersLoading.value = true;
       error.value = null;
-
-      const token = await getAuthToken();
-      const response = await fetch(`${FUNCTIONS_URL}/adminGetUsersHttp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error getting users');
-      }
-
-      const data = await response.json();
+      const data = await callAdminFunction('adminGetUsersHttp', null, 'Error getting users');
       users.value = data.users;
-
+      // The stats come with the list: one function to wait for instead of two.
+      // A backend from before that change does not send them; ask the old way.
+      if (data.stats) {
+        stats.value = data.stats;
+      } else {
+        fetchStats().catch(() => {});
+      }
       return data.users;
     } catch (err) {
       console.error('Error fetching users:', err);
       error.value = err.message;
       throw err;
     } finally {
-      loading.value = false;
+      usersLoading.value = false;
     }
   }
 
-  // Update user (admin only)
+  // Update user (admin only). `updates` carries only what changed.
   async function updateUser(targetUserId, updates) {
     if (!isAdmin.value) {
       throw new Error('Access denied');
     }
 
     try {
-      loading.value = true;
+      saving.value = true;
       error.value = null;
+      const data = await callAdminFunction('adminUpdateUserHttp', { targetUserId, updates }, 'Error updating user');
 
-      const token = await getAuthToken();
-      const response = await fetch(`${FUNCTIONS_URL}/adminUpdateUserHttp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ targetUserId, updates })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error updating user');
-      }
-
-      const data = await response.json();
-
-      // Update the user in the local list
+      // Apply the change to the row in place instead of downloading the whole
+      // list again. The API calls the notes field `notes`; the list calls it
+      // `adminNotes`.
       const index = users.value.findIndex(u => u.uid === targetUserId);
       if (index !== -1) {
-        users.value[index] = {
-          ...users.value[index],
-          ...updates
-        };
+        const { notes, ...rest } = updates;
+        const change = { ...rest };
+        if (notes !== undefined) change.adminNotes = notes;
+        if (updates.accountLocked !== undefined) {
+          change.accountUnlocked = !updates.accountLocked;
+          if (updates.accountLocked) change.accountLockedAt = new Date().toISOString();
+        }
+        users.value[index] = { ...users.value[index], ...change };
       }
 
       return data;
@@ -229,7 +217,7 @@ export function useAdmin() {
       error.value = err.message;
       throw err;
     } finally {
-      loading.value = false;
+      saving.value = false;
     }
   }
 
@@ -240,33 +228,17 @@ export function useAdmin() {
     }
 
     try {
-      loading.value = true;
+      statsLoading.value = true;
       error.value = null;
-
-      const token = await getAuthToken();
-      const response = await fetch(`${FUNCTIONS_URL}/adminGetStatsHttp`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Error getting statistics');
-      }
-
-      const data = await response.json();
+      const data = await callAdminFunction('adminGetStatsHttp', null, 'Error getting statistics');
       stats.value = data.stats;
-
       return data.stats;
     } catch (err) {
       console.error('Error fetching stats:', err);
       error.value = err.message;
       throw err;
     } finally {
-      loading.value = false;
+      statsLoading.value = false;
     }
   }
 
@@ -339,6 +311,9 @@ export function useAdmin() {
     users,
     stats,
     loading,
+    usersLoading,
+    statsLoading,
+    saving,
     error,
     usersByRole,
 

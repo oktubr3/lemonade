@@ -131,7 +131,7 @@ export default defineConfig(function (/* ctx */) {
         // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#devServer
         devServer: {
             // https: true
-            open: true, // opens browser window automatically
+            open: !process.env.E2E, // opens browser window automatically (no en tests e2e)
         },
 
         // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#framework

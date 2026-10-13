@@ -1,9 +1,11 @@
 <script setup>
-import { ref, onMounted, computed, defineOptions } from 'vue';
+import { ref, onMounted, computed, watch, defineOptions } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuasar } from 'quasar';
+import { copyToClipboard, useQuasar } from 'quasar';
+import { getAuth } from 'firebase/auth';
 import { useAdmin } from 'src/composables/useAdmin';
-import { useTickets } from 'src/composables/useTickets';
+import { ticketNeedsReply, ticketTimeMillis, useTickets } from 'src/composables/useTickets';
+import { buildUserUpdate, filterUsers, riskyChanges, sortUsers, toDate } from 'src/utils/adminUsers';
 import { useI18n } from 'vue-i18n';
 import LemonadeLoader from 'src/components/LemonadeLoader.vue';
 
@@ -13,28 +15,35 @@ defineOptions({
 
 const $q = useQuasar();
 const router = useRouter();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const {
   isAdmin,
   users,
   stats,
-  loading,
-  error,
+  usersLoading,
+  saving,
   fetchUserRole,
   fetchUsers,
-  updateUser,
-  fetchStats
+  updateUser
 } = useAdmin();
 
 // Tickets composable
 const {
   allTickets,
-  loading: ticketsLoading,
-  adminFetchTickets,
+  allTicketsReady,
+  ticketsAwaitingReply,
+  loading: ticketBusy,
+  watchAllTickets,
   addMessage,
-  closeTicket
+  closeTicket,
+  reopenTicket
 } = useTickets();
+
+const TICKET_MESSAGE_MAX_LENGTH = 2000;
+// Rows drawn at once. The rest appear with "show more": the whole list is in
+// memory either way, this only keeps the DOM small.
+const USERS_PAGE_SIZE = 50;
 
 // Local state - Tabs
 const activeTab = ref('users');
@@ -42,13 +51,8 @@ const activeTab = ref('users');
 // Local state - Users
 const search = ref('');
 const roleFilter = ref('all');
-
-// Local state - Tickets
-const ticketSearch = ref('');
-const ticketFilter = ref('all');
-const selectedTicket = ref(null);
-const showTicketChatDialog = ref(false);
-const ticketReplyMessage = ref('');
+const sortBy = ref('email');
+const shownUsers = ref(USERS_PAGE_SIZE);
 const selectedUser = ref(null);
 const showEditDialog = ref(false);
 const editForm = ref({
@@ -57,6 +61,15 @@ const editForm = ref({
   accountLocked: false,
   notes: ''
 });
+
+// Local state - Tickets
+const ticketSearch = ref('');
+const ticketFilter = ref('all');
+const selectedTicketId = ref(null);
+const showTicketChatDialog = ref(false);
+const ticketReplyMessage = ref('');
+
+const myUid = computed(() => getAuth().currentUser?.uid || null);
 
 // Role options
 const roleOptions = computed(() => [
@@ -80,109 +93,106 @@ const filterOptions = computed(() => [
   { label: t('admin.users.filters.locked'), value: 'locked' }
 ]);
 
+const sortOptions = computed(() => [
+  { label: t('admin.users.sort.email'), value: 'email' },
+  { label: t('admin.users.sort.lastLogin'), value: 'lastLogin' },
+  { label: t('admin.users.sort.created'), value: 'created' },
+  { label: t('admin.users.sort.passwords'), value: 'passwords' }
+]);
+
 // Computed
-const filteredUsers = computed(() => {
-  let result = users.value || [];
+const filteredUsers = computed(() =>
+  sortUsers(filterUsers(users.value, { search: search.value || '', filter: roleFilter.value }), sortBy.value)
+);
 
-  // Hide disabled users by default (only show with explicit filter)
-  if (roleFilter.value !== 'disabled') {
-    result = result.filter(user => !user.isDisabled);
-  }
+const visibleUsers = computed(() => filteredUsers.value.slice(0, shownUsers.value));
+const hiddenUsersCount = computed(() => Math.max(0, filteredUsers.value.length - shownUsers.value));
 
-  // Search filter
-  if (search.value) {
-    const searchLower = search.value.toLowerCase();
-    result = result.filter(user =>
-      user.email?.toLowerCase().includes(searchLower) ||
-      user.displayName?.toLowerCase().includes(searchLower)
-    );
-  }
-
-  // Role filter
-  if (roleFilter.value !== 'all') {
-    if (roleFilter.value === 'disabled') {
-      result = result.filter(user => user.isDisabled);
-    } else if (roleFilter.value === 'locked') {
-      result = result.filter(user => user.accountLocked);
-    } else {
-      result = result.filter(user => user.role === roleFilter.value);
-    }
-  }
-
-  return result;
+// A new search or filter starts again from the first page.
+watch([search, roleFilter, sortBy], () => {
+  shownUsers.value = USERS_PAGE_SIZE;
 });
 
-const lockedUsersCount = computed(() => {
-  return users.value.filter(user => user.accountLocked).length;
-});
+const lockedUsersCount = computed(() => users.value.filter(user => user.accountLocked).length);
+const activeUsersCount = computed(() => users.value.filter(user => !user.isDisabled).length);
+const disabledUsersCount = computed(() => users.value.filter(user => user.isDisabled).length);
 
-const totalPasswords = computed(() => {
-  return users.value.reduce((sum, user) => sum + (user.passwordCount || 0), 0);
-});
+// The server's total when it is in; until then, the sum of the rows.
+const totalPasswords = computed(() =>
+  stats.value?.passwords?.total ?? users.value.reduce((sum, user) => sum + (user.passwordCount || 0), 0)
+);
 
-const activeUsersCount = computed(() => {
-  return users.value.filter(user => !user.isDisabled).length;
-});
-
-const disabledUsersCount = computed(() => {
-  return users.value.filter(user => user.isDisabled).length;
-});
+const editingSelf = computed(() => !!selectedUser.value && selectedUser.value.uid === myUid.value);
 
 // Tickets computed
-const openTicketsCount = computed(() => {
-  return allTickets.value.filter(t => t.status === 'open').length;
-});
-
 const filteredTickets = computed(() => {
   let result = allTickets.value || [];
 
-  // Filter by status
-  if (ticketFilter.value === 'open') {
-    result = result.filter(t => t.status === 'open');
+  if (ticketFilter.value === 'needsReply') {
+    result = result.filter(ticketNeedsReply);
+  } else if (ticketFilter.value === 'open') {
+    result = result.filter(ticket => ticket.status === 'open');
   } else if (ticketFilter.value === 'closed') {
-    result = result.filter(t => t.status === 'closed');
+    result = result.filter(ticket => ticket.status === 'closed');
   }
 
-  // Filter by search
   if (ticketSearch.value) {
     const searchLower = ticketSearch.value.toLowerCase();
-    result = result.filter(t =>
-      t.userEmail?.toLowerCase().includes(searchLower) ||
-      t.subject?.toLowerCase().includes(searchLower)
+    result = result.filter(ticket =>
+      ticket.userEmail?.toLowerCase().includes(searchLower) ||
+      ticket.subject?.toLowerCase().includes(searchLower)
     );
   }
 
-  return result;
+  // Whoever is waiting for an answer goes first, oldest wait on top; then the rest by last activity.
+  return [...result].sort((a, b) => {
+    const waitingA = ticketNeedsReply(a);
+    const waitingB = ticketNeedsReply(b);
+    if (waitingA !== waitingB) return waitingA ? -1 : 1;
+    const byTime = ticketTimeMillis(b.updatedAt) - ticketTimeMillis(a.updatedAt);
+    return waitingA ? -byTime : byTime;
+  });
 });
 
+// Looked up by id in the live list, so a new message shows up in the open
+// conversation without closing it.
+const selectedTicket = computed(() =>
+  allTickets.value.find(ticket => ticket.id === selectedTicketId.value) || null
+);
+
 // Methods
+function notifyError(message) {
+  $q.notify({ color: 'negative', message, icon: 'error' });
+}
+
+// One request brings the list and the stats. MainLayout already asked for it
+// when this admin's session started, so the panel usually opens with the data
+// in memory and this only refreshes it.
+function loadPanelData() {
+  fetchUsers().catch(() => notifyError(t('admin.users.notifications.loadPanelError')));
+}
+
 async function initAdmin() {
   try {
     await fetchUserRole();
-
-    if (!isAdmin.value) {
-      $q.notify({
-        color: 'negative',
-        message: t('admin.users.notifications.accessDenied'),
-        icon: 'block'
-      });
-      router.push('/');
-      return;
-    }
-
-    await Promise.all([
-      fetchUsers(),
-      fetchStats(),
-      adminFetchTickets()
-    ]);
   } catch (err) {
     console.error('Error initializing admin:', err);
+    notifyError(t('admin.users.notifications.loadPanelError'));
+    return;
+  }
+
+  if (!isAdmin.value) {
     $q.notify({
       color: 'negative',
-      message: t('admin.users.notifications.loadPanelError'),
-      icon: 'error'
+      message: t('admin.users.notifications.accessDenied'),
+      icon: 'block'
     });
+    router.push('/');
+    return;
   }
+
+  loadPanelData();
+  watchAllTickets();
 }
 
 function getRoleColor(role) {
@@ -207,26 +217,31 @@ function getAvatarColor(role) {
 }
 
 function formatDate(timestamp) {
-  if (!timestamp) return '-';
-  let date;
-  if (timestamp.toDate) {
-    // Firestore Timestamp object
-    date = timestamp.toDate();
-  } else if (timestamp._seconds) {
-    // Serialized Firestore timestamp from Cloud Function
-    date = new Date(timestamp._seconds * 1000);
-  } else if (timestamp.seconds) {
-    // Alternative serialization format
-    date = new Date(timestamp.seconds * 1000);
-  } else {
-    // ISO string or milliseconds
-    date = new Date(timestamp);
-  }
-  if (isNaN(date.getTime())) return '-';
+  const date = toDate(timestamp);
+  if (!date) return '-';
   return date.toLocaleDateString('es-AR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
+  });
+}
+
+// "3 days ago", in the language of the interface.
+function formatRelative(timestamp) {
+  const date = toDate(timestamp);
+  if (!date) return '';
+  const seconds = Math.round((date.getTime() - Date.now()) / 1000);
+  const units = [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]];
+  const formatter = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit);
+  }
+  return formatter.format(0, 'minute');
+}
+
+function lastLoginLabel(user) {
+  return t('admin.users.lastLogin', {
+    when: user.lastLoginAt ? formatRelative(user.lastLoginAt) : t('admin.users.never')
   });
 }
 
@@ -248,22 +263,45 @@ function openEditDialog(user) {
   showEditDialog.value = true;
 }
 
+async function copyUid() {
+  try {
+    await copyToClipboard(selectedUser.value.uid);
+    $q.notify({ color: 'positive', message: t('admin.users.notifications.uidCopied'), icon: 'check', timeout: 1200 });
+  } catch {
+    // Clipboard blocked by the browser: the uid stays on screen to copy by hand.
+  }
+}
+
+// Asks before anything that takes access away or hands out admin rights.
+function confirmRisks(risks) {
+  if (risks.length === 0) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    $q.dialog({
+      title: t('admin.users.confirm.title'),
+      message: [
+        t('admin.users.confirm.intro', { user: selectedUser.value.email || selectedUser.value.displayName }),
+        ...risks.map(risk => `• ${t(`admin.users.confirm.${risk}`)}`)
+      ].join('\n'),
+      style: 'white-space: pre-line',
+      cancel: { flat: true, color: 'grey', label: t('common.cancel') },
+      ok: { color: 'negative', unelevated: true, label: t('admin.users.confirm.proceed') },
+      persistent: true
+    }).onOk(() => resolve(true)).onCancel(() => resolve(false));
+  });
+}
+
 async function saveUserChanges() {
   if (!selectedUser.value) return;
 
+  const payload = buildUserUpdate(selectedUser.value, editForm.value);
+  if (Object.keys(payload).length === 0) {
+    showEditDialog.value = false;
+    return;
+  }
+
+  if (!await confirmRisks(riskyChanges(selectedUser.value, payload))) return;
+
   try {
-    const payload = {
-      role: editForm.value.role,
-      isDisabled: editForm.value.isDisabled,
-      notes: editForm.value.notes
-    };
-
-    // Only include accountLocked if it changed (avoids unnecessary user_settings writes)
-    const currentLocked = !!selectedUser.value.accountLocked;
-    if (editForm.value.accountLocked !== currentLocked) {
-      payload.accountLocked = editForm.value.accountLocked;
-    }
-
     await updateUser(selectedUser.value.uid, payload);
 
     $q.notify({
@@ -276,36 +314,18 @@ async function saveUserChanges() {
 
     showEditDialog.value = false;
     selectedUser.value = null;
-
-    // Refresh list
-    await fetchUsers();
   } catch (err) {
-    $q.notify({
-      color: 'negative',
-      message: err.message || t('admin.users.notifications.updateError'),
-      icon: 'error'
-    });
+    notifyError(err.message || t('admin.users.notifications.updateError'));
   }
 }
 
 // ============ Ticket Functions ============
 
 function formatTicketTime(timestamp) {
-  if (!timestamp) return '';
+  const millis = ticketTimeMillis(timestamp);
+  if (!millis) return '';
 
-  let date;
-  if (timestamp.toDate) {
-    date = timestamp.toDate();
-  } else if (timestamp._seconds) {
-    date = new Date(timestamp._seconds * 1000);
-  } else if (timestamp.seconds) {
-    date = new Date(timestamp.seconds * 1000);
-  } else {
-    date = new Date(timestamp);
-  }
-
-  const now = new Date();
-  const diffMs = now - date;
+  const diffMs = Date.now() - millis;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -319,37 +339,25 @@ function formatTicketTime(timestamp) {
 function getLastMessagePreview(ticket) {
   if (!ticket.messages || ticket.messages.length === 0) return '';
   const lastMsg = ticket.messages[ticket.messages.length - 1];
-  const preview = lastMsg.content.substring(0, 60);
-  return preview + (lastMsg.content.length > 60 ? '...' : '');
+  const content = String(lastMsg.content ?? '');
+  return content.substring(0, 60) + (content.length > 60 ? '...' : '');
 }
 
 function openTicketChat(ticket) {
-  selectedTicket.value = ticket;
+  selectedTicketId.value = ticket.id;
   ticketReplyMessage.value = '';
   showTicketChatDialog.value = true;
 }
 
 async function sendTicketReply() {
-  if (!ticketReplyMessage.value.trim() || !selectedTicket.value) return;
+  const content = ticketReplyMessage.value.trim();
+  if (!content || !selectedTicket.value || ticketBusy.value) return;
 
   try {
-    const updatedTicket = await addMessage(selectedTicket.value.id, ticketReplyMessage.value.trim());
-    selectedTicket.value = updatedTicket;
+    await addMessage(selectedTicket.value.id, content);
     ticketReplyMessage.value = '';
-
-    $q.notify({
-      color: 'positive',
-      message: t('tickets.messages.messageSent'),
-      icon: 'check_circle',
-      timeout: 1500
-    });
-
   } catch (err) {
-    $q.notify({
-      color: 'negative',
-      message: t('tickets.messages.errorSending'),
-      icon: 'error'
-    });
+    notifyError(err.message || t('tickets.messages.errorSending'));
   }
 }
 
@@ -357,21 +365,29 @@ async function handleCloseTicket() {
   if (!selectedTicket.value) return;
 
   try {
-    const updatedTicket = await closeTicket(selectedTicket.value.id);
-    selectedTicket.value = updatedTicket;
-
+    await closeTicket(selectedTicket.value.id);
     $q.notify({
       color: 'positive',
       message: t('tickets.messages.closed'),
       icon: 'check_circle'
     });
-
   } catch (err) {
+    notifyError(err.message || t('tickets.messages.errorClosing'));
+  }
+}
+
+async function handleReopenTicket() {
+  if (!selectedTicket.value) return;
+
+  try {
+    await reopenTicket(selectedTicket.value.id);
     $q.notify({
-      color: 'negative',
-      message: t('tickets.messages.errorClosing'),
-      icon: 'error'
+      color: 'positive',
+      message: t('tickets.messages.reopened'),
+      icon: 'check_circle'
     });
+  } catch (err) {
+    notifyError(err.message || t('tickets.messages.errorReopening'));
   }
 }
 
@@ -404,12 +420,16 @@ onMounted(() => {
                   dense
                   icon="refresh"
                   color="grey"
-                  :loading="loading"
-                  @click="initAdmin"
+                  :loading="usersLoading"
+                  :aria-label="t('admin.users.refresh')"
+                  data-testid="admin-refresh"
+                  @click="loadPanelData"
                 />
               </div>
             </div>
           </q-card-section>
+          <!-- Refreshing with data already on screen: a thin bar, not a blank list -->
+          <q-linear-progress v-if="usersLoading && users.length > 0" indeterminate color="amber" size="2px" />
         </q-card>
       </div>
 
@@ -417,7 +437,7 @@ onMounted(() => {
       <div class="col-6 col-sm-3">
         <q-card flat bordered class="stat-card">
           <q-card-section class="text-center">
-            <div class="text-h4 text-weight-bold text-amber">
+            <div class="text-h4 text-weight-bold text-amber" data-testid="stat-users">
               {{ activeUsersCount }}
             </div>
             <div class="text-caption text-grey-6">
@@ -448,7 +468,7 @@ onMounted(() => {
       <div class="col-6 col-sm-3">
         <q-card flat bordered class="stat-card">
           <q-card-section class="text-center">
-            <div class="text-h4 text-weight-bold text-purple">
+            <div class="text-h4 text-weight-bold text-purple" data-testid="stat-passwords">
               {{ totalPasswords }}
             </div>
             <div class="text-caption text-grey-6">{{ t('admin.users.statPasswords') }}</div>
@@ -470,7 +490,7 @@ onMounted(() => {
       <div class="col-6 col-sm-3">
         <q-card flat bordered class="stat-card">
           <q-card-section class="text-center">
-            <div class="text-h4 text-weight-bold text-green">
+            <div class="text-h4 text-weight-bold text-green" data-testid="stat-activity">
               {{ stats?.activity?.recentActions || 0 }}
             </div>
             <div class="text-caption text-grey-6">{{ t('admin.users.statActivity7d') }}</div>
@@ -494,10 +514,11 @@ onMounted(() => {
           <template v-slot:default>
             {{ t('admin.users.tabTickets') }}
             <q-badge
-              v-if="openTicketsCount > 0"
+              v-if="ticketsAwaitingReply > 0"
               color="red"
               floating
-              :label="openTicketsCount"
+              :label="ticketsAwaitingReply"
+              data-testid="tickets-awaiting"
             />
           </template>
         </q-tab>
@@ -508,207 +529,263 @@ onMounted(() => {
       <!-- Panel: Users -->
       <q-tab-panel name="users" class="q-pa-none">
         <!-- Filters and search -->
-    <q-card flat bordered class="q-mb-md">
-      <q-card-section class="q-pa-sm">
-        <div class="row q-col-gutter-sm items-center">
-          <div class="col-12 col-sm-6">
-            <q-input
-              v-model="search"
-              dense
-              outlined
-              :placeholder="t('admin.users.searchPlaceholder')"
-              clearable
+        <q-card flat bordered class="q-mb-md">
+          <q-card-section class="q-pa-sm">
+            <div class="row q-col-gutter-sm items-center">
+              <div class="col-12 col-sm-6">
+                <q-input
+                  v-model="search"
+                  dense
+                  outlined
+                  :placeholder="t('admin.users.searchPlaceholder')"
+                  clearable
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="col-6 col-sm-3">
+                <q-select
+                  v-model="roleFilter"
+                  :options="filterOptions"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  :label="t('admin.users.filterByRole')"
+                />
+              </div>
+              <div class="col-6 col-sm-3">
+                <q-select
+                  v-model="sortBy"
+                  :options="sortOptions"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  :label="t('admin.users.sortBy')"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- User list -->
+        <q-card flat bordered>
+          <q-list separator>
+            <!-- The big loader only when there is nothing to show yet -->
+            <q-item v-if="usersLoading && users.length === 0" class="text-center q-pa-lg">
+              <q-item-section>
+                <LemonadeLoader :fullscreen="false" />
+              </q-item-section>
+            </q-item>
+
+            <q-item v-else-if="filteredUsers.length === 0" class="text-center q-pa-lg">
+              <q-item-section>
+                <q-icon name="person_off" size="48px" color="grey-5" />
+                <div class="text-grey-6 q-mt-sm">{{ t('admin.users.noUsers') }}</div>
+              </q-item-section>
+            </q-item>
+
+            <q-item
+              v-for="user in visibleUsers"
+              :key="user.uid"
+              clickable
+              data-testid="admin-user-row"
+              @click="openEditDialog(user)"
+              :class="{ 'admin-row--disabled': user.isDisabled, 'admin-row--locked': user.accountLocked && !user.isDisabled }"
             >
-              <template v-slot:prepend>
-                <q-icon name="search" />
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-select
-              v-model="roleFilter"
-              :options="filterOptions"
-              dense
-              outlined
-              emit-value
-              map-options
-              :label="t('admin.users.filterByRole')"
-            />
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+              <q-item-section avatar>
+                <q-avatar :color="getAvatarColor(user.role)" text-color="dark" size="42px">
+                  <img v-if="user.photoURL" :src="user.photoURL" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" />
+                  <span v-else>{{ getInitials(user) }}</span>
+                </q-avatar>
+              </q-item-section>
 
-    <!-- User list -->
-    <q-card flat bordered>
-      <q-list separator>
-        <q-item v-if="loading" class="text-center q-pa-lg">
-          <q-item-section>
-            <LemonadeLoader :fullscreen="false" />
-          </q-item-section>
-        </q-item>
+              <q-item-section>
+                <q-item-label class="text-weight-medium">
+                  {{ user.displayName || user.email }}
+                  <q-badge
+                    v-if="user.uid === myUid"
+                    outline
+                    color="amber-9"
+                    :label="t('admin.users.badge.you')"
+                    class="q-ml-sm"
+                  />
+                  <q-badge
+                    v-if="user.isDisabled"
+                    color="red"
+                    :label="t('admin.users.badge.disabled')"
+                    class="q-ml-sm"
+                  />
+                  <q-badge
+                    v-if="user.accountLocked"
+                    color="orange-9"
+                    class="q-ml-sm"
+                  >
+                    <q-icon name="lock" size="xs" class="q-mr-xs" />
+                    {{ t('admin.users.badge.locked') }}
+                    <q-tooltip>{{ t('admin.users.badge.lockedTooltip', { date: formatDate(user.accountLockedAt) }) }}</q-tooltip>
+                  </q-badge>
+                </q-item-label>
+                <q-item-label caption>
+                  {{ user.email }}
+                </q-item-label>
+                <q-item-label caption class="text-grey-5">
+                  {{ lastLoginLabel(user) }}
+                </q-item-label>
+              </q-item-section>
 
-        <q-item v-else-if="filteredUsers.length === 0" class="text-center q-pa-lg">
-          <q-item-section>
-            <q-icon name="person_off" size="48px" color="grey-5" />
-            <div class="text-grey-6 q-mt-sm">{{ t('admin.users.noUsers') }}</div>
-          </q-item-section>
-        </q-item>
+              <q-item-section side>
+                <div class="row items-center q-gutter-sm">
+                  <q-badge
+                    :color="getRoleColor(user.role)"
+                    :label="getRoleLabel(user.role)"
+                    class="text-capitalize"
+                  />
+                  <div class="text-caption text-grey-6">
+                    {{ t('admin.users.pwdCount', { count: user.passwordCount || 0 }) }}
+                  </div>
+                </div>
+              </q-item-section>
 
-        <q-item
-          v-for="user in filteredUsers"
-          :key="user.uid"
-          clickable
-          @click="openEditDialog(user)"
-          :class="{ 'bg-red-1': user.isDisabled, 'bg-orange-1': user.accountLocked && !user.isDisabled }"
-        >
-          <q-item-section avatar>
-            <q-avatar :color="getAvatarColor(user.role)" text-color="dark" size="42px">
-              <img v-if="user.photoURL" :src="user.photoURL" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-              <span v-else>{{ getInitials(user) }}</span>
-            </q-avatar>
-          </q-item-section>
+              <q-item-section side>
+                <q-icon name="chevron_right" color="grey-5" />
+              </q-item-section>
+            </q-item>
 
-          <q-item-section>
-            <q-item-label class="text-weight-medium">
-              {{ user.displayName || user.email }}
-              <q-badge
-                v-if="user.isDisabled"
+            <q-item v-if="hiddenUsersCount > 0" class="q-pa-sm">
+              <q-item-section>
+                <q-btn
+                  flat
+                  no-caps
+                  color="amber-9"
+                  :label="t('admin.users.showMore', { count: Math.min(hiddenUsersCount, USERS_PAGE_SIZE), total: hiddenUsersCount })"
+                  @click="shownUsers += USERS_PAGE_SIZE"
+                />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card>
+
+        <!-- Edit user dialog -->
+        <q-dialog v-model="showEditDialog" persistent>
+          <q-card style="min-width: 350px; max-width: 460px" data-testid="admin-edit-dialog">
+            <q-card-section class="row items-center">
+              <div class="text-h6">{{ t('admin.users.editDialog.title') }}</div>
+              <q-space />
+              <q-btn icon="close" flat round dense v-close-popup :aria-label="t('common.close')" />
+            </q-card-section>
+
+            <q-card-section v-if="selectedUser">
+              <div class="row items-center q-mb-md">
+                <q-avatar :color="getAvatarColor(selectedUser.role)" text-color="dark" size="48px" class="q-mr-md">
+                  <img v-if="selectedUser.photoURL" :src="selectedUser.photoURL" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" />
+                  <span v-else>{{ getInitials(selectedUser) }}</span>
+                </q-avatar>
+                <div>
+                  <div class="text-weight-medium">{{ selectedUser.displayName || t('admin.users.editDialog.noName') }}</div>
+                  <div class="text-caption text-grey-6">{{ selectedUser.email }}</div>
+                </div>
+              </div>
+
+              <q-banner v-if="editingSelf" class="admin-banner admin-banner--self q-mb-md" rounded dense>
+                <template v-slot:avatar>
+                  <q-icon name="shield" color="amber-9" />
+                </template>
+                {{ t('admin.users.editDialog.selfBanner') }}
+              </q-banner>
+
+              <q-separator class="q-my-md" />
+
+              <!-- Your own access cannot be taken away from here: the server refuses too -->
+              <q-select
+                v-model="editForm.role"
+                :options="roleOptions"
+                :label="t('admin.users.editDialog.roleLabel')"
+                :disable="editingSelf"
+                emit-value
+                map-options
+                outlined
+                dense
+                class="q-mb-md"
+              />
+
+              <q-toggle
+                v-model="editForm.isDisabled"
+                :label="t('admin.users.editDialog.userDisabledLabel')"
+                :disable="editingSelf"
                 color="red"
-                :label="t('admin.users.badge.disabled')"
-                class="q-ml-sm"
+                class="q-mb-md"
               />
-              <q-badge
-                v-if="user.accountLocked"
-                color="orange-9"
-                icon="lock"
-                class="q-ml-sm"
+
+              <q-toggle
+                v-model="editForm.accountLocked"
+                :disable="editingSelf"
+                color="orange"
+                class="q-mb-md"
               >
-                <q-icon name="lock" size="xs" class="q-mr-xs" />
-                {{ t('admin.users.badge.locked') }}
-                <q-tooltip>{{ t('admin.users.badge.lockedTooltip', { date: formatDate(user.accountLockedAt) }) }}</q-tooltip>
-              </q-badge>
-            </q-item-label>
-            <q-item-label caption>
-              {{ user.email }}
-            </q-item-label>
-          </q-item-section>
+                <template v-slot:default>
+                  <div class="row items-center q-gutter-xs">
+                    <q-icon name="lock" size="sm" :color="editForm.accountLocked ? 'orange' : 'grey-6'" />
+                    <span>{{ t('admin.users.editDialog.accountLockedLabel') }}</span>
+                  </div>
+                </template>
+              </q-toggle>
 
-          <q-item-section side>
-            <div class="row items-center q-gutter-sm">
-              <q-badge
-                :color="getRoleColor(user.role)"
-                :label="getRoleLabel(user.role)"
-                class="text-capitalize"
+              <q-banner v-if="selectedUser.accountLocked && !editForm.accountLocked" class="admin-banner admin-banner--ok q-mb-md" rounded dense>
+                <template v-slot:avatar>
+                  <q-icon name="lock_open" color="green" />
+                </template>
+                {{ t('admin.users.editDialog.willUnlockBanner') }}
+              </q-banner>
+
+              <q-banner v-if="selectedUser.accountLocked && editForm.accountLocked" class="admin-banner admin-banner--warn q-mb-md" rounded dense>
+                <template v-slot:avatar>
+                  <q-icon name="lock" color="orange" />
+                </template>
+                {{ t('admin.users.editDialog.lockedSinceBanner', { date: formatDate(selectedUser.accountLockedAt) }) }}
+              </q-banner>
+
+              <q-input
+                v-model="editForm.notes"
+                :label="t('admin.users.editDialog.notesLabel')"
+                type="textarea"
+                outlined
+                dense
+                rows="3"
+                maxlength="2000"
+                counter
               />
-              <div class="text-caption text-grey-6">
-                {{ t('admin.users.pwdCount', { count: user.passwordCount || 0 }) }}
+
+              <div class="text-caption text-grey-6 q-mt-md">
+                <div>{{ t('admin.users.editDialog.registered', { date: formatDate(selectedUser.createdAt) }) }}</div>
+                <div>{{ lastLoginLabel(selectedUser) }}</div>
+                <div>{{ t('admin.users.editDialog.passwords', { count: selectedUser.passwordCount || 0 }) }}</div>
+                <div v-if="selectedUser.subscription?.status">
+                  {{ t('admin.users.editDialog.subscription', { status: selectedUser.subscription.status }) }}
+                  <span v-if="selectedUser.subscription.currentPeriodEnd">· {{ formatDate(selectedUser.subscription.currentPeriodEnd) }}</span>
+                </div>
+                <div class="row items-center no-wrap">
+                  <span class="ellipsis">UID: {{ selectedUser.uid }}</span>
+                  <q-btn flat dense round size="sm" icon="content_copy" :aria-label="t('admin.users.editDialog.copyUid')" @click="copyUid" />
+                </div>
               </div>
-            </div>
-          </q-item-section>
+            </q-card-section>
 
-          <q-item-section side>
-            <q-icon name="chevron_right" color="grey-5" />
-          </q-item-section>
-        </q-item>
-      </q-list>
-    </q-card>
-
-    <!-- Edit user dialog -->
-    <q-dialog v-model="showEditDialog" persistent>
-      <q-card style="min-width: 350px">
-        <q-card-section class="row items-center">
-          <div class="text-h6">{{ t('admin.users.editDialog.title') }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section v-if="selectedUser">
-          <div class="row items-center q-mb-md">
-            <q-avatar :color="getAvatarColor(selectedUser.role)" text-color="dark" size="48px" class="q-mr-md">
-              <img v-if="selectedUser.photoURL" :src="selectedUser.photoURL" loading="lazy" decoding="async" referrerpolicy="no-referrer" />
-              <span v-else>{{ getInitials(selectedUser) }}</span>
-            </q-avatar>
-            <div>
-              <div class="text-weight-medium">{{ selectedUser.displayName || t('admin.users.editDialog.noName') }}</div>
-              <div class="text-caption text-grey-6">{{ selectedUser.email }}</div>
-            </div>
-          </div>
-
-          <q-separator class="q-my-md" />
-
-          <q-select
-            v-model="editForm.role"
-            :options="roleOptions"
-            :label="t('admin.users.editDialog.roleLabel')"
-            emit-value
-            map-options
-            outlined
-            dense
-            class="q-mb-md"
-          />
-
-          <q-toggle
-            v-model="editForm.isDisabled"
-            :label="t('admin.users.editDialog.userDisabledLabel')"
-            color="red"
-            class="q-mb-md"
-          />
-
-          <q-toggle
-            v-model="editForm.accountLocked"
-            color="orange"
-            class="q-mb-md"
-          >
-            <template v-slot:default>
-              <div class="row items-center q-gutter-xs">
-                <q-icon name="lock" size="sm" :color="editForm.accountLocked ? 'orange' : 'grey-6'" />
-                <span>{{ t('admin.users.editDialog.accountLockedLabel') }}</span>
-              </div>
-            </template>
-          </q-toggle>
-
-          <q-banner v-if="selectedUser.accountLocked && !editForm.accountLocked" class="bg-green-1 text-green-9 q-mb-md" rounded dense>
-            <template v-slot:avatar>
-              <q-icon name="lock_open" color="green" />
-            </template>
-            {{ t('admin.users.editDialog.willUnlockBanner') }}
-          </q-banner>
-
-          <q-banner v-if="selectedUser.accountLocked && editForm.accountLocked" class="bg-orange-1 text-orange-9 q-mb-md" rounded dense>
-            <template v-slot:avatar>
-              <q-icon name="lock" color="orange" />
-            </template>
-            {{ t('admin.users.editDialog.lockedSinceBanner', { date: formatDate(selectedUser.accountLockedAt) }) }}
-          </q-banner>
-
-          <q-input
-            v-model="editForm.notes"
-            :label="t('admin.users.editDialog.notesLabel')"
-            type="textarea"
-            outlined
-            dense
-            rows="3"
-          />
-
-          <div class="text-caption text-grey-6 q-mt-md">
-            <div>{{ t('admin.users.editDialog.registered', { date: formatDate(selectedUser.createdAt) }) }}</div>
-            <div>{{ t('admin.users.editDialog.passwords', { count: selectedUser.passwordCount || 0 }) }}</div>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat :label="t('common.cancel')" color="grey" v-close-popup />
-          <q-btn
-            flat
-            :label="t('common.save')"
-            color="primary"
-            :loading="loading"
-            @click="saveUserChanges"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+            <q-card-actions align="right">
+              <q-btn flat :label="t('common.cancel')" color="grey" v-close-popup />
+              <q-btn
+                flat
+                :label="t('common.save')"
+                color="primary"
+                :loading="saving"
+                @click="saveUserChanges"
+              />
+            </q-card-actions>
+          </q-card>
+        </q-dialog>
       </q-tab-panel>
 
       <!-- Panel: Tickets -->
@@ -717,7 +794,7 @@ onMounted(() => {
         <q-card flat bordered class="q-mb-md">
           <q-card-section class="q-pa-sm">
             <div class="row q-col-gutter-sm items-center">
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-5">
                 <q-input
                   v-model="ticketSearch"
                   dense
@@ -730,7 +807,7 @@ onMounted(() => {
                   </template>
                 </q-input>
               </div>
-              <div class="col-12 col-sm-6">
+              <div class="col-12 col-sm-7">
                 <q-btn-toggle
                   v-model="ticketFilter"
                   spread
@@ -738,10 +815,12 @@ onMounted(() => {
                   dense
                   unelevated
                   toggle-color="amber"
+                  toggle-text-color="dark"
                   text-color="grey-7"
                   class="ticket-filter-toggle"
                   :options="[
                     { label: t('tickets.admin.allTickets'), value: 'all' },
+                    { label: t('tickets.admin.needsReply'), value: 'needsReply' },
                     { label: t('tickets.admin.openTickets'), value: 'open' },
                     { label: t('tickets.admin.closedTickets'), value: 'closed' }
                   ]"
@@ -754,7 +833,7 @@ onMounted(() => {
         <!-- Ticket list -->
         <q-card flat bordered>
           <q-list separator>
-            <q-item v-if="ticketsLoading" class="text-center q-pa-lg">
+            <q-item v-if="!allTicketsReady" class="text-center q-pa-lg">
               <q-item-section>
                 <q-spinner-dots color="amber" size="40px" />
               </q-item-section>
@@ -763,7 +842,7 @@ onMounted(() => {
             <q-item v-else-if="filteredTickets.length === 0" class="q-pa-lg">
               <q-item-section class="items-center">
                 <q-icon name="inbox" size="48px" color="grey-5" />
-                <div class="text-grey-6 q-mt-sm">{{ t('tickets.admin.noOpenTickets') }}</div>
+                <div class="text-grey-6 q-mt-sm">{{ t('tickets.admin.noTickets') }}</div>
               </q-item-section>
             </q-item>
 
@@ -771,10 +850,9 @@ onMounted(() => {
               v-for="ticket in filteredTickets"
               :key="ticket.id"
               clickable
+              data-testid="admin-ticket-row"
               @click="openTicketChat(ticket)"
-              :class="{
-                'bg-amber-1': ticket.status === 'open' && ticket.messages?.length > 0 && !ticket.messages[ticket.messages.length - 1]?.isAdmin
-              }"
+              :class="{ 'admin-row--waiting': ticketNeedsReply(ticket) }"
             >
               <q-item-section avatar>
                 <q-avatar
@@ -782,7 +860,7 @@ onMounted(() => {
                   text-color="dark"
                   size="42px"
                 >
-                  <q-icon :name="ticket.status === 'open' ? 'mark_email_unread' : 'mark_email_read'" />
+                  <q-icon :name="ticketNeedsReply(ticket) ? 'mark_email_unread' : 'mark_email_read'" />
                 </q-avatar>
               </q-item-section>
 
@@ -790,7 +868,13 @@ onMounted(() => {
                 <q-item-label class="text-weight-medium">
                   {{ ticket.subject }}
                   <q-badge
-                    v-if="ticket.status === 'open'"
+                    v-if="ticketNeedsReply(ticket)"
+                    color="red"
+                    :label="t('tickets.admin.needsReply')"
+                    class="q-ml-sm"
+                  />
+                  <q-badge
+                    v-else-if="ticket.status === 'open'"
                     color="amber"
                     :label="t('tickets.admin.open')"
                     class="q-ml-sm"
@@ -831,7 +915,7 @@ onMounted(() => {
 
     <!-- Ticket chat dialog (Admin) -->
     <q-dialog v-model="showTicketChatDialog" maximized>
-      <q-card class="column no-wrap ticket-chat-dialog">
+      <q-card class="column no-wrap ticket-chat-dialog" data-testid="admin-ticket-chat">
         <!-- Header -->
         <q-card-section class="row items-center q-pb-none bg-dark">
           <div class="col">
@@ -843,7 +927,7 @@ onMounted(() => {
             :label="selectedTicket?.status === 'open' ? t('tickets.admin.open') : t('tickets.admin.closed')"
             class="q-mr-md"
           />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup :aria-label="t('common.close')" />
         </q-card-section>
 
         <q-separator />
@@ -852,7 +936,7 @@ onMounted(() => {
         <q-card-section class="col q-pa-md overflow-auto chat-messages">
           <div
             v-for="(msg, idx) in selectedTicket?.messages"
-            :key="idx"
+            :key="msg.id || idx"
             :class="['chat-bubble', msg.isAdmin ? 'admin-msg' : 'user-msg']"
           >
             <div class="msg-content">{{ msg.content }}</div>
@@ -877,6 +961,7 @@ onMounted(() => {
               dense
               outlined
               autogrow
+              :maxlength="TICKET_MESSAGE_MAX_LENGTH"
               :placeholder="t('tickets.chat.placeholder')"
               @keyup.enter.ctrl="sendTicketReply"
             />
@@ -884,7 +969,9 @@ onMounted(() => {
               round
               color="amber"
               icon="send"
+              :loading="ticketBusy"
               :disable="!ticketReplyMessage.trim()"
+              :aria-label="t('tickets.chat.send')"
               @click="sendTicketReply"
             />
             <q-btn
@@ -892,13 +979,25 @@ onMounted(() => {
               flat
               color="grey"
               icon="check_circle"
+              :disable="ticketBusy"
+              :aria-label="t('tickets.chat.closeTicket')"
               @click="handleCloseTicket"
             >
               <q-tooltip>{{ t('tickets.chat.closeTicket') }}</q-tooltip>
             </q-btn>
           </div>
-          <div v-else class="text-center text-grey-5 q-pa-sm">
-            {{ t('tickets.chat.ticketClosed') }}
+          <div v-else class="row items-center justify-center q-gutter-sm q-pa-sm">
+            <span class="text-grey-5">{{ t('tickets.chat.ticketClosed') }}</span>
+            <q-btn
+              flat
+              dense
+              no-caps
+              color="amber"
+              icon="replay"
+              :loading="ticketBusy"
+              :label="t('tickets.admin.reopen')"
+              @click="handleReopenTicket"
+            />
           </div>
         </q-card-section>
       </q-card>
@@ -988,8 +1087,27 @@ onMounted(() => {
 }
 </style>
 
-<!-- Dark mode styles - unscoped to access body class -->
+<!-- Unscoped: dark mode needs the body class, and the edit dialog is teleported
+     out of .admin-page, so its banners cannot be reached from a scoped block. -->
 <style>
+/* Highlighted rows and banners. These were Quasar's bg-*-1 pastel classes, which
+   stay pastel in dark mode: white text on a cream row, unreadable. */
+.admin-row--waiting { background: #fff8e1; }
+.admin-row--locked { background: #fff3e0; }
+.admin-row--disabled { background: #ffebee; }
+
+.admin-banner--self { background: #fff8e1; color: #8a5a00; }
+.admin-banner--ok { background: #e8f5e9; color: #1b5e20; }
+.admin-banner--warn { background: #fff3e0; color: #a84300; }
+
+.body--dark .admin-page .q-item.admin-row--waiting { background: rgba(255, 193, 7, 0.13); }
+.body--dark .admin-page .q-item.admin-row--locked { background: rgba(255, 152, 0, 0.13); }
+.body--dark .admin-page .q-item.admin-row--disabled { background: rgba(244, 67, 54, 0.13); }
+
+body.body--dark .admin-banner--self { background: rgba(255, 193, 7, 0.14); color: #ffd866; }
+body.body--dark .admin-banner--ok { background: rgba(76, 175, 80, 0.16); color: #9be7a0; }
+body.body--dark .admin-banner--warn { background: rgba(255, 152, 0, 0.16); color: #ffc680; }
+
 .body--dark .admin-page .q-card {
   background: #161b22 !important;
 }
@@ -1026,7 +1144,10 @@ onMounted(() => {
   color: #9e9e9e !important;
 }
 
-.body--dark .admin-page .ticket-filter-toggle .q-btn--active {
+/* The active option is the one with aria-pressed: QBtnToggle does not add a
+   q-btn--active class, so the rule that was here never matched and the active
+   label stayed grey on amber. */
+.body--dark .admin-page .ticket-filter-toggle .q-btn[aria-pressed="true"] {
   color: #1d1d1d !important;
 }
 </style>

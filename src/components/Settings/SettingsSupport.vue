@@ -1,5 +1,5 @@
 <script setup>
-import { ref, defineOptions } from 'vue'
+import { ref, computed, defineOptions } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useTickets } from '../../composables/useTickets'
@@ -13,18 +13,25 @@ const { t } = useI18n()
 
 const {
   myTickets,
-  loading: ticketsLoading,
+  myTicketsReady,
+  loading: ticketsBusy,
   createTicket,
-  fetchMyTickets,
+  watchMyTickets,
   addMessage,
   closeTicket
 } = useTickets()
+
+// The list is live, so "loading" only exists until the first snapshot.
+const ticketsListLoading = computed(() => !myTicketsReady.value)
 
 const showNewTicketDialog = ref(false)
 const showTicketChatDialog = ref(false)
 const newTicketSubject = ref('')
 const newTicketMessage = ref('')
-const selectedTicket = ref(null)
+// Looked up by id on every change of the live list, so an answer from support
+// shows up in an open conversation without closing and reopening it.
+const selectedTicketId = ref(null)
+const selectedTicket = computed(() => myTickets.value.find(ticket => ticket.id === selectedTicketId.value) || null)
 const ticketReplyMessage = ref('')
 
 const formatTicketTime = (timestamp) => {
@@ -56,7 +63,7 @@ const formatTicketTime = (timestamp) => {
 }
 
 const openTicketChat = (ticket) => {
-  selectedTicket.value = ticket
+  selectedTicketId.value = ticket.id
   ticketReplyMessage.value = ''
   showTicketChatDialog.value = true
 }
@@ -89,8 +96,7 @@ const sendTicketReply = async () => {
   if (!ticketReplyMessage.value.trim() || !selectedTicket.value) return
 
   try {
-    const updatedTicket = await addMessage(selectedTicket.value.id, ticketReplyMessage.value.trim())
-    selectedTicket.value = updatedTicket
+    await addMessage(selectedTicket.value.id, ticketReplyMessage.value.trim())
     ticketReplyMessage.value = ''
 
     $q.notify({
@@ -112,8 +118,7 @@ const handleCloseTicket = async () => {
   if (!selectedTicket.value) return
 
   try {
-    const updatedTicket = await closeTicket(selectedTicket.value.id)
-    selectedTicket.value = updatedTicket
+    await closeTicket(selectedTicket.value.id)
 
     $q.notify({
       color: 'positive',
@@ -129,10 +134,8 @@ const handleCloseTicket = async () => {
   }
 }
 
-// Load tickets on mount
-fetchMyTickets().catch(err => {
-  console.error('Error loading tickets:', err)
-})
+// Keep the list in sync from now on
+watchMyTickets()
 </script>
 
 <template>
@@ -149,12 +152,12 @@ fetchMyTickets().catch(err => {
           icon="add"
           unelevated
           @click="showNewTicketDialog = true"
-          :disable="ticketsLoading"
+          :disable="ticketsBusy"
         />
       </div>
 
       <!-- Loading state -->
-      <div v-if="ticketsLoading" class="text-center q-pa-lg">
+      <div v-if="ticketsListLoading" class="text-center q-pa-lg">
         <q-spinner-dots color="primary" size="40px" />
       </div>
 
@@ -207,7 +210,7 @@ fetchMyTickets().catch(err => {
       <q-card-section class="row items-center">
         <div class="text-h6">{{ $t('tickets.newTicket') }}</div>
         <q-space />
-        <q-btn icon="close" flat round dense v-close-popup :disable="ticketsLoading" :aria-label="$t('common.close')" />
+        <q-btn icon="close" flat round dense v-close-popup :disable="ticketsBusy" :aria-label="$t('common.close')" />
       </q-card-section>
 
       <q-card-section>
@@ -218,7 +221,7 @@ fetchMyTickets().catch(err => {
           outlined
           dense
           class="q-mb-md"
-          :disable="ticketsLoading"
+          :disable="ticketsBusy"
           maxlength="200"
           counter
         />
@@ -229,7 +232,7 @@ fetchMyTickets().catch(err => {
           type="textarea"
           outlined
           rows="4"
-          :disable="ticketsLoading"
+          :disable="ticketsBusy"
           maxlength="2000"
           counter
         />
@@ -241,14 +244,14 @@ fetchMyTickets().catch(err => {
           :label="$t('tickets.form.cancel')"
           color="grey"
           v-close-popup
-          :disable="ticketsLoading"
+          :disable="ticketsBusy"
         />
         <q-btn
           unelevated
           :label="$t('tickets.form.send')"
           color="primary"
           icon="send"
-          :loading="ticketsLoading"
+          :loading="ticketsBusy"
           :disable="!newTicketSubject.trim() || !newTicketMessage.trim()"
           @click="submitNewTicket"
         />
@@ -277,7 +280,7 @@ fetchMyTickets().catch(err => {
           :label="$t('tickets.chat.close')"
           icon="check_circle"
           @click="handleCloseTicket"
-          :loading="ticketsLoading"
+          :loading="ticketsBusy"
         />
       </q-card-section>
 
@@ -302,13 +305,13 @@ fetchMyTickets().catch(err => {
             dense
             class="col"
             @keyup.enter="sendTicketReply"
-            :disable="ticketsLoading"
+            :disable="ticketsBusy"
           />
           <q-btn
             color="primary"
             icon="send"
             unelevated
-            :loading="ticketsLoading"
+            :loading="ticketsBusy"
             :disable="!ticketReplyMessage.trim()"
             @click="sendTicketReply"
           />

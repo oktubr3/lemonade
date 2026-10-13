@@ -1,5 +1,185 @@
 # Changelog
 
+## v2.2.27 — Admin panel: faster, stricter, live tickets (2026-10-13)
+
+### Performance
+- **The panel no longer waits on three cold functions.** Production logs showed
+  where the time went: on the first load of the day the container took **14 s**
+  to boot, and the request itself 1.3 s. The panel called three functions
+  (users, stats, tickets), each its own container. Now the stats travel with the
+  user list, tickets are read live from Firestore, and the one function left is
+  kept warm (it takes `getOpenTicketsCountHttp`'s slot in `keepWarm`, which the
+  live badge no longer needs).
+- The list is requested when an admin's session starts, so the panel opens with
+  the data already in memory and refreshes behind a thin progress bar instead of
+  blanking the list.
+- Password counts no longer download every entry of every vault (twice per
+  load). One query reads only each entry's owner; above 20,000 entries it
+  switches to one aggregation per user. Not what made the panel slow today
+  (30 users, 341 entries), but it grew with the size of all vaults.
+- Saving a user updates its row in place instead of reloading the whole list.
+- **Every function the app calls is kept warm, not just the first screen.** The
+  warm list had 17 entries, so the first save, delete, share or ticket reply
+  after a quiet spell still waited 8–14 s for a container. It now holds all 50
+  functions the web app and the extensions call; in three days of production logs
+  15 of the 17 listed functions never booted cold, one did once and one six
+  times. A test fails if the app starts calling a function that is in no list.
+- Each cold start logs how long Node ran before `index.js` and how long the
+  file took to load, to tell container start from module load.
+
+### Security
+- **Signing in as another account on the same tab no longer shows the previous
+  user's tickets, or sends ticket actions with their token.** The tickets module
+  kept its state and a hand-cached ID token (50 minutes) for the life of the
+  page and nothing cleared them on sign-out. The same manual token cache was
+  removed from emergency access.
+- **Only a primary admin (verified `ADMIN_EMAILS`) can grant or revoke the admin
+  role.** Any admin could before.
+- **An admin cannot remove its own access** (role, disable, lock), in the screen
+  and in the API.
+- Admin endpoints check the ID token against revocation, so a suspended admin
+  loses access at once instead of within the hour.
+- Ticket endpoints validate types. `subject`, `message` and `content` were only
+  length-checked, and an object has no length: `{"subject": {...}}` was stored
+  as is. They are also POST-only and rate limited now, replies and status
+  changes run in a transaction, and a ticket stops at 200 messages instead of
+  growing until the document hits Firestore's 1 MB limit.
+- An unknown role is rejected with 400. It used to be dropped silently while the
+  call still answered "updated".
+
+### Fixed
+- **Saving any change to a user wiped its admin notes.** The list never returned
+  the notes, so the dialog opened empty and sent that back. The dialog now sends
+  only what changed.
+- Admin endpoints counted every request twice against their rate limit (two
+  limiter calls with the same key), so the panel hit 429 after half the
+  advertised number of refreshes.
+- "Activity (7d)" could never show more than 100: it was counted over the last
+  100 audit logs.
+- **Audit records were lost without a trace when any detail was undefined.**
+  Firestore rejects such a document and `createAuditLog` only logs the error.
+  Production lost four `getPasswordEntryHttp` records that way in the last 30
+  days. Undefined details are dropped now and the record is kept.
+- Dark mode in the panel: rows marked as waiting, locked or disabled kept their
+  pastel background under white text, and the active ticket filter was grey on
+  amber (its rule targeted a class QBtnToggle never adds).
+- `firestore.indexes.json` was missing two composite indexes that exist in
+  production (`tickets` by user and creation date, `shared_passwords` by status
+  and recipient). Deploying indexes from the repo would have offered to delete
+  them; the first one backs the daily ticket limit.
+
+### Added
+- Users: last sign-in and registration date (from Firebase Auth; the user
+  documents never stored them), sorting, "show more" paging, subscription
+  status, UID with copy, and a confirmation before anything that takes access
+  away or grants admin.
+- Tickets: live list and conversation on both sides, "awaiting reply" state
+  (the badge counts those, not every open ticket), waiting tickets first, and
+  reopening a closed ticket.
+
+### Testing
+- 10 new e2e tests for the panel and tickets (14 in total) and 18 unit tests for
+  the panel's logic. Each was watched failing against a deliberate break; two
+  needed strengthening first because a second, older rule was hiding the break.
+- Firestore rules: 51 new checks that a signed-in user cannot read, list, edit
+  or delete another user's passwords, notes, shares, emergency grants or
+  tickets (74 total). The suite now runs in CI.
+
+## v2.2.26 — End-to-end tests against the Firebase emulators (2026-10-12)
+
+### Testing
+- **Playwright e2e suite**, run with `pnpm run test:e2e` and on every pull
+  request. It boots the Auth, Firestore and Functions emulators plus the dev
+  server, signs in through the emulator's fake Google provider, seeds a vault
+  and checks that the list loads, survives reloads, and that a search with regex
+  metacharacters does not break it. Every test also fails on any page exception
+  or `console.error`.
+- **It cannot reach production by construction.** The project id is
+  `demo-lemonade`, which Firebase never connects to the cloud; the app only
+  talks to emulators behind `VITE_USE_EMULATORS` *and* `import.meta.env.DEV`, so
+  the block is absent from production bundles (verified: no trace in `dist/`).
+- **Each test was watched failing.** Reintroducing the search bug did not break
+  the first version of its test — relevance scoring only runs with two or more
+  results, and the seed had one. The seed now has two, and the mutation fails it.
+- **Stated limit:** the intermittent empty-list failure fixed in v2.2.22 is not
+  reproduced here. The original code passes these tests, because against a local
+  emulator with no latency the race does not occur. They guard that loading
+  works; they are not a reproduction of that bug.
+
+### Changed
+- The function warmup is skipped when running against emulators: a local
+  emulator has no cold start, and its preflight handling rejects `OPTIONS`.
+  Production behavior is unchanged.
+
+## v2.2.25 — Polar API 2026-04 → 2026-10, ahead of the January cutoff (2026-10-06)
+
+### Changed
+- **Polar API version moved to `2026-10`**, three months before the January 2027
+  release in which Polar removes `2026-04`. Since SDK 1.x the version is the
+  import path, so this is one line — but the webhook endpoint is versioned
+  separately on Polar's side, which is what makes the ordering matter.
+- **The order used, and why it was safe.** All **11 event types** the handler
+  branches on (`subscription.created/updated/active/canceled/revoked`,
+  `order.created/paid/updated/refunded`, `checkout.created/updated`) were
+  measured to parse **identically** under `2026-04` and `2026-10` — same keys,
+  same types, zero differences. That makes the handler tolerant of either
+  format, so the code could ship before the endpoint was switched rather than
+  needing both to land in the same minute.
+
+### Testing
+- The signature test now also asserts that **each of the 11 event types parses**
+  on the pinned version. If a future version bump stops parsing one of them,
+  that branch silently stops running and the payment is lost while the endpoint
+  still answers 200 — this turns that into a failing test.
+
+## v2.2.24 — Polar SDK 1.x, and the CI blind spot that hid it (2026-10-06)
+
+### Changed
+- **`@polar-sh/sdk` 0.49 → 1.0.2.** The 1.0 release repackages the SDK into one
+  module per dated API version, so **the import path is now the API version
+  pin** — `require('@polar-sh/sdk/2026-04')` — and the `Polar-Version` header
+  hook is gone, along with the `HTTPClient` it needed. The API version stays at
+  `2026-04` deliberately: the SDK change already alters both the signing scheme
+  and the payload shape, and moving to `2026-10` at the same time would make a
+  silent payment failure impossible to attribute. That migration is a one-line
+  import change plus a Polar dashboard step, due before January 2027.
+
+### Fixed
+- **Every field read from Polar had to change.** The 0.49 SDK was generated by
+  Speakeasy and remapped `snake_case` to `camelCase` in both directions, and
+  coerced dates to `Date`. The 1.x SDK is hand-written and passes the JSON
+  through untouched. Left alone, every branch of the webhook `switch` would read
+  `undefined`, the endpoint would answer 200, and **a customer would pay and
+  never get their role**. Updated: `product_id`, `current_period_end`,
+  `total_amount` in the handler; `customer_email`, `success_url`, `customer_id`
+  in request bodies; `customer_portal_url` in the portal response.
+  `current_period_end` is now explicitly wrapped in `new Date()` so Firestore
+  keeps storing a Timestamp rather than a string.
+- **`validateEvent` is async in 1.x and is now awaited.** Without the `await`, a
+  rejected signature would be an unhandled promise rejection outside the `try`,
+  and the endpoint would carry on processing an unverified event.
+- **The dual-key-derivation wrapper now delegates to the SDK.** 0.49 only tried
+  the legacy HMAC key, so `validatePolarEvent` retried by hand with the other
+  derivation. That retry cannot be ported: it worked by passing a `Buffer` to
+  `validateEvent`, and 1.x rejects a Buffer with `TypeError` — which is not a
+  verification error, so it would leave the handler answering **500 instead of
+  403**. The key derivation is the Polar SDK's own, and Polar both issues the
+  secret and signs the delivery.
+
+  Worth recording because it is the trap here: **this project's secret is
+  prefixed `polar_whs_`, not `whsec_`**, and the derivation depends on that
+  prefix. The test now uses the real format.
+
+### Testing
+- **`npm test` in `functions/`**, wired into CI. It signs a payload with each of
+  the two key derivations and asserts both verify, that a **different secret is
+  rejected either way**, and that the parsed event still exposes the exact fields
+  the handler reads for `subscription.created` and `order.paid`.
+- **CI now loads `index.js`.** The functions job only ran `npm ci`, so a major
+  that breaks a `require()` passed green — exactly what this SDK bump did, by
+  dropping the `/webhooks` and `/lib/http` subpaths. That would have taken all 76
+  functions down on the next deploy with a green check on the PR.
+
 ## v2.2.23 — A test suite that can actually fail (2026-10-06)
 
 ### Fixed
