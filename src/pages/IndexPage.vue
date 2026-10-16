@@ -129,6 +129,7 @@ const {
     previewHasTotp,
     totpCode,
     totpTimeRemaining,
+    totpPeriod,
     totpSecretInput,
     isSavingTotp,
     showTotpSetupDialog,
@@ -674,7 +675,7 @@ const copyPassword = async (entry) => {
             passwordToCopy = entry;
         } else {
             const decryptedData = await passwordEntriesStore.getDecryptedPassword(entry.id);
-            passwordToCopy = decryptedData.password || decryptedData;
+            passwordToCopy = decryptedData.password ?? decryptedData;
         }
         copyToClipboard(passwordToCopy);
     } catch (error) {
@@ -690,7 +691,7 @@ const copyPassword = async (entry) => {
 const copyAllData = async (entry) => {
     try {
         const decryptedData = await passwordEntriesStore.getDecryptedPassword(entry.id);
-        const decryptedPassword = decryptedData.password || decryptedData;
+        const decryptedPassword = decryptedData.password ?? decryptedData;
         const title = entry.title || entry.name || 'Sin nombre';
         const username = entry.username || '';
         const url = entry.url || '';
@@ -978,6 +979,7 @@ const formattedPasswordHistory = computed(() => {
             :has-totp="previewHasTotp"
             :totp-code="totpCode"
             :totp-time-remaining="totpTimeRemaining"
+            :totp-period="totpPeriod"
             :password-history="formattedPasswordHistory"
             :is-loading-history="isLoadingHistory"
             :show-history-password="showHistoryPassword"

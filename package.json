@@ -1,6 +1,6 @@
 {
     "name": "pass-manager",
-    "version": "2.2.27",
+    "version": "2.3.0",
     "packageManager": "pnpm@9.15.9",
     "description": "A very simple and secure password manager.",
     "productName": "Lemonade Password Manager",
@@ -27,6 +27,7 @@
         "firebase": "^12.19.0",
         "pinia": "^4.0.3",
         "qr-scanner": "^1.4.2",
+        "qrcode": "^1.5.4",
         "quasar": "^2.35.0",
         "vue": "^3.5.43",
         "vue-i18n": "^11.4.13",

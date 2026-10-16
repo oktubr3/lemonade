@@ -1233,6 +1233,7 @@ main > section h2 {
 [data-theme="light"] .nav-pill:hover { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
 .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px; }
+.feature-item--wide { grid-column: 1 / -1; }
 .feature-item h4 { font-family: var(--font-mono); font-size: 0.95rem; color: var(--accent); margin-bottom: 6px; }
 .feature-item p { color: var(--text-secondary); font-size: 0.875rem; }
 .gauges-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }

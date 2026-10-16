@@ -1,5 +1,38 @@
 # Changelog
 
+## v2.3.0 — Google Authenticator import and export (2026-10-16)
+
+### New
+- **Import from Google Authenticator.** Settings → Google Authenticator reads the
+  "Transfer accounts" QR codes (camera, a screenshot, or the pasted
+  `otpauth-migration://` link), including exports split over several QR codes.
+  Each account is matched to an entry by service and username, and can go to an
+  existing entry, a new entry, or be skipped. The camera scans the whole frame
+  (an export QR is dense and fills it) and ignores the QR it already read while
+  it is still on screen. The whole batch is saved in one
+  call (`importTotpAccountsHttp`): looping the single-account endpoints would hit
+  their per-minute limits after five accounts.
+- **Export to Google Authenticator.** Pick entries with 2FA and Lemonade draws
+  the transfer QR codes (ten accounts per code, like the app itself does). The
+  secrets come from `exportTotpAccountsHttp`, the only endpoint that returns a
+  TOTP secret to the client: owner only, three calls a minute, audit-logged.
+  Accounts with a period other than 30 s are left out and listed, because the
+  transfer format cannot carry it.
+- **8-digit, SHA256 and SHA512 codes.** The code generator now follows the
+  parameters of the QR instead of assuming SHA1 / 6 digits / 30 s (checked
+  against the RFC 6238 test vectors). Scanning a single-account QR keeps them too.
+- Entries created by an import hold only the 2FA, with an empty password. Reading
+  such an entry, the reused-password check and the security analysis now accept
+  an empty password, and the edit form lets an entry with 2FA be saved without
+  one.
+
+### Fixed
+- The 2FA code in the view dialog no longer freezes when one refresh fails: it
+  retries after a few seconds. The countdown and the code layout follow the
+  entry's period and digit count (`1234 5678`).
+- Saving an entry with an empty password field no longer stores it as a bare
+  string, which every reader treated as the retired legacy format.
+
 ## v2.2.27 — Admin panel: faster, stricter, live tickets (2026-10-13)
 
 ### Performance
@@ -20,7 +53,7 @@
 - Saving a user updates its row in place instead of reloading the whole list.
 - **Every function the app calls is kept warm, not just the first screen.** The
   warm list had 17 entries, so the first save, delete, share or ticket reply
-  after a quiet spell still waited 8–14 s for a container. It now holds all 50
+  after a quiet spell still waited 8–14 s for a container. It now holds all 49
   functions the web app and the extensions call; in three days of production logs
   15 of the 17 listed functions never booted cold, one did once and one six
   times. A test fails if the app starts calling a function that is in no list.
