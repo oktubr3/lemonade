@@ -126,7 +126,7 @@ const removeCustomField = (index) => {
                     <div class="form-field">
                         <q-input :model-value="form.password" @update:model-value="updateFormField('password', $event)" :label="t('passwords.form.passwordRequired')" :type="isPwd ? 'password' : 'text'"
                             outlined class="custom-input password-input" :dense="false"
-                            :rules="[val => !!val || t('passwords.form.passwordValidation')]">
+                            :rules="[val => !!val || (!!editingEntry && editEntryHasTotp) || t('passwords.form.passwordValidation')]">
                             <template v-slot:prepend>
                                 <q-icon name="lock" class="input-icon" />
                             </template>

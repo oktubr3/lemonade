@@ -422,8 +422,21 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
 
             // Get the decrypted password first to detect changes
             const decryptedData = await getDecryptedPassword(entryId);
-            const decryptedPassword = decryptedData.password || decryptedData;
+            const decryptedPassword = decryptedData.password ?? decryptedData;
             const currentPasswordHash = await generatePasswordHash(decryptedPassword);
+
+            // A 2FA-only entry has no password to analyze. Recorded as dismissed so
+            // it shows no badge and is not re-checked; setting a password later
+            // changes the hash and brings the normal analysis back.
+            if (decryptedPassword === '') {
+                securityAnalysis.value[entryId] = {
+                    noPassword: true,
+                    isDismissed: true,
+                    lastChecked: new Date().toISOString(),
+                    passwordHash: currentPasswordHash
+                };
+                return null;
+            }
 
             // Check if we already have a recent and valid analysis
             const existingAnalysis = securityAnalysis.value[entryId];
@@ -1141,18 +1154,20 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
     // FUNCIONES PARA TOTP
     // ============================================
 
-    async function saveTotpSecret(entryId, totpSecret) {
+    // params: optional { algorithm, digits, period } read from the QR.
+    async function saveTotpSecret(entryId, totpSecret, params = {}) {
         const token = await getCachedAuthToken();
         const response = await fetch(`${FUNCTIONS_URL}/saveTotpSecretHttp`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ entryId, totpSecret })
+            body: JSON.stringify({ entryId, totpSecret, ...params })
         });
         if (!response.ok) {
             const err = await response.json();
             throw new Error(err.error || 'Error saving TOTP');
         }
         const result = await response.json();
+        await fetchEntries();
         return result;
     }
 
@@ -1168,7 +1183,7 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
             throw new Error(err.error || 'Error getting TOTP code');
         }
         const data = await response.json();
-        return { code: data.code, timeRemaining: data.timeRemaining };
+        return { code: data.code, timeRemaining: data.timeRemaining, period: data.period || 30 };
     }
 
     async function removeTotpSecret(entryId) {
@@ -1183,7 +1198,28 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
             throw new Error(err.error || 'Error removing TOTP');
         }
         const result = await response.json();
+        await fetchEntries();
         return result;
+    }
+
+    async function postJson(fn, body) {
+        const response = await authFetch(`${FUNCTIONS_URL}/${fn}`, { method: 'POST', body: JSON.stringify(body) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `HTTP error! status: ${response.status}`);
+        return data;
+    }
+
+    // accounts: [{ secret, algorithm, digits, period, entryId } or { ..., title, username }]
+    async function importTotpAccounts(accounts) {
+        const result = await postJson('importTotpAccountsHttp', { accounts });
+        await fetchEntries();
+        return result;
+    }
+
+    // Returns the secrets in clear, for drawing the Google Authenticator QR.
+    async function exportTotpAccounts(entryIds) {
+        const { accounts } = await postJson('exportTotpAccountsHttp', { entryIds });
+        return accounts;
     }
 
     return {
@@ -1238,5 +1274,7 @@ export const usePasswordEntriesStore = defineStore("passwordEntries", () => {
         saveTotpSecret,
         getTotpCode,
         removeTotpSecret,
+        importTotpAccounts,
+        exportTotpAccounts,
     };
 });

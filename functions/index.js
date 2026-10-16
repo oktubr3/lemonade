@@ -24,32 +24,7 @@ const {
   generateAuthenticationOptions,
   verifyAuthenticationResponse
 } = require('@simplewebauthn/server');
-// TOTP generation using native Node.js crypto (replaces otplib)
-function base32Decode(str) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  let bits = '';
-  for (const c of str.toUpperCase()) {
-    const val = chars.indexOf(c);
-    if (val === -1) continue;
-    bits += val.toString(2).padStart(5, '0');
-  }
-  const bytes = [];
-  for (let i = 0; i + 8 <= bits.length; i += 8) {
-    bytes.push(parseInt(bits.substring(i, i + 8), 2));
-  }
-  return Buffer.from(bytes);
-}
-
-function generateTOTP(secret, period = 30, digits = 6) {
-  const key = base32Decode(secret);
-  const time = Math.floor(Date.now() / 1000 / period);
-  const timeBuffer = Buffer.alloc(8);
-  timeBuffer.writeBigUInt64BE(BigInt(time));
-  const hmac = crypto.createHmac('sha1', key).update(timeBuffer).digest();
-  const offset = hmac[hmac.length - 1] & 0x0f;
-  const code = (hmac.readUInt32BE(offset) & 0x7fffffff) % Math.pow(10, digits);
-  return code.toString().padStart(digits, '0');
-}
+const { generateTOTP, normalizeTotpParams, normalizeTotpSecret, secondsRemaining } = require('./totp');
 
 // Configure CORS
 const corsHandler = cors({
@@ -201,6 +176,13 @@ function encryptPassword(password, keyValue) {
     console.error('Error encrypting password:', error);
     throw new functions.https.HttpsError('internal', 'Encryption failed');
   }
+}
+
+// An encrypted envelope. `encrypted` is the empty string for an empty value
+// (entries created by a 2FA import have no password), so it is checked by
+// type, not by truthiness.
+function isEncryptedValue(value) {
+  return !!value && typeof value === 'object' && typeof value.encrypted === 'string' && typeof value.iv === 'string';
 }
 
 // Function to decrypt passwords
@@ -653,7 +635,7 @@ exports.getPasswordEntry = functions.https.onCall(
       // Decrypt password
       let decryptedPassword;
 
-      if (entryData.password && typeof entryData.password === 'object' && entryData.password.encrypted) {
+      if (isEncryptedValue(entryData.password)) {
         decryptedPassword = decryptPassword(entryData.password, encryptionKey.value());
       } else if (typeof entryData.password === 'string') {
         // Legacy CryptoJS format. All entries were migrated; this should only
@@ -937,6 +919,11 @@ exports.updatePasswordEntryHttp = functions.https.onRequest(
         if (updateData.username) updateData.username = sanitizeInput(updateData.username);
         if (updateData.url !== undefined) updateData.url = sanitizeInput(updateData.url);
         if (updateData.notes !== undefined) updateData.notes = encryptPassword(sanitizeInput(updateData.notes), encryptionKey.value());
+
+        // An empty password means "unchanged" (an entry that only holds a 2FA
+        // has none). Written as is it would be a bare string, which every reader
+        // treats as the retired legacy format.
+        if (updateData.password === '') delete updateData.password;
 
         // Encrypt new password if provided
         if (updateData.password) {
@@ -1460,7 +1447,7 @@ exports.getPasswordEntryHttp = functions.https.onRequest(
       // Decrypt password
       let decryptedPassword;
 
-      if (entryData.password && typeof entryData.password === 'object' && entryData.password.encrypted) {
+      if (isEncryptedValue(entryData.password)) {
         decryptedPassword = decryptPassword(entryData.password, encryptionKey.value());
       } else if (typeof entryData.password === 'string') {
         // Legacy CryptoJS format. Migration retired LEGACY_SECRET_KEY use.
@@ -5116,6 +5103,8 @@ exports.checkReusedPasswordsHttp = functions.https.onRequest(
           const data = doc.data();
           try {
             const decrypted = decryptPassword(data.password, encryptionKey.value());
+            // Entries without a password (2FA only) are not "the same password".
+            if (!decrypted) return;
             if (!passwordMap[decrypted]) passwordMap[decrypted] = [];
             passwordMap[decrypted].push(doc.id);
           } catch (e) {
@@ -5746,18 +5735,15 @@ exports.saveTotpSecretHttp = functions.https.onRequest(
           return res.status(400).json({ error: 'totpSecret required' });
         }
 
-        // Validate base32 format (basic check)
-        const base32Regex = /^[A-Z2-7]+=*$/i;
-        const cleanSecret = totpSecret.replace(/[\s-]/g, '').toUpperCase();
-        if (!base32Regex.test(cleanSecret)) {
+        const cleanSecret = normalizeTotpSecret(totpSecret);
+        if (!cleanSecret) {
           return res.status(400).json({ error: 'Invalid TOTP secret format' });
         }
 
-        // Verify the secret works (generate a test code)
-        try {
-          generateTOTP(cleanSecret);
-        } catch (e) {
-          return res.status(400).json({ error: 'Invalid TOTP secret' });
+        // Optional: a QR can ask for 8 digits, SHA256/512 or another period.
+        const totpParams = normalizeTotpParams(req.body);
+        if (!totpParams) {
+          return res.status(400).json({ error: 'Unsupported TOTP parameters' });
         }
 
         // Rate limit
@@ -5780,6 +5766,7 @@ exports.saveTotpSecretHttp = functions.https.onRequest(
         // Encrypt and save
         await db.collection('password_entries').doc(entryId).update({
           totpSecret: encryptPassword(cleanSecret, encryptionKey.value()),
+          totpParams,
           updatedAt: serverTimestamp()
         });
 
@@ -5842,10 +5829,11 @@ exports.getTotpCodeHttp = functions.https.onRequest(
 
         // Decrypt secret and generate code
         const secret = decryptPassword(entryData.totpSecret, encryptionKey.value());
-        const code = generateTOTP(secret);
-        const timeRemaining = 30 - (Math.floor(Date.now() / 1000) % 30);
+        const params = normalizeTotpParams(entryData.totpParams) || normalizeTotpParams();
+        const code = generateTOTP(secret, params);
+        const timeRemaining = secondsRemaining(params.period);
 
-        return res.json({ success: true, code, timeRemaining });
+        return res.json({ success: true, code, timeRemaining, period: params.period, digits: params.digits });
 
       } catch (error) {
         console.error('Error getting TOTP code:', error);
@@ -5899,6 +5887,7 @@ exports.removeTotpSecretHttp = functions.https.onRequest(
 
         await db.collection('password_entries').doc(entryId).update({
           totpSecret: deleteField(),
+          totpParams: deleteField(),
           updatedAt: serverTimestamp()
         });
 
@@ -5907,6 +5896,179 @@ exports.removeTotpSecretHttp = functions.https.onRequest(
 
       } catch (error) {
         console.error('Error removing TOTP secret:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+  }
+);
+
+// ---- Bulk import / export (Google Authenticator "Transfer accounts") ----
+// One call for the whole batch: looping saveTotpSecretHttp or
+// createPasswordEntryHttp hits their per-minute limits after five accounts.
+
+const TOTP_BULK_MAX = 100;
+
+async function verifiedUserId(req, res) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return null;
+  }
+  try {
+    const decodedToken = await getAuth().verifyIdToken(authHeader.split('Bearer ')[1]);
+    return decodedToken.uid;
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+    return null;
+  }
+}
+
+// Body: { accounts: [{ secret, algorithm?, digits?, period?, entryId } |
+//                    { secret, ..., title, username }] }
+// With entryId the 2FA goes to that entry (replacing any it had); with a title
+// a new entry is created that only holds the 2FA (empty password).
+exports.importTotpAccountsHttp = functions.https.onRequest(
+  { secrets: [encryptionKey], cors: true },
+  (req, res) => {
+    return corsHandler(req, res, async () => {
+      try {
+        if (req.method !== 'POST') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        const userId = await verifiedUserId(req, res);
+        if (!userId) return;
+
+        const accounts = req.body?.accounts;
+        if (!Array.isArray(accounts) || accounts.length === 0 || accounts.length > TOTP_BULK_MAX) {
+          return res.status(400).json({ error: `accounts must be an array of 1 to ${TOTP_BULK_MAX}` });
+        }
+
+        const items = [];
+        for (const [index, account] of accounts.entries()) {
+          const secret = normalizeTotpSecret(account?.secret);
+          const params = normalizeTotpParams(account || {});
+          if (!secret || !params) {
+            return res.status(400).json({ error: `Invalid TOTP account at position ${index}` });
+          }
+          if (typeof account.entryId === 'string' && account.entryId) {
+            items.push({ index, secret, params, entryId: account.entryId });
+          } else if (isNonEmptyText(account.title, 200)) {
+            const username = typeof account.username === 'string' ? account.username.slice(0, 200) : '';
+            items.push({ index, secret, params, title: account.title, username });
+          } else {
+            return res.status(400).json({ error: `Account at position ${index} needs an entryId or a title` });
+          }
+        }
+
+        const existingIds = [...new Set(items.filter((item) => item.entryId).map((item) => item.entryId))];
+        if (existingIds.length !== items.filter((item) => item.entryId).length) {
+          return res.status(400).json({ error: 'The same entry appears twice' });
+        }
+
+        if (!checkRateLimit(userId, 'importTOTP', 5) || !await checkRateLimitPersistent(userId, 'importTOTP', 5, 60000)) {
+          return res.status(429).json({ error: 'Rate limit exceeded' });
+        }
+
+        if (existingIds.length) {
+          const docs = await db.getAll(...existingIds.map((id) => db.collection('password_entries').doc(id)));
+          for (const doc of docs) {
+            if (!doc.exists) return res.status(404).json({ error: 'Entry not found' });
+            if (doc.data().userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+            if (doc.data().status === 'deleted') return res.status(400).json({ error: 'Cannot modify deleted entry' });
+          }
+        }
+
+        const key = encryptionKey.value();
+        const batch = db.batch();
+        const created = [];
+        for (const item of items) {
+          const totpFields = {
+            totpSecret: encryptPassword(item.secret, key),
+            totpParams: item.params,
+            updatedAt: serverTimestamp()
+          };
+          if (item.entryId) {
+            batch.update(db.collection('password_entries').doc(item.entryId), totpFields);
+          } else {
+            const ref = db.collection('password_entries').doc();
+            batch.set(ref, {
+              title: sanitizeInput(item.title),
+              username: sanitizeInput(item.username),
+              password: encryptPassword('', key),
+              url: '',
+              notes: encryptPassword('', key),
+              userId,
+              status: 'active',
+              createdAt: serverTimestamp(),
+              ...totpFields
+            });
+            created.push({ index: item.index, entryId: ref.id });
+          }
+        }
+        await batch.commit();
+
+        await createAuditLog(userId, 'IMPORT_TOTP_ACCOUNTS', {
+          updated: existingIds.length,
+          created: created.length,
+          ip: req.ip
+        });
+        return res.json({ success: true, updated: existingIds.length, created });
+      } catch (error) {
+        console.error('Error importing TOTP accounts:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+      }
+    });
+  }
+);
+
+// Body: { entryIds: [...] }. Returns the decrypted secrets so the client can
+// draw the QR for Google Authenticator. The only endpoint that hands a TOTP
+// secret back to the client, hence the tight limit and the audit record.
+exports.exportTotpAccountsHttp = functions.https.onRequest(
+  { secrets: [encryptionKey], cors: true },
+  (req, res) => {
+    return corsHandler(req, res, async () => {
+      try {
+        if (req.method !== 'POST') {
+          return res.status(405).json({ error: 'Method not allowed' });
+        }
+        const userId = await verifiedUserId(req, res);
+        if (!userId) return;
+
+        const entryIds = req.body?.entryIds;
+        if (!Array.isArray(entryIds) || entryIds.length === 0 || entryIds.length > TOTP_BULK_MAX ||
+            !entryIds.every((id) => typeof id === 'string' && id)) {
+          return res.status(400).json({ error: `entryIds must be an array of 1 to ${TOTP_BULK_MAX}` });
+        }
+        const uniqueIds = [...new Set(entryIds)];
+
+        if (!checkRateLimit(userId, 'exportTOTP', 3) || !await checkRateLimitPersistent(userId, 'exportTOTP', 3, 60000)) {
+          return res.status(429).json({ error: 'Rate limit exceeded' });
+        }
+
+        const docs = await db.getAll(...uniqueIds.map((id) => db.collection('password_entries').doc(id)));
+        const key = encryptionKey.value();
+        const accounts = [];
+        for (const doc of docs) {
+          if (!doc.exists) return res.status(404).json({ error: 'Entry not found' });
+          const data = doc.data();
+          if (data.userId !== userId) return res.status(403).json({ error: 'Forbidden' });
+          if (data.status === 'deleted' || !data.totpSecret) continue;
+          const params = normalizeTotpParams(data.totpParams) || normalizeTotpParams();
+          accounts.push({
+            entryId: doc.id,
+            title: data.title || '',
+            username: data.username || '',
+            secret: decryptPassword(data.totpSecret, key),
+            ...params
+          });
+        }
+
+        await createAuditLog(userId, 'EXPORT_TOTP_ACCOUNTS', { count: accounts.length, ip: req.ip });
+        res.set('Cache-Control', 'no-store');
+        return res.json({ success: true, accounts });
+      } catch (error) {
+        console.error('Error exporting TOTP accounts:', error);
         return res.status(500).json({ error: 'Internal server error' });
       }
     });
@@ -6566,7 +6728,7 @@ exports.getEmergencyPasswordsHttp = functions.https.onRequest(
           let decryptedPassword = '';
 
           try {
-            if (entryData.password && typeof entryData.password === 'object' && entryData.password.encrypted) {
+            if (isEncryptedValue(entryData.password)) {
               decryptedPassword = decryptPassword(entryData.password, encryptionKey.value());
             } else if (typeof entryData.password === 'string') {
               // Legacy CryptoJS format. Migration retired LEGACY_SECRET_KEY use.
@@ -6763,8 +6925,9 @@ const WARM_TARGETS = [
   'getTrashEntriesHttp',
   'saveTotpSecretHttp',
   'removeTotpSecretHttp',
+  'importTotpAccountsHttp',
+  'exportTotpAccountsHttp',
   'checkPasswordSecurity',
-  'getAuditLogs',
   // Secure notes.
   'createSecureNoteHttp',
   'getSecureNoteHttp',
@@ -6804,7 +6967,8 @@ const NOT_WARMED = [
   'healthCheck', // the client's own warm-up ping
   'migrateAllUsersHttp', // one-off migrations
   'migrateUserRolesHttp',
-  'adminGetStatsHttp' // fallback for a server older than the client
+  'adminGetStatsHttp', // fallback for a server older than the client
+  'getAuditLogs' // no screen calls it and it is not publicly invocable: a ping gets 403
 ];
 
 exports.keepWarm = onSchedule('every 5 minutes', async () => {

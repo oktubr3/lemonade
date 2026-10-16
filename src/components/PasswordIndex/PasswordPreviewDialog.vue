@@ -1,5 +1,5 @@
 <script setup>
-import { defineOptions } from 'vue'
+import { defineOptions, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({
@@ -35,6 +35,10 @@ const props = defineProps({
         type: Number,
         default: 0
     },
+    totpPeriod: {
+        type: Number,
+        default: 30
+    },
     passwordHistory: {
         type: Array,
         default: () => []
@@ -66,6 +70,14 @@ const emit = defineEmits([
 ])
 
 const { t } = useI18n()
+
+// "123 456" or "1234 5678"; dashes while the first code loads.
+const formattedTotpCode = computed(() => {
+    const code = props.totpCode
+    if (!code) return '--- ---'
+    const half = Math.ceil(code.length / 2)
+    return `${code.slice(0, half)} ${code.slice(half)}`
+})
 
 const getShortenedUrl = (url) => {
     const maxLength = 22
@@ -160,11 +172,12 @@ const getShortenedUrl = (url) => {
                         <span class="q-ml-sm text-weight-medium text-grey-7">{{ t('passwords.totp.code') }}</span>
                     </div>
                     <div class="row items-center q-gutter-sm q-ml-lg">
-                        <div class="text-h5 text-weight-bold" style="font-family: monospace; letter-spacing: 4px;">
-                            {{ totpCode ? totpCode.substring(0, 3) + ' ' + totpCode.substring(3) : '--- ---' }}
+                        <div class="text-h5 text-weight-bold" data-testid="totp-code" style="font-family: monospace; letter-spacing: 4px;">
+                            {{ formattedTotpCode }}
                         </div>
                         <q-circular-progress
-                            :value="(totpTimeRemaining / 30) * 100"
+                            data-testid="totp-countdown"
+                            :value="(totpTimeRemaining / totpPeriod) * 100"
                             size="36px"
                             :thickness="0.3"
                             color="primary"

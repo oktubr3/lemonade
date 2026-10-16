@@ -7,7 +7,7 @@
     "node": "22"
   },
   "scripts": {
-    "test": "node test/polar-webhook.test.cjs && node test/warm-targets.test.cjs && node -e \"require('./index.js')\" && echo '  ok   index.js carga'",
+    "test": "node test/totp.test.cjs && node test/polar-webhook.test.cjs && node test/warm-targets.test.cjs && node -e \"require('./index.js')\" && echo '  ok   index.js carga'",
     "serve": "firebase emulators:start --only functions",
     "shell": "firebase functions:shell",
     "start": "npm run shell",

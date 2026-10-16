@@ -265,6 +265,9 @@ Los **webhooks se versionan aparte**, por endpoint, en el dashboard de Polar. El
 > solo tiene `processVoiceExpense`, `processReceiptScan` y `healthCheck`). Ese endpoint apunta a una
 > function que ya no existe: no hay migración pendiente ahí, y se puede borrar desde el dashboard de
 > Polar. Mientras exista, la regla de arriba sigue valiendo: **apuntar al id**.
+>
+> **Verificado 2026-10-13 (tarde):** ese endpoint ya fue borrado. `listWebhookEndpoints` devuelve uno
+> solo, el de Lemonade (`1bdb07e7…`, `2026-10`). La tabla de arriba queda como historia.
 
 > **MIGRACIÓN COMPLETA el 2026-10-06**: código en `/2026-10`, desplegado, y el endpoint de Lemonade
 > en `api_version: 2026-10`. Nada vence en enero de 2027 para este proyecto.
@@ -490,6 +493,37 @@ Reglas de seguridad del panel, además de las de "Identidad" de más arriba:
   string, y un objeto no tiene `.length`, así que pasaba todos los controles.
 - `useTickets.js` y `useAdmin.js` limpian su estado cuando cambia el usuario, y **no cachean el
   token a mano**: `getIdToken()` ya lo cachea y refresca. Un caché propio sobrevivía a la sesión.
+
+## 2FA y Google Authenticator (v2.3.0)
+
+- **El formato de Google** es `otpauth-migration://offline?data=<base64 de un protobuf>`. El
+  códec está hecho a mano en `src/utils/otpMigration.js` (dos mensajes planos; no hay runtime de
+  protobuf). El parámetro `data` se lee con una regex, **nunca con `URLSearchParams`**: convierte
+  `+` en espacio y rompe el base64 (hay un test que lo atrapa).
+- **Google Authenticator parte la exportación en QR de a 10 cuentas** (`batch_size`,
+  `batch_index`, `batch_id`). La importación acumula hasta tener todos; la exportación arma igual.
+  El formato **no lleva período**: una cuenta con período distinto de 30 s no se exporta.
+- **Los parámetros del TOTP** (`algorithm`, `digits`, `period`) se guardan en claro en
+  `password_entries/{id}.totpParams` (no son secretos); sin ese campo valen SHA1 / 6 / 30. El
+  generador vive en `functions/totp.js` y `functions/test/totp.test.cjs` lo prueba con los vectores
+  del RFC 6238.
+- **`exportTotpAccountsHttp` es la única function que devuelve un secreto TOTP al cliente.** Solo
+  el dueño, 3 llamadas por minuto, registro de auditoría con la cantidad (nunca los secretos). No
+  loguear su respuesta ni nombrar variables `secrets` en un `console.*` (CodeQL).
+- **Importar en bloque es obligatorio**: `createPasswordEntryHttp` permite 5 por minuto y
+  `saveTotpSecretHttp` 10. Por eso `importTotpAccountsHttp` hace todo en un batch. (La importación
+  CSV todavía hace un pedido por entrada; ver el backlog.)
+- **Entradas sin contraseña**: las que crea la importación solo tienen el 2FA. Un sobre cifrado de
+  un string vacío tiene `encrypted: ''`, así que se reconoce con `isEncryptedValue()` (por tipo),
+  no por verdad. En el cliente, `decryptedData.password ?? decryptedData`, nunca `||`.
+- **La cámara escanea el cuadro entero** (`calculateScanRegion`). La región por defecto de
+  qr-scanner es el centro reducido a 400 px: un QR de exportación que llena el cuadro no se lee.
+  Y el mismo QR queda frente a la cámara varios segundos: las relecturas se ignoran sin aviso.
+- **La cámara sí está en los e2e**: `e2e/helpers/fakeCamera.js` arma un video Y4M con los QR y
+  Chromium lo usa como webcam. Para contar avisos no sirve `toHaveCount(0)` (reintenta hasta que se
+  van solos): el test los registra con un `MutationObserver`.
+- **Lo que los e2e no cubren**: un QR real de Google Authenticator filmado de un teléfono, ni
+  importar el QR de Lemonade en la app real. Los tests usan el códec propio y la muestra pública.
 
 ## Tests: tres capas, y cuál corre dónde
 

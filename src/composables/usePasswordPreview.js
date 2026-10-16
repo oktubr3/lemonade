@@ -1,5 +1,6 @@
 import { ref, watch, nextTick } from 'vue'
 import QrScanner from 'qr-scanner'
+import { decodeMigrationUri, parseOtpauthUri } from '../utils/otpMigration'
 
 export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnalysis, editingEntry, editEntryHasTotp }) {
   // Refs
@@ -14,6 +15,10 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
   const previewHasTotp = ref(false)
   const totpCode = ref('')
   const totpTimeRemaining = ref(30)
+  const totpPeriod = ref(30)
+  // Parameters read from the last scanned QR (8 digits, SHA256...), sent with the secret.
+  let scannedTotpParams = {}
+  let scannedTotpSecret = ''
   let totpInterval = null
   const totpSecretInput = ref('')
   const isSavingTotp = ref(false)
@@ -32,6 +37,7 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
       if (totpInterval) clearInterval(totpInterval)
       totpCode.value = ''
       totpTimeRemaining.value = 30
+      totpPeriod.value = 30
       previewHasTotp.value = false
     }
   })
@@ -42,7 +48,7 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
 
     try {
       const decryptedData = await passwordEntriesStore.getDecryptedPassword(entry.id)
-      const decryptedPassword = decryptedData.password || decryptedData
+      const decryptedPassword = decryptedData.password ?? decryptedData
       // notes is stored encrypted server-side and returned in plaintext by the
       // decrypt endpoint. The listing payload (entry.notes) carries the ciphertext
       // envelope ({encrypted, iv, authTag}); reading it directly leaks the raw
@@ -107,28 +113,28 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
     })
   }
 
+  // The server says how many seconds the code has left; the countdown runs
+  // locally and asks again when it reaches zero. A failed refresh retries in a
+  // few seconds instead of leaving a stale code on screen.
   const loadTotpCode = async (entryId) => {
-    try {
-      const data = await passwordEntriesStore.getTotpCode(entryId)
-      totpCode.value = data.code
-      totpTimeRemaining.value = data.timeRemaining
-
-      if (totpInterval) clearInterval(totpInterval)
-      totpInterval = setInterval(async () => {
-        totpTimeRemaining.value--
-        if (totpTimeRemaining.value <= 0) {
-          try {
-            const newData = await passwordEntriesStore.getTotpCode(entryId)
-            totpCode.value = newData.code
-            totpTimeRemaining.value = newData.timeRemaining
-          } catch (e) {
-            clearInterval(totpInterval)
-          }
-        }
-      }, 1000)
-    } catch (error) {
-      totpCode.value = ''
+    if (totpInterval) clearInterval(totpInterval)
+    const refresh = async () => {
+      try {
+        const data = await passwordEntriesStore.getTotpCode(entryId)
+        if (!showPreviewDialog.value || previewEntry.value.id !== entryId) return
+        totpCode.value = data.code
+        totpPeriod.value = data.period || 30
+        totpTimeRemaining.value = data.timeRemaining
+      } catch (error) {
+        totpCode.value = ''
+        totpTimeRemaining.value = 5
+      }
     }
+    await refresh()
+    totpInterval = setInterval(() => {
+      totpTimeRemaining.value--
+      if (totpTimeRemaining.value <= 0) refresh()
+    }, 1000)
   }
 
   const copyTotpCode = () => {
@@ -142,7 +148,11 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
     if (!totpSecretInput.value || !editingEntry.value) return
     isSavingTotp.value = true
     try {
-      await passwordEntriesStore.saveTotpSecret(editingEntry.value.id, totpSecretInput.value)
+      // The parameters belong to the scanned secret; a secret typed by hand uses the defaults.
+      const params = totpSecretInput.value === scannedTotpSecret ? scannedTotpParams : {}
+      await passwordEntriesStore.saveTotpSecret(editingEntry.value.id, totpSecretInput.value, params)
+      scannedTotpParams = {}
+      scannedTotpSecret = ''
       editEntryHasTotp.value = true
       showTotpSetupDialog.value = false
       totpSecretInput.value = ''
@@ -197,22 +207,34 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
     showQrScanner.value = false
   }
 
+  const acceptScannedSecret = (secret, params = {}) => {
+    totpSecretInput.value = secret
+    scannedTotpSecret = secret
+    scannedTotpParams = params
+    stopQrScanner()
+    $q.notify({ message: t('passwords.totp.qrSuccess'), color: 'positive', position: 'top', timeout: 2000 })
+  }
+
   const handleQrResult = (data) => {
     try {
-      if (data.startsWith('otpauth://totp/')) {
-        const url = new URL(data)
-        const secret = url.searchParams.get('secret')
-        if (secret) {
-          totpSecretInput.value = secret
-          stopQrScanner()
-          $q.notify({ message: t('passwords.totp.qrSuccess'), color: 'positive', position: 'top', timeout: 2000 })
+      if (/^otpauth:\/\//i.test(data)) {
+        const account = parseOtpauthUri(data)
+        if (account.supported) {
+          acceptScannedSecret(account.secret, { algorithm: account.algorithm, digits: account.digits, period: account.period })
           return
         }
       }
-      if (/^[A-Z2-7]{16,}$/i.test(data)) {
-        totpSecretInput.value = data.toUpperCase()
-        stopQrScanner()
-        $q.notify({ message: t('passwords.totp.qrSuccess'), color: 'positive', position: 'top', timeout: 2000 })
+      // A Google Authenticator export with a single account works here too.
+      if (/^otpauth-migration:/i.test(data)) {
+        const supported = decodeMigrationUri(data).accounts.filter((account) => account.supported)
+        if (supported.length === 1) {
+          const [account] = supported
+          acceptScannedSecret(account.secret, { algorithm: account.algorithm, digits: account.digits, period: 30 })
+          return
+        }
+      }
+      if (/^[A-Z2-7]{8,128}$/i.test(data)) {
+        acceptScannedSecret(data.toUpperCase())
         return
       }
       $q.notify({ message: t('passwords.totp.qrInvalid'), color: 'warning', position: 'top', timeout: 2000 })
@@ -240,6 +262,7 @@ export function usePasswordPreview ({ passwordEntriesStore, $q, t, canUseAIAnaly
     previewHasTotp,
     totpCode,
     totpTimeRemaining,
+    totpPeriod,
     totpSecretInput,
     isSavingTotp,
     showTotpSetupDialog,

@@ -64,7 +64,7 @@ export function usePasswordForm ({ passwordEntriesStore, $q, t, router }) {
   const editEntry = async (entry) => {
     try {
       const decryptedData = await passwordEntriesStore.getDecryptedPassword(entry.id)
-      const decryptedPassword = decryptedData.password || decryptedData
+      const decryptedPassword = decryptedData.password ?? decryptedData
       const customFields = decryptedData.customFields || []
       // notes comes back from the decrypt endpoint as plaintext. entry.notes
       // from the listing is the encrypted envelope and must not be used here.

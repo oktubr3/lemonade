@@ -21,6 +21,7 @@ import SettingsAccount from '../components/Settings/SettingsAccount.vue';
 import SettingsSecurity from '../components/Settings/SettingsSecurity.vue';
 import SettingsEmergencyAccess from '../components/Settings/SettingsEmergencyAccess.vue';
 import SettingsExportImport from '../components/Settings/SettingsExportImport.vue';
+import SettingsAuthenticator from '../components/Settings/SettingsAuthenticator.vue';
 import SettingsSupport from '../components/Settings/SettingsSupport.vue';
 import SettingsGridConfig from '../components/Settings/SettingsGridConfig.vue';
 
@@ -634,6 +635,11 @@ const handleRemovePasskey = async (passkey) => {
         <!-- Export/Import -->
         <div class="col-12 col-md-6">
           <SettingsExportImport />
+        </div>
+
+        <!-- Google Authenticator -->
+        <div class="col-12 col-md-6">
+          <SettingsAuthenticator />
         </div>
 
         <!-- Developer Info (inline - small) -->
