@@ -522,6 +522,15 @@ Reglas de seguridad del panel, además de las de "Identidad" de más arriba:
 - **La cámara sí está en los e2e**: `e2e/helpers/fakeCamera.js` arma un video Y4M con los QR y
   Chromium lo usa como webcam. Para contar avisos no sirve `toHaveCount(0)` (reintenta hasta que se
   van solos): el test los registra con un `MutationObserver`.
+- **El CSP de producción rompió la lectura de QR en v2.3.0** (arreglado en v2.3.1). qr-scanner
+  carga la imagen subida como `blob:` y decodifica en un Worker `blob:`. En Chrome sobre Mac con
+  chip Apple y macOS 13+ usa **siempre** el Worker, aunque haya `BarcodeDetector`. Por eso el CSP
+  de la app tiene `img-src ... blob:` y `worker-src 'self' blob:`. **No los saques**: la cámara y
+  la imagen dejan de leer sin ningún error visible para el usuario.
+- **Los e2e del 2FA corren con el CSP de `firebase.json`** (`e2e/helpers/productionCsp.js`) y
+  sin `BarcodeDetector`. El dev server no manda el CSP, y el Chromium de los tests usaba el
+  detector nativo: así pasaron en verde con la función rota en producción. El helper reescribe el
+  documento, y eso obliga a desactivar Local Network Access en esos tests (`CSP_LAUNCH_ARGS`).
 - **Lo que los e2e no cubren**: un QR real de Google Authenticator filmado de un teléfono, ni
   importar el QR de Lemonade en la app real. Los tests usan el códec propio y la muestra pública.
 

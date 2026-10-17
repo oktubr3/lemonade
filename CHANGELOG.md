@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.3.1 — QR reading fixed in production (2026-10-17)
+
+### Fixed
+- **Reading a Google Authenticator QR failed in production**, both from an
+  uploaded image ("no QR code found") and from the camera (nothing ever read).
+  The QR library loads the image as a `blob:` URL and decodes in a `blob:`
+  Worker (always, in Chrome on Apple-silicon Macs), and the app's Content
+  Security Policy blocked both. The CSP now allows `blob:` for images and
+  workers (`img-src`, new `worker-src`); `script-src` is unchanged.
+- The 2FA end-to-end tests now run with the production CSP from
+  `firebase.json` and without the native `BarcodeDetector`, the path that
+  failed. Before the fix they fail with these exact two blocks.
+
 ## v2.3.0 — Google Authenticator import and export (2026-10-16)
 
 ### New
