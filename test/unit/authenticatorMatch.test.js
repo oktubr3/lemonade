@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { suggestEntry, suggestAll } from '../../src/utils/authenticatorMatch'
+import { entryLabel, entryTitle, suggestEntry, suggestAll } from '../../src/utils/authenticatorMatch'
 
 const ENTRIES = [
   { id: 'gh-work', title: 'GitHub (trabajo)', username: 'me@work.com', url: 'https://github.com' },
@@ -44,5 +44,27 @@ describe('suggestAll', () => {
 
   it('does not suggest an entry for an account that cannot be imported', () => {
     expect(suggestAll([{ issuer: 'Mercado Pago', supported: false }], ENTRIES)).toEqual([null])
+  })
+})
+
+describe('entryLabel', () => {
+  it('uses title and username', () => {
+    expect(entryLabel({ title: 'GitHub', username: 'me' })).toBe('GitHub — me')
+  })
+  it('falls back to the legacy name field', () => {
+    expect(entryLabel({ name: 'Netflix' })).toBe('Netflix')
+    expect(entryTitle({ name: 'Netflix', url: 'netflix.com' })).toBe('Netflix')
+  })
+  it('falls back to the site, then the username, and never returns undefined', () => {
+    expect(entryLabel({ url: 'https://www.dropbox.com/login', username: 'box' })).toBe('dropbox.com — box')
+    expect(entryLabel({ username: 'solo' })).toBe('solo')
+    expect(entryLabel({})).toBe('')
+  })
+})
+
+describe('suggestEntry with legacy entries', () => {
+  it('matches an entry that only has the old name field', () => {
+    const entries = [{ id: 'n', name: 'Netflix' }, { id: 'g', title: 'GitHub' }]
+    expect(suggestEntry({ issuer: 'Netflix', name: 'tv@example.com', supported: true }, entries)).toBe('n')
   })
 })

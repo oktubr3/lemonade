@@ -483,7 +483,8 @@
       "linkCopied": "Link copiado",
       "done": "Pronto",
       "nothingToExport": "Nenhuma das contas escolhidas pode ser exportada",
-      "exportError": "Não foi possível exportar as contas"
+      "exportError": "Não foi possível exportar as contas",
+      "untitled": "Sem título"
     }
   },
   "envVault": {

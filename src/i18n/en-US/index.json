@@ -526,7 +526,8 @@
       "linkCopied": "Link copied",
       "done": "Done",
       "nothingToExport": "None of the selected accounts can be exported",
-      "exportError": "Could not export the accounts"
+      "exportError": "Could not export the accounts",
+      "untitled": "Untitled"
     }
   },
   "envVault": {

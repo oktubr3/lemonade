@@ -6057,7 +6057,7 @@ exports.exportTotpAccountsHttp = functions.https.onRequest(
           const params = normalizeTotpParams(data.totpParams) || normalizeTotpParams();
           accounts.push({
             entryId: doc.id,
-            title: data.title || '',
+            title: data.title || data.name || '',
             username: data.username || '',
             secret: decryptPassword(data.totpSecret, key),
             ...params

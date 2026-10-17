@@ -12,11 +12,21 @@ const hostOf = (url) => {
   }
 }
 
+// Older entries keep their name in `name` instead of `title` (the vault list
+// already reads both). Falls back to the site, so a label is never undefined.
+export const entryTitle = (entry) => entry.title || entry.name || hostOf(entry.url || '') || ''
+
+export const entryLabel = (entry) => {
+  const title = entryTitle(entry)
+  if (title && entry.username) return `${title} — ${entry.username}`
+  return title || entry.username || ''
+}
+
 // "Google" matches "Gmail personal"? No. "GitHub" matches "GitHub (work)" and github.com.
 function issuerMatches (issuer, entry) {
   const wanted = normalize(issuer)
   if (!wanted) return false
-  const title = normalize(entry.title || entry.name)
+  const title = normalize(entryTitle(entry))
   const host = normalize(hostOf(entry.url || ''))
   const firstWord = wanted.split(' ')[0]
   return (title && (title.includes(wanted) || wanted.includes(title))) ||

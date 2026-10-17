@@ -1,6 +1,6 @@
 {
     "name": "pass-manager",
-    "version": "2.3.1",
+    "version": "2.3.3",
     "packageManager": "pnpm@9.15.9",
     "description": "A very simple and secure password manager.",
     "productName": "Lemonade Password Manager",
@@ -59,7 +59,8 @@
         "overrides": {
             "serialize-javascript": ">=7.0.5",
             "immutable": ">=5.1.8",
-            "esbuild": ">=0.28.1"
+            "esbuild": ">=0.28.1",
+            "@grpc/grpc-js": "^1.14.6"
         }
     }
 }

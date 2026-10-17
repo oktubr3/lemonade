@@ -487,7 +487,8 @@
       "linkCopied": "链接已复制",
       "done": "完成",
       "nothingToExport": "所选帐号均无法导出",
-      "exportError": "无法导出帐号"
+      "exportError": "无法导出帐号",
+      "untitled": "无标题"
     }
   },
   "envVault": {

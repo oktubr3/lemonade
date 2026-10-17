@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import QRCode from 'qrcode'
 import { usePasswordEntriesStore } from '../../stores/passwordEntries'
 import { encodeMigrationUris } from '../../utils/otpMigration'
+import { entryLabel } from '../../utils/authenticatorMatch'
 
 defineOptions({ name: 'AuthenticatorExportDialog' })
 
@@ -73,13 +74,13 @@ async function generate () {
     const accounts = await store.exportTotpAccounts(selected.value)
     // Google Authenticator's transfer format has no field for the period: it
     // always assumes 30 seconds, so other periods would give wrong codes there.
-    skipped.value = accounts.filter((account) => account.period !== 30).map((account) => account.title)
+    skipped.value = accounts.filter((account) => account.period !== 30).map((account) => account.title || account.username)
     const exportable = accounts
       .filter((account) => account.period === 30)
       .map((account) => ({
         secret: account.secret,
         issuer: account.title,
-        name: account.username || account.title,
+        name: account.username || account.title || 'Lemonade',
         algorithm: account.algorithm,
         digits: account.digits
       }))
@@ -130,7 +131,7 @@ async function copyLink () {
             <q-separator class="q-my-xs" />
             <div v-for="entry in withTotp" :key="entry.id">
               <q-checkbox v-model="selected" :val="entry.id"
-                :label="entry.username ? `${entry.title} — ${entry.username}` : entry.title" />
+                :label="entryLabel(entry) || t('settings.authenticator.untitled')" />
             </div>
           </q-card-section>
           <q-card-actions align="right">
