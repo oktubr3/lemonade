@@ -1,5 +1,6 @@
 import { test, expect } from './fixtures.js';
 import { signIn } from './helpers/session.js';
+import { CSP_LAUNCH_ARGS, useProductionCsp, withoutBarcodeDetector } from './helpers/productionCsp.js';
 import { qrVideo } from './helpers/fakeCamera.js';
 import { encodeMigrationUris } from '../src/utils/otpMigration.js';
 
@@ -13,12 +14,14 @@ test.use({
     storageState: { cookies: [], origins: [] },
     permissions: ['camera'],
     launchOptions: {
-        args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-video-capture=${VIDEO}`],
+        args: [...CSP_LAUNCH_ARGS, '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', `--use-file-for-fake-video-capture=${VIDEO}`],
     },
 });
 
 test('2FA: la cámara lee los dos QR seguidos, sin avisos repetidos', async ({ page }) => {
     test.setTimeout(120_000);
+    await useProductionCsp(page);
+    await withoutBarcodeDetector(page);
     await signIn(page, { email: 'totp-camera@example.com', name: 'TOTP Camera' }, '/settings');
     await page.getByRole('button', { name: 'Import from Google Authenticator' }).click();
     const dialog = page.getByTestId('authenticator-import');

@@ -1,6 +1,7 @@
 import QRCode from 'qrcode';
 import { test, expect } from './fixtures.js';
 import { callFunction, signIn } from './helpers/session.js';
+import { CSP_LAUNCH_ARGS, useProductionCsp, withoutBarcodeDetector } from './helpers/productionCsp.js';
 import { decodeMigrationUri, encodeMigrationUris } from '../src/utils/otpMigration.js';
 
 import totp from '../functions/totp.js';
@@ -9,7 +10,13 @@ import totp from '../functions/totp.js';
 const { generateTOTP } = totp;
 
 // Cada test entra con su propio usuario: vault vacio y limites de frecuencia propios.
-test.use({ storageState: { cookies: [], origins: [] } });
+test.use({ storageState: { cookies: [], origins: [] }, launchOptions: { args: CSP_LAUNCH_ARGS } });
+
+// Con el CSP de produccion: sin el, la lectura de QR pasaba aca y fallaba en la app.
+test.beforeEach(async ({ page }) => {
+    await useProductionCsp(page);
+    await withoutBarcodeDetector(page);
+});
 
 const GITHUB = 'JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
 const BINANCE = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ';

@@ -1,6 +1,6 @@
 {
     "name": "pass-manager",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "packageManager": "pnpm@9.15.9",
     "description": "A very simple and secure password manager.",
     "productName": "Lemonade Password Manager",
