@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import QrScanner from 'qr-scanner'
 import { usePasswordEntriesStore } from '../../stores/passwordEntries'
 import { decodeMigrationUri } from '../../utils/otpMigration'
-import { suggestAll } from '../../utils/authenticatorMatch'
+import { entryLabel, suggestAll } from '../../utils/authenticatorMatch'
 
 defineOptions({ name: 'AuthenticatorImportDialog' })
 
@@ -38,7 +38,7 @@ const entryOptions = computed(() => [
   { label: t('settings.authenticator.newEntry'), value: NEW_ENTRY },
   { label: t('settings.authenticator.skip'), value: SKIP },
   ...store.entries.map((entry) => ({
-    label: entry.username ? `${entry.title} — ${entry.username}` : entry.title,
+    label: entryLabel(entry) || t('settings.authenticator.untitled'),
     value: entry.id
   }))
 ])
@@ -50,7 +50,7 @@ function filterOptions (text, update) {
   update(() => {
     const needle = text.toLowerCase()
     filteredOptions.value = needle
-      ? entryOptions.value.filter((option) => option.label.toLowerCase().includes(needle))
+      ? entryOptions.value.filter((option) => String(option.label).toLowerCase().includes(needle))
       : entryOptions.value
   })
 }

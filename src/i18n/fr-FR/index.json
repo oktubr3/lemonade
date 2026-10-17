@@ -487,7 +487,8 @@
       "linkCopied": "Lien copié",
       "done": "Terminé",
       "nothingToExport": "Aucun des comptes choisis ne peut être exporté",
-      "exportError": "Impossible d'exporter les comptes"
+      "exportError": "Impossible d'exporter les comptes",
+      "untitled": "Sans titre"
     }
   },
   "envVault": {

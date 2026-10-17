@@ -487,7 +487,8 @@
       "linkCopied": "リンクをコピーしました",
       "done": "完了",
       "nothingToExport": "選択したアカウントはどれもエクスポートできません",
-      "exportError": "アカウントをエクスポートできませんでした"
+      "exportError": "アカウントをエクスポートできませんでした",
+      "untitled": "無題"
     }
   },
   "envVault": {

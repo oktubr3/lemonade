@@ -487,7 +487,8 @@
       "linkCopied": "تم نسخ الرابط",
       "done": "تم",
       "nothingToExport": "لا يمكن تصدير أي من الحسابات المختارة",
-      "exportError": "تعذر تصدير الحسابات"
+      "exportError": "تعذر تصدير الحسابات",
+      "untitled": "بدون عنوان"
     }
   },
   "envVault": {

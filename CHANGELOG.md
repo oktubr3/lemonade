@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.3.3 — dependency security updates (2026-10-17)
+
+### Security
+- **Cloud Functions** (all transitive): `proxy-addr` 2.0.8 (critical: IP spoofing
+  through IPv4-mapped IPv6 trust subnets), `@fastify/busboy` 3.2.3, `@grpc/grpc-js`
+  1.14.6, `brace-expansion` 2.1.7 and `qs` 6.16.1. `npm audit` reports none left.
+- **App**: `@grpc/grpc-js` forced to `^1.14.6` with a pnpm override. Firestore still
+  pins `~1.9.0` (also in its latest release); grpc-js is not in the browser bundle and
+  only runs in Node tests, where the 74 rules tests pass with it.
+- **Service worker build** (`src-pwa/`): `fast-uri` 3.1.8 and `brace-expansion`.
+- Remaining: `braces` (build-time only, via the i18n plugin), which has no patched
+  release yet.
+
+## v2.3.2 — 2FA dialogs with older entries (2026-10-17)
+
+### Fixed
+- **Searching the entry list in "Import from Google Authenticator" crashed**
+  (`Cannot read properties of undefined (reading 'toLowerCase')`) when the vault
+  had entries saved by older versions, which keep their name in `name` instead
+  of `title`. Both 2FA dialogs now read `title`, then `name`, then the site,
+  like the vault list does, and an entry with none of them shows "Untitled".
+- Exporting such an entry to Google Authenticator now carries its name as the
+  issuer (`exportTotpAccountsHttp` also reads `name`).
+
 ## v2.3.1 — QR reading fixed in production (2026-10-17)
 
 ### Fixed

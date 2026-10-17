@@ -1,6 +1,7 @@
 import QRCode from 'qrcode';
 import { test, expect } from './fixtures.js';
 import { callFunction, signIn } from './helpers/session.js';
+import { mergeDocument } from './helpers/firestore.js';
 import { CSP_LAUNCH_ARGS, useProductionCsp, withoutBarcodeDetector } from './helpers/productionCsp.js';
 import { decodeMigrationUri, encodeMigrationUris } from '../src/utils/otpMigration.js';
 
@@ -104,6 +105,40 @@ test.describe('2FA: importar desde Google Authenticator', () => {
         await expect(view.getByTestId('totp-code')).toHaveText(/^\d{4} \d{4}$/);
         expect(validCodes(BINANCE, { algorithm: 'SHA256', digits: 8 })).toContain(await shownCode(view));
         await expect(view).toContainText('trader@example.com');
+    });
+
+    test('las entradas viejas con `name` en vez de `title` se listan y se pueden buscar', async ({ page }) => {
+        await signIn(page, { email: 'totp-legacy@example.com', name: 'TOTP Legacy' });
+        // Asi guardaban el nombre las versiones viejas; el buscador del selector
+        // tiraba "Cannot read properties of undefined (reading 'toLowerCase')".
+        const legacyId = await createEntry(page, 'placeholder', '');
+        await mergeDocument(`password_entries/${legacyId}`, { title: undefined, name: 'Netflix' });
+        const [uri] = encodeMigrationUris([{ secret: GITHUB, issuer: 'Netflix', name: 'tv@example.com', algorithm: 'SHA1', digits: 6 }]);
+
+        await page.goto('/#/settings');
+        await page.reload();
+        await page.getByRole('button', { name: 'Import from Google Authenticator' }).click();
+        const dialog = page.getByTestId('authenticator-import');
+        await dialog.getByText('Paste the export link').click();
+        await dialog.getByTestId('paste-export').fill(uri);
+        await dialog.getByRole('button', { name: 'Read link' }).click();
+
+        const row = dialog.getByTestId('import-row');
+        await expect(row).toHaveCount(1);
+        // La sugerencia la encuentra por el nombre viejo...
+        await expect(row).toContainText('Netflix');
+        await row.getByRole('combobox').click();
+        await page.keyboard.type('netf');
+        // ...y el buscador la lista con ese nombre.
+        await expect(page.getByRole('option', { name: 'Netflix' })).toBeVisible();
+        await page.getByRole('option', { name: 'Netflix' }).click();
+        await dialog.getByRole('button', { name: 'Import 1' }).click();
+        await expect(page.getByText('1 accounts imported (0 new entries)')).toBeVisible();
+
+        // Al exportarla a Google Authenticator lleva ese nombre, no un emisor vacio.
+        const exported = await callFunction(page, 'exportTotpAccountsHttp', { entryIds: [legacyId] });
+        expect(exported.status).toBe(200);
+        expect(exported.body.accounts[0].title).toBe('Netflix');
     });
 
     test('subiendo la imagen del QR', async ({ page }) => {

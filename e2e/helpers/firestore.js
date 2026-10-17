@@ -11,7 +11,10 @@ function encode(value) {
     if (Array.isArray(value)) return { arrayValue: { values: value.map(encode) } };
     return { mapValue: { fields: encodeFields(value) } };
 }
-const encodeFields = (data) => Object.fromEntries(Object.entries(data).map(([key, value]) => [key, encode(value)]));
+// Un campo en `undefined` queda en la mascara pero no en el cuerpo: Firestore lo borra.
+const encodeFields = (data) => Object.fromEntries(Object.entries(data)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => [key, encode(value)]));
 
 // Fusiona campos en un documento, directo en el emulador y con el token de owner
 // (saltea las reglas). Para lo que ninguna pantalla puede crear: por ejemplo un

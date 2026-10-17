@@ -1775,7 +1775,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Log a friendly message for curious devs
   console.log(
-    '%c\u{1F34B} Lemonade Password Manager %cv2.3.1',
+    '%c\u{1F34B} Lemonade Password Manager %cv2.3.3',
     'color: #FFE135; font-size: 16px; font-weight: bold;',
     'color: #888; font-size: 12px;'
   );
